@@ -13,26 +13,20 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
             $table->string('nama');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-
-            $table->enum('role', [
-                'admin',
-                'operator_kabupaten'
-            ]);
-
-            $table->foreignId('kabupaten_id')
-                ->nullable()
-                ->constrained('kabupaten')
-                ->nullOnDelete();
-
+            $table->enum('role', ['admin', 'operator_kabupaten']);
+            
+            // Kolom foreign key terikat ke tabel kabupaten
+            $table->foreignId('kabupaten_id')->nullable()->constrained('kabupaten')->nullOnDelete();
+            
             $table->rememberToken();
             $table->timestamps();
         });
 
+        // BAGIAN DI BAWAH INI ADALAH BAWAAN LARAVEL (Biarkan saja atau hapus jika tidak dipakai)
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

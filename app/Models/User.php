@@ -2,31 +2,48 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    // Sesuaikan fillable dengan kolom rancangan database kalian
+    protected $fillable = [
+        'nama',
+        'email',
+        'password',
+        'role',
+        'kabupaten_id',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    // Relasi Kebalikan (Belongs To): Jika role 'operator_kabupaten', dia terikat pada satu Kabupaten
+    public function kabupaten()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Kabupaten::class, 'kabupaten_id');
+    }
+
+    // Relasi One-to-Many: Dokumen blank spot yang dibuat oleh user ini
+    public function createdBlankSpots()
+    {
+        return $this->hasMany(BlankSpot::class, 'created_by');
+    }
+
+    // Relasi One-to-Many: Dokumen blank spot yang divalidasi oleh user ini (Admin Diskominfo)
+    public function validatedBlankSpots()
+    {
+        return $this->hasMany(BlankSpot::class, 'validated_by');
     }
 }

@@ -4,9 +4,33 @@
 
 <section class="max-w-7xl mx-auto py-10 px-8 relative">
 
-    <h2 class="text-3xl font-bold text-[#234B26] mb-6">
+    <div class="flex items-center gap-5 mb-6">
+
+    <!-- BACK BUTTON -->
+    <button onclick="history.back()"
+        class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+
+        <!-- icon panah kiri -->
+        <svg xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-5 h-5">
+
+            <path stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 19l-7-7 7-7" />
+        </svg>
+
+    </button>
+
+    <!-- TITLE -->
+    <h2 class="text-3xl font-bold text-[#234B26]">
         Kota Medan
     </h2>
+
+</div>
 
 <div id="content-table" class="tab-content mt-10">
 
@@ -272,53 +296,74 @@
 
 
 
-<div id="blankspotModal" 
+<div id="blankspotModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-    
-    <div class="bg-[#234B26] w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
-        
-        <div class="text-center mb-6">
-            <h3 class="text-2xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
-            <p class="text-2xl italic font-bold text-[#E6EB9C]">Blankspot</p>
+
+    <div class="bg-[#234B26] w-full max-w-md p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
+
+        <div class="text-center mb-4">
+            <h3 class="text-xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
+            <p class="text-xl italic font-bold text-[#E6EB9C]">Blankspot</p>
         </div>
 
-        <form action="#" method="POST" class="space-y-5">
+        <form action="#" method="POST" class="space-y-3">
             @csrf
 
-            <div>
-                <label class="block text-white font-semibold mb-2 text-base">Nama Desa</label>
-                <input type="text" placeholder="Desa Laudendang" 
-                       class="w-full bg-white text-[#234B26] placeholder-[#234B26]/50 font-medium px-4 py-3 rounded-2xl outline-none border border-transparent focus:border-white/30 shadow-inner">
-            </div>
+            <!-- KECAMATAN -->
+           <!-- KECAMATAN -->
+<div>
+    <label class="block text-white font-semibold mb-1.5 text-sm">Kecamatan</label>
 
-            <div>
-                <label class="block text-white font-semibold mb-2 text-base">Longitude</label>
-                <input type="text" placeholder="98.67559790" 
-                       class="w-full bg-white text-[#234B26] placeholder-[#234B26]/50 font-medium px-4 py-3 rounded-2xl outline-none border border-transparent focus:border-white/30 shadow-inner">
-            </div>
-
-            <div>
-                <label class="block text-white font-semibold mb-2 text-base">Latitude</label>
-                <input type="text" placeholder="3.58524200" 
-                       class="w-full bg-white text-[#234B26] placeholder-[#234B26]/50 font-medium px-4 py-3 rounded-2xl outline-none border border-transparent focus:border-white/30 shadow-inner">
-            </div>
-
-            <div>
-                <label class="block text-white font-semibold mb-2 text-base">Tanggal Input</label>
-                <input type="date"
-                       class="w-full bg-white text-[#234B26] font-medium px-4 py-3 rounded-2xl outline-none border border-transparent focus:border-white/30 shadow-inner">
-            </div>
-
-            <div class="flex justify-end gap-4 pt-6">
-    <button type="button" onclick="closeModal()" 
-            class="bg-white text-red-700 font-bold px-6 py-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-md text-sm">
-        Cancel
-    </button>
-    <button type="submit" 
-            class="bg-white text-[#234B26] font-bold px-6 py-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-md text-sm">
-        Tambahkan
-    </button>
+    <select
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+        <option value="">Pilih Kecamatan</option>
+        <option>Medan Baru</option>
+        <option>Medan Petisah</option>
+        <option>Medan Kota</option>
+        <option>Medan Sunggal</option>
+    </select>
 </div>
+
+            <!-- DESA -->
+            <div>
+                <label class="block text-white font-semibold mb-1.5 text-sm">Nama Desa</label>
+                <input type="text" placeholder="Desa Laudendang"
+                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+            </div>
+
+            <!-- LONGITUDE -->
+            <div>
+                <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
+                <input type="text" placeholder="98.67559790"
+                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+            </div>
+
+            <!-- LATITUDE -->
+            <div>
+                <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
+                <input type="text" placeholder="3.58524200"
+                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+            </div>
+
+            <!-- TANGGAL -->
+            <div>
+                <label class="block text-white font-semibold mb-1.5 text-sm">Tanggal</label>
+                <input type="date"
+                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+            </div>
+
+            <!-- BUTTON -->
+            <div class="flex justify-end gap-3 pt-3">
+                <button type="button" onclick="closeModal()"
+                        class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="bg-white text-[#234B26] font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+                    Tambahkan
+                </button>
+            </div>
 
         </form>
 

@@ -23,7 +23,18 @@
                 Masuk
             </h2>
 
-            <form action="#" method="POST" class="space-y-6">
+           <form action="{{ route('login.post') }}" method="POST" class="space-y-6">
+            @if ($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
+        {{ $errors->first() }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
+        {{ session('error') }}
+    </div>
+@endif
                 @csrf
 
                 <div class="space-y-2">

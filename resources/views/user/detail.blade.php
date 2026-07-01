@@ -4,13 +4,16 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <div class="flex items-center gap-5 mb-8">
-        <a href="{{ route('admin.add') }}"
+        <a href="{{ route('user.add') }}"
             class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
             </svg>
         </a>
         <h2 class="text-3xl font-bold text-[#234B26]">{{ $kabupaten->nama_kabupaten }}</h2>
+        @if(!$isOwner)
+            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Hanya Lihat</span>
+        @endif
     </div>
 
     <div id="content-table" class="tab-content mt-10">
@@ -44,6 +47,8 @@
                             placeholder="Cari kecamatan / desa..."
                             class="w-full md:w-80 border-2 border-[#234B26] rounded-xl pl-10 py-2 outline-none focus:ring-2 focus:ring-[#234B26]/20">
                     </div>
+                    {{-- TOMBOL TAMBAH HANYA UNTUK KABUPATEN SENDIRI --}}
+                    @if($isOwner)
                     <button onclick="openModal()" 
                         class="bg-[#234B26] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -51,6 +56,7 @@
                         </svg>
                         Tambah
                     </button>
+                    @endif
                 </div>
             </div>
 
@@ -87,20 +93,23 @@
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-center gap-2">
-                                    <a href="{{ route('admin.blank-spot.show', $spot->id) }}" 
+                                    <!-- Lihat -->
+                                    <a href="{{ route('user.blank-spot.show', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition" title="Lihat">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
                                     </a>
-                                    <a href="{{ route('admin.blank-spot.edit', $spot->id) }}" 
+                                    {{-- EDIT & HAPUS HANYA UNTUK KABUPATEN SENDIRI DAN STATUS PENDING --}}
+                                    @if($isOwner && $spot->status_validasi != 'approved')
+                                    <a href="{{ route('user.blank-spot.edit', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 113.182 3.182l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 00-3.182-3.182zM3.75 20.25l2.625-2.625a.75.75 0 001.061 1.061L4.81 21.31a.75.75 0 01-1.061-1.061z" />
                                         </svg>
                                     </a>
-                                    <form action="{{ route('admin.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
+                                    <form action="{{ route('user.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition" title="Hapus">
@@ -109,6 +118,7 @@
                                             </svg>
                                         </button>
                                     </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -133,7 +143,8 @@
     </div>
 </div>
 
-<!-- MODAL TAMBAH DATA -->
+<!-- MODAL TAMBAH DATA (HANYA UNTUK KABUPATEN SENDIRI) -->
+@if($isOwner)
 <div id="blankspotModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
 
@@ -144,16 +155,13 @@
             <p class="text-xl italic font-bold text-[#E6EB9C]">Blankspot</p>
         </div>
 
-        <form action="{{ route('admin.blank-spot.store') }}" method="POST" class="space-y-3">
+        <form action="{{ route('user.blank-spot.store') }}" method="POST" class="space-y-3">
             @csrf
             <input type="hidden" name="kabupaten_id" value="{{ $kabupaten->id }}">
 
-            <!-- KECAMATAN - DROPDOWN -->
             <div>
                 <label class="block text-white font-semibold mb-1.5 text-sm">Kecamatan</label>
-                <select name="kecamatan_id" 
-                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" 
-                        required
+                <select name="kecamatan_id" class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" required
                         style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
                     <option value="">-- Pilih Kecamatan --</option>
                     @foreach($kecamatans ?? [] as $kec)
@@ -162,48 +170,40 @@
                 </select>
             </div>
 
-            <!-- DESA -->
             <div>
                 <label class="block text-white font-semibold mb-1.5 text-sm">Nama Desa</label>
                 <input type="text" name="nama_desa" placeholder="Ketik nama desa..." required
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <!-- LONGITUDE -->
             <div>
                 <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
                 <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <!-- LATITUDE -->
             <div>
                 <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
                 <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <!-- TAHUN - DROPDOWN -->
-<div>
-    <label class="block text-white font-semibold mb-1.5 text-sm">Tahun</label>
-    <select name="tahun" 
-            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" 
-            required
-            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-        <option value="">-- Pilih Tahun --</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-    </select>
-</div>
+            <div>
+                <label class="block text-white font-semibold mb-1.5 text-sm">Tahun</label>
+                <select name="tahun" class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" required
+                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                    <option value="">-- Pilih Tahun --</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
 
-            <!-- KETERANGAN -->
             <div>
                 <label class="block text-white font-semibold mb-1.5 text-sm">Keterangan</label>
                 <input type="text" name="keterangan" placeholder="Status jaringan (opsional)"
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <!-- BUTTON -->
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" onclick="closeModal()"
                         class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
@@ -219,6 +219,8 @@
 
     </div>
 </div>
+@endif
+
 <script>
 let currentPage = 1;
 let perPage = 5;

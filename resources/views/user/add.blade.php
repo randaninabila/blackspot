@@ -8,6 +8,7 @@
 
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         
+        <!-- FILTER: Semua, Kota, Kabupaten -->
         <div class="flex border border-[#234B26] rounded-2xl overflow-hidden shadow-sm bg-white self-start">
             <button onclick="filterWilayah('semua')" id="btn-semua"
                 class="filter-btn active-tab px-10 py-3 font-semibold border-r border-[#234B26] transition-colors text-sm">
@@ -23,6 +24,7 @@
             </button>
         </div>
 
+        <!-- PENCARIAN -->
         <div class="relative w-full md:w-80">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <svg class="w-5 h-5 text-[#234B26]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,38 +37,45 @@
         </div>
     </div>
 
-    <!-- ===== CARD GRID — LOOPING DARI DATABASE ===== -->
+    <!-- CARD GRID -->
     <div id="cardContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
         @forelse($kabupatens as $kab)
         @php
             $namaLower = strtolower($kab->nama_kabupaten);
             $type = str_contains($namaLower, 'kota') ? 'kota' : 'kabupaten';
+            $isUserKabupaten = (auth()->user()->kabupaten_id == $kab->id);
         @endphp
-        <a href="{{ route('admin.detail', $kab->id) }}"
+        <a href="{{ route('user.detail', $kab->id) }}"
             data-type="{{ $type }}"
             data-nama="{{ $namaLower }}"
-            class="wilayah-card group block bg-[#234B26] text-white rounded-2xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-[#1a381c]">
+            class="wilayah-card group block bg-[#234B26] text-white rounded-2xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg {{ $isUserKabupaten ? 'hover:bg-[#1a381c] ring-2 ring-[#E6EB9C]' : 'hover:bg-[#3a5a3d]' }}">
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <h3 class="text-lg font-semibold tracking-wide min-h-[3.5rem]">{{ $kab->nama_kabupaten }}</h3>
                     <p class="text-5xl font-bold mt-2 text-[#E6EB9C] tracking-tight">{{ $kab->blank_spots_count ?? 0 }}</p>
                 </div>
                 <div class="mt-6 pt-4 border-t border-white/20">
-                    <p class="text-xs text-white/70 tracking-wider">Total Data</p>
+                    <p class="text-xs text-white/70 tracking-wider">
+                        @if($isUserKabupaten)
+                            Kabupaten Anda
+                        @else
+                            Total Data
+                        @endif
+                    </p>
                 </div>
             </div>
         </a>
         @empty
-        <div class="col-span-full text-center py-12 text-gray-500">
-            Belum ada data kabupaten/kota.
-        </div>
+        <div class="col-span-full text-center py-12 text-gray-500">Belum ada data kabupaten/kota.</div>
         @endforelse
     </div>
 
+    <!-- PESAN KOSONG -->
     <div id="noDataMessage" class="hidden text-center py-12 text-gray-500">
         Data Kabupaten/Kota tidak ditemukan.
     </div>
 
+    <!-- PAGINATION -->
     <div class="flex items-center justify-center space-x-2 mt-8">
         <button onclick="prevPage()" id="prevBtn" class="page-btn flex items-center justify-center transition-opacity">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -93,6 +102,7 @@
     width: 36px;
     height: 36px;
     border-radius: 999px;
+    cursor: pointer;
 }
 .page-btn:disabled {
     opacity: 0.3;

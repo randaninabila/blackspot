@@ -10,7 +10,6 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
-    // Sesuaikan fillable dengan kolom rancangan database kalian
     protected $fillable = [
         'nama',
         'email',
@@ -29,19 +28,19 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    // Relasi Kebalikan (Belongs To): Jika role 'operator_kabupaten', dia terikat pada satu Kabupaten
+    // Relasi ke Kabupaten (untuk operator)
     public function kabupaten()
     {
         return $this->belongsTo(Kabupaten::class, 'kabupaten_id');
     }
 
-    // Relasi One-to-Many: Dokumen blank spot yang dibuat oleh user ini
-    public function createdBlankSpots()
+    // Data blank spot yang dibuat oleh user ini
+    public function blankSpots()
     {
         return $this->hasMany(BlankSpot::class, 'created_by');
     }
 
-    // Relasi One-to-Many: Dokumen blank spot yang divalidasi oleh user ini (Admin Diskominfo)
+    // Data blank spot yang divalidasi oleh user ini (Admin)
     public function validatedBlankSpots()
     {
         return $this->hasMany(BlankSpot::class, 'validated_by');

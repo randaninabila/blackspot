@@ -3,18 +3,31 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <div class="flex items-center gap-5 mb-8">
-        <a href="{{ route('user.add') }}"
-            class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <h2 class="text-3xl font-bold text-[#234B26]">{{ $kabupaten->nama_kabupaten }}</h2>
+    <div class="flex items-center gap-2 mb-8">
+    {{-- Tombol Home --}}
+    <a href="{{ route('user.dashboard') }}"
+        class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 12 11.204 3.046a1.125 1.125 0 0 1 1.592 0L21.75 12M4.5 9.75V19.5A1.5 1.5 0 0 0 6 21h3.75v-4.5A1.5 1.5 0 0 1 11.25 15h1.5a1.5 1.5 0 0 1 1.5 1.5V21H18a1.5 1.5 0 0 0 1.5-1.5V9.75" />
+        </svg>
+    </a>
+
+    {{-- Tombol Kembali --}}
+    <a href="{{ route('user.add') }}"
+        class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+        <h2 class="text-3xl ml-3 font-bold text-[#234B26]">{{ $kabupaten->nama_kabupaten }}</h2>
         @if(!$isOwner)
             <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">Hanya Lihat</span>
         @endif
     </div>
+    
 
     <div id="content-table" class="tab-content mt-10">
         <div class="bg-[#F3F3E8] rounded-3xl shadow-2xl p-8">
@@ -82,32 +95,33 @@
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                            <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded-full text-xs font-bold 
-                                    {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                    {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
-                                    {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
-                                    {{ ucfirst($spot->status_validasi) }}
-                                </span>
-                            </td>
+                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3 text-center">
+    <div class="flex justify-center items-center">
+        <span class="px-2 py-1 rounded-full text-xs font-bold 
+            {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
+            {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
+            {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
+            {{ ucfirst($spot->status_validasi) }}
+        </span>
+    </div>
+</td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-center gap-2">
-                                    <!-- Lihat -->
-                                    <a href="{{ route('user.blank-spot.show', $spot->id) }}" 
-                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition" title="Lihat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </a>
                                     {{-- EDIT & HAPUS HANYA UNTUK KABUPATEN SENDIRI DAN STATUS PENDING --}}
                                     @if($isOwner && $spot->status_validasi != 'approved')
                                     <a href="{{ route('user.blank-spot.edit', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 113.182 3.182l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 00-3.182-3.182zM3.75 20.25l2.625-2.625a.75.75 0 001.061 1.061L4.81 21.31a.75.75 0 01-1.061-1.061z" />
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.8"
+        stroke="currentColor"
+        class="w-4 h-4">
+        <path stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M16.862 4.487a2.25 2.25 0 113.182 3.182L7.5 20.213 3 21l.787-4.5L16.862 4.487z" />
+    </svg>
                                     </a>
                                     <form action="{{ route('user.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
                                         @csrf

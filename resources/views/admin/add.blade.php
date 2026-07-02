@@ -2,9 +2,17 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-3xl font-bold text-[#234B26] mb-8 tracking-tight font-sans">
+    <div class="flex items-center gap-5 mb-8">
+        <a href="{{ route('admin.dashboard') }}"
+            class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-3xl font-bold text-[#234B26] mb-1 tracking-tight font-sans">
         Daftar Kabupaten/Kota Provinsi Sumatera Utara
     </h1>
+    </div> 
 
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         

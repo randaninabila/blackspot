@@ -3,14 +3,25 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-    <div class="flex items-center gap-5 mb-8">
-        <a href="{{ route('admin.add') }}"
-            class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <h2 class="text-3xl font-bold text-[#234B26]">{{ $kabupaten->nama_kabupaten }}</h2>
+    <div class="flex items-center gap-2 mb-8">
+        <a href="{{ route('admin.dashboard') }}"
+        class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                d="M2.25 12 11.204 3.046a1.125 1.125 0 0 1 1.592 0L21.75 12M4.5 9.75V19.5A1.5 1.5 0 0 0 6 21h3.75v-4.5A1.5 1.5 0 0 1 11.25 15h1.5a1.5 1.5 0 0 1 1.5 1.5V21H18a1.5 1.5 0 0 0 1.5-1.5V9.75" />
+        </svg>
+    </a>
+
+    {{-- Tombol Kembali --}}
+    <a href="{{ route('admin.add') }}"
+        class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+    </a>
+        <h2 class="text-3xl ml-3 font-bold text-[#234B26]">{{ $kabupaten->nama_kabupaten }}</h2>
     </div>
 
     <div id="content-table" class="tab-content mt-10">
@@ -70,35 +81,48 @@
                     </thead>
                     <tbody id="tableBody">
                         @forelse($blankSpots as $i => $spot)
-                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
+                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition cursor-pointer"
+    onclick="showDetail(this)"
+    data-id="{{ $spot->id }}"
+    data-kabupaten="{{ $kabupaten->nama_kabupaten }}"
+    data-kecamatan="{{ $spot->kecamatan->nama_kecamatan ?? '-' }}"
+    data-desa="{{ $spot->desa->nama_desa ?? '-' }}"
+    data-latitude="{{ $spot->latitude }}"
+    data-longitude="{{ $spot->longitude }}"
+    data-status="{{ $spot->status_validasi }}"
+    data-operator="{{ $spot->user->name ?? '-' }}"
+    data-tanggal="{{ $spot->created_at->format('d-m-Y') }}"
+    data-keterangan="{{ $spot->keterangan ?? '-' }}">
                             <td class="px-4 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
                             <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                            <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2 py-1 rounded-full text-xs font-bold 
-                                    {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                                    {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
-                                    {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
-                                    {{ ucfirst($spot->status_validasi) }}
-                                </span>
-                            </td>
+                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3 text-center">
+    <div class="flex justify-center items-center">
+        <span class="px-2 py-1 rounded-full text-xs font-bold 
+            {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
+            {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
+            {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
+            {{ ucfirst($spot->status_validasi) }}
+        </span>
+    </div>
+</td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-center gap-2">
-                                    <a href="{{ route('admin.blank-spot.show', $spot->id) }}" 
-                                        class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition" title="Lihat">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </a>
                                     <a href="{{ route('admin.blank-spot.edit', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 113.182 3.182l-1.5 1.5a.75.75 0 001.5 1.5l1.5-1.5a2.25 2.25 0 00-3.182-3.182zM3.75 20.25l2.625-2.625a.75.75 0 001.061 1.061L4.81 21.31a.75.75 0 01-1.061-1.061z" />
-                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.8"
+        stroke="currentColor"
+        class="w-4 h-4">
+        <path stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M16.862 4.487a2.25 2.25 0 113.182 3.182L7.5 20.213 3 21l.787-4.5L16.862 4.487z" />
+    </svg>
                                     </a>
                                     <form action="{{ route('admin.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
                                         @csrf
@@ -129,8 +153,42 @@
                 </p>
                 <div>{{ $blankSpots->links() }}</div>
             </div>
+
         </div>
     </div>
+    <div id="detailSection"
+     class="bg-[#F3F3E8] rounded-[2rem] p-6 md:p-8 border border-gray-200/40 shadow-xl hidden mt-8">
+
+    <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
+        Detail Data Blankspot
+    </h4>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm h-fit">
+            <table class="w-full text-sm text-left">
+                <tbody class="divide-y divide-gray-200">
+
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">ID</td><td id="detail-id" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kabupaten</td><td id="detail-kabupaten" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="w-full h-[320px] rounded-2xl overflow-hidden border shadow-inner">
+            <div id="validasiMap" class="w-full h-full"></div>
+        </div>
+
+    </div>
+</div>
 </div>
 
 <!-- MODAL TAMBAH DATA -->
@@ -219,6 +277,8 @@
 
     </div>
 </div>
+
+
 <script>
 let currentPage = 1;
 let perPage = 5;
@@ -348,6 +408,50 @@ document.addEventListener("DOMContentLoaded", function() {
         modal.classList.add('opacity-0');
     }
 });
+
+function showDetail(row) {
+    const data = row.dataset;
+
+    const lat = parseFloat(data.latitude);
+    const lng = parseFloat(data.longitude);
+
+    document.getElementById('detailSection').classList.remove('hidden');
+
+    document.getElementById('detail-id').innerText = data.id;
+    document.getElementById('detail-kabupaten').innerText = data.kabupaten;
+    document.getElementById('detail-kecamatan').innerText = data.kecamatan;
+    document.getElementById('detail-desa').innerText = data.desa;
+    document.getElementById('detail-koordinat').innerText = lat + ', ' + lng;
+    document.getElementById('detail-status').innerText = data.status;
+    document.getElementById('detail-operator').innerText = data.operator;
+    document.getElementById('detail-tanggal').innerText = data.tanggal;
+    document.getElementById('detail-keterangan').innerText = data.keterangan;
+
+    setTimeout(() => {
+        initMap(lat, lng);
+    }, 200);
+
+    document.getElementById('detailSection')
+        .scrollIntoView({ behavior: 'smooth' });
+}
+let map;
+let marker;
+
+function initMap(lat, lng) {
+
+    if (map) {
+        map.remove();
+    }
+
+    map = L.map('validasiMap').setView([lat, lng], 14);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    marker = L.marker([lat, lng]).addTo(map);
+}
+
 </script>
 
 @endsection

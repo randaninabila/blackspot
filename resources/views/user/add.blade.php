@@ -2,11 +2,19 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    <h1 class="text-3xl font-bold text-[#234B26] mb-8 tracking-tight font-sans">
+<div class="flex items-center gap-5 mb-8">
+        <a href="{{ route('user.dashboard') }}"
+            class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-3xl font-bold text-[#234B26] mb-1 tracking-tight font-sans">
         Daftar Kabupaten/Kota Provinsi Sumatera Utara
     </h1>
+    </div>    
 
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3">
         
         <!-- FILTER: Semua, Kota, Kabupaten -->
         <div class="flex border border-[#234B26] rounded-2xl overflow-hidden shadow-sm bg-white self-start">
@@ -36,7 +44,9 @@
                 class="w-full pl-10 pr-4 py-3 bg-white border border-[#234B26]/30 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#234B26] text-sm shadow-sm">
         </div>
     </div>
-
+    <h1 class="text-[#234B26] tracking-tight mb-5 italic">
+    *User hanya dapat mengedit data yang sesuai dengan wilayahnya sendiri, </br>sedangkan data di luar wilayah tersebut hanya dapat dilihat.
+</h1>
     <!-- CARD GRID -->
     <div id="cardContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
         @forelse($kabupatens as $kab)

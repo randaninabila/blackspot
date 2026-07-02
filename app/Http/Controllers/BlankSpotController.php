@@ -90,7 +90,6 @@ class BlankSpotController extends Controller
             'nama_desa'    => 'required|string|max:255',
             'latitude'     => 'required|numeric|between:-90,90',
             'longitude'    => 'required|numeric|between:-180,180',
-            'tahun'        => 'required|integer|min:2000|max:' . (date('Y') + 1),
             'keterangan'   => 'nullable|string|max:1000',
         ]);
 
@@ -100,6 +99,7 @@ class BlankSpotController extends Controller
         ]);
 
         $validated['desa_id'] = $desa->id;
+        $validated['tahun'] = now()->year;
         $validated['status_validasi'] = 'pending';
         $validated['created_by'] = Auth::id();
         $validated['validated_by'] = null;
@@ -153,7 +153,6 @@ class BlankSpotController extends Controller
             'desa_id'        => 'required|exists:desa,id',
             'latitude'       => 'required|numeric|between:-90,90',
             'longitude'      => 'required|numeric|between:-180,180',
-            'tahun'          => 'required|integer|min:2000|max:' . (date('Y') + 1),
             'keterangan'     => 'nullable|string|max:1000',
             'status_validasi' => 'required|in:pending,approved,rejected',
         ]);
@@ -234,7 +233,6 @@ public function userStore(Request $request)
         'nama_desa'    => 'required|string|max:255',
         'latitude'     => 'required|numeric|between:-90,90',
         'longitude'    => 'required|numeric|between:-180,180',
-        'tahun'        => 'required|integer|min:2000|max:' . (date('Y') + 1),
         'keterangan'   => 'nullable|string|max:1000',
     ]);
 
@@ -251,7 +249,7 @@ public function userStore(Request $request)
         'desa_id' => $desa->id,
         'latitude' => $validated['latitude'],
         'longitude' => $validated['longitude'],
-        'tahun' => $validated['tahun'],
+        'tahun' => now()->year,
         'keterangan' => $validated['keterangan'] ?? null,
         'status_validasi' => 'pending',
         'created_by' => $user->id,
@@ -321,7 +319,6 @@ public function userStore(Request $request)
             'desa_id'      => 'required|exists:desa,id',
             'latitude'     => 'required|numeric|between:-90,90',
             'longitude'    => 'required|numeric|between:-180,180',
-            'tahun'        => 'required|integer|min:2000|max:' . (date('Y') + 1),
             'keterangan'   => 'nullable|string|max:1000',
         ]);
 

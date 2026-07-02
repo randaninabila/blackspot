@@ -63,13 +63,21 @@
 
                 <!-- Tahun -->
                 <div>
-                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun <span class="text-red-500">*</span></label>
-                    <select name="tahun" required
-                        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
-                        <option value="">-- Pilih Tahun --</option>
-                        <option value="2025">2025</option>
-                        <option value="2026">2026</option>
-                    </select>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">
+                        Tahun <span class="text-red-500">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        value="{{ date('Y') }}"
+                        readonly
+                        class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+                    >
+
+                    <input
+                        type="hidden"
+                        name="tahun"
+                        value="{{ date('Y') }}">
                 </div>
 
                 <!-- Latitude -->

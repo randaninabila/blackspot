@@ -11,7 +11,9 @@ class UsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Buat Akun Admin Diskominfo Sumut (Tidak terikat kabupaten_id)
+        // ===========================
+        // Admin Utama
+        // ===========================
         User::create([
             'nama' => 'Admin Diskominfo Sumut',
             'email' => 'admin@sumutprov.go.id',
@@ -20,41 +22,26 @@ class UsersSeeder extends Seeder
             'kabupaten_id' => null,
         ]);
 
-        // Ambil data kabupaten dari DB untuk relasi akun operator
-        $medan = Kabupaten::where('nama_kabupaten', 'LIKE', '%Medan%')->first();
-        $deliSerdang = Kabupaten::where('nama_kabupaten', 'LIKE', '%Deli Serdang%')->first();
-        $langkat = Kabupaten::where('nama_kabupaten', 'LIKE', '%Langkat%')->first();
+        $kabupatens = Kabupaten::all();
 
-        // 2. Buat Akun Operator Kota Medan
-        if ($medan) {
-            User::create([
-                'nama' => 'Operator Kota Medan',
-                'email' => 'op.medan@sumutprov.go.id',
-                'password' => Hash::make('MedanBlankspot2026!'),
-                'role' => 'operator_kabupaten',
-                'kabupaten_id' => $medan->id,
-            ]);
-        }
+        foreach ($kabupatens as $kabupaten) {
 
-        // 3. Buat Akun Operator Kabupaten Deli Serdang
-        if ($deliSerdang) {
-            User::create([
-                'nama' => 'Operator Deli Serdang',
-                'email' => 'op.deliserdang@sumutprov.go.id',
-                'password' => Hash::make('DeliSerdang2026!'),
-                'role' => 'operator_kabupaten',
-                'kabupaten_id' => $deliSerdang->id,
-            ]);
-        }
+            $emailNama = strtolower($kabupaten->nama_kabupaten);
 
-        // 4. Buat Akun Operator Kabupaten Langkat
-        if ($langkat) {
+            $emailNama = str_replace(['Kota ', 'Kabupaten '], '', $emailNama);
+
+            $emailNama = str_replace(' ', '.', $emailNama);
+
+            $passwordNama = str_replace(['Kota ', 'Kabupaten '], '', $kabupaten->nama_kabupaten);
+
+            $passwordNama = str_replace(' ', '', $passwordNama);
+
             User::create([
-                'nama' => 'Operator Kabupaten Langkat',
-                'email' => 'op.langkat@sumutprov.go.id',
-                'password' => Hash::make('Langkat2026!'),
-                'role' => 'operator_kabupaten',
-                'kabupaten_id' => $langkat->id,
+                'nama' => 'Operator ' . $kabupaten->nama_kabupaten,
+                'email' => 'op.' . $emailNama . '@sumutprov.go.id',
+                'password' => Hash::make($passwordNama . '2026!'),
+                'role' => 'user',
+                'kabupaten_id' => $kabupaten->id,
             ]);
         }
     }

@@ -6,13 +6,22 @@ use Illuminate\Database\Seeder;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
 use App\Models\Desa;
+use Illuminate\Support\Facades\DB;
 
 class WilayahSeeder extends Seeder
 {
     public function run(): void
     {
-        // Data Kabupaten
-        $kabupatens = [  // ← PASTIKAN PAKAI 's' (JAMAK)
+        // Kosongkan tabel terlebih dahulu
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Kecamatan::truncate();
+        Kabupaten::truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // ===========================
+        // DATA KABUPATEN
+        // ===========================
+        $kabupatens = [
             ['nama_kabupaten' => 'Nias', 'kode_kabupaten' => '1'],
             ['nama_kabupaten' => 'Mandailing Natal', 'kode_kabupaten' => '2'],
             ['nama_kabupaten' => 'Tapanuli Selatan', 'kode_kabupaten' => '3'],
@@ -48,8 +57,70 @@ class WilayahSeeder extends Seeder
             ['nama_kabupaten' => 'Kota Gunungsitoli', 'kode_kabupaten' => '33'],
         ];
 
-        foreach ($kabupatens as $data) {  // ← PASTIKAN $kabupatens (dengan 's')
+        foreach ($kabupatens as $data) {
             Kabupaten::create($data);
         }
+
+        // ===========================
+        // IMPORT DATA KECAMATAN DARI CSV
+        // ===========================
+
+        $filePath = database_path('seeders/csv/Daftar_Kabupaten_Kecamatan_Sumut.csv');
+
+        if (!file_exists($filePath)) {
+            $this->command->error("File CSV tidak ditemukan!");
+            return;
+        }
+
+        $file = fopen($filePath, 'r');
+
+        $isHeader = true;
+
+        $this->command->info("Mengimpor data kecamatan...");
+
+        while (($row = fgetcsv($file, 0, ",")) !== false) {
+
+            if ($isHeader) {
+                $isHeader = false;
+                continue;
+            }
+
+            $namaKabupaten = trim($row[1] ?? '');
+            $rawKecamatan  = trim($row[2] ?? '');
+
+            if (empty($namaKabupaten)) {
+                continue;
+            }
+
+            $kabupaten = Kabupaten::where('nama_kabupaten', $namaKabupaten)->first();
+
+            if (!$kabupaten) {
+                $this->command->warn("Kabupaten '{$namaKabupaten}' tidak ditemukan.");
+                continue;
+            }
+
+            if (!empty($rawKecamatan)) {
+
+                $listKecamatan = preg_split("/\r\n|\n|\r/", $rawKecamatan);
+
+                foreach ($listKecamatan as $namaKecamatan) {
+
+                    $namaKecamatan = trim($namaKecamatan);
+
+                    if ($namaKecamatan == '') {
+                        continue;
+                    }
+
+                    Kecamatan::firstOrCreate([
+                        'kabupaten_id'   => $kabupaten->id,
+                        'nama_kecamatan' => $namaKecamatan,
+                    ]);
+                }
+            }
+        }
+
+        fclose($file);
+
+        $this->command->info("Import data kecamatan berhasil.");
     }
 }

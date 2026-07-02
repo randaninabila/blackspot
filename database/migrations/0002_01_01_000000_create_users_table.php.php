@@ -17,16 +17,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'operator_kabupaten']);
+            $table->enum('role', ['admin', 'user']);
             
-            // Kolom foreign key terikat ke tabel kabupaten
             $table->foreignId('kabupaten_id')->nullable()->constrained('kabupaten')->nullOnDelete();
             
             $table->rememberToken();
             $table->timestamps();
         });
 
-        // BAGIAN DI BAWAH INI ADALAH BAWAAN LARAVEL (Biarkan saja atau hapus jika tidak dipakai)
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

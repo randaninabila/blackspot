@@ -40,7 +40,7 @@ class UsersSeeder extends Seeder
                 'nama' => 'Operator ' . $kabupaten->nama_kabupaten,
                 'email' => 'op.' . $emailNama . '@sumutprov.go.id',
                 'password' => Hash::make($passwordNama . '2026!'),
-                'role' => 'user',
+                'role' => 'operator_kabupaten',
                 'kabupaten_id' => $kabupaten->id,
             ]);
         }

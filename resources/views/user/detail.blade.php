@@ -202,14 +202,22 @@
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Tahun</label>
-                <select name="tahun" class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" required
-                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-                    <option value="">-- Pilih Tahun --</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                </select>
+                        <div>
+                <label class="block text-[#234B26] font-bold text-sm mb-1.5">
+                    Tahun <span class="text-red-500">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    value="{{ date('Y') }}"
+                    readonly
+                    class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+                >
+
+                <input
+                    type="hidden"
+                    name="tahun"
+                    value="{{ date('Y') }}">
             </div>
 
             <div>

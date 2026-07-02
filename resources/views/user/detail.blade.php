@@ -203,7 +203,7 @@
             </div>
 
                         <div>
-                <label class="block text-[#234B26] font-bold text-sm mb-1.5">
+                <label class="block text-white font-bold text-sm mb-1.5">
                     Tahun <span class="text-red-500">*</span>
                 </label>
 

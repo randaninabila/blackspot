@@ -1,6 +1,10 @@
 @extends('app')
 
 @section('content')
+{{-- LEAFTLET CSS --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <div class="max-w-7xl mx-auto px-4 py-10">
 
     <div class="flex justify-between items-center mb-8">
@@ -24,8 +28,6 @@
             ❌ {{ session('error') }}
         </div>
     @endif
-
-    
 
     <!-- Tabel -->
     <div class="bg-[#F3F3E8] rounded-3xl shadow-xl p-8 overflow-x-auto">
@@ -54,7 +56,7 @@
     data-latitude="{{ $spot->latitude }}"
     data-longitude="{{ $spot->longitude }}"
     data-status="{{ $spot->status_validasi }}"
-    data-operator="{{ $spot->user->name ?? '-' }}"
+    data-operator="{{ $spot->creator->nama ?? '-' }}"
     data-tanggal="{{ $spot->created_at }}"
     data-keterangan="{{ $spot->keterangan ?? '-' }}"
 >
@@ -189,11 +191,17 @@
         display: none;
     }
 </style>
+
 <script>
 let map;
 let marker;
 
 function initMap(lat, lng) {
+    // Cek apakah Leaflet sudah terload
+    if (typeof L === 'undefined') {
+        console.error('Leaflet tidak terload!');
+        return;
+    }
 
     // kalau map sudah ada, hapus dulu
     if (map) {
@@ -244,5 +252,4 @@ function showDetail(row) {
 }
 </script>
 
-</script>
 @endsection

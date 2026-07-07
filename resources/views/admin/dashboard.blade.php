@@ -206,128 +206,22 @@
 
                     </thead>
 
-                    <tbody id="tableBody">
-
+                <tbody id="tableBody">
+    @forelse($blankSpots as $i => $spot)
     <tr class="border-b">
-        <td class="py-3 pl-5">1</td>
-        <td>Kota Medan</td>
-        <td>Kota Medan</td>
-        <td>Medan Baru</td>
-        <td>98.6722</td>
-        <td>3.5952</td>
-        <td>2025</td>
+        <td class="py-3 pl-5">{{ $loop->iteration }}</td>
+        <td>{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
+        <td>{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
+        <td>{{ $spot->desa->nama_desa ?? '-' }}</td>
+        <td>{{ $spot->longitude }}</td>
+        <td>{{ $spot->latitude }}</td>
+        <td>{{ $spot->tahun }}</td>
     </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">2</td>
-        <td>Kota Medan</td>
-        <td>Binjai</td>
-        <td>Binjai Timur</td>
-        <td>98.5020</td>
-        <td>3.6200</td>
-        <td>2024</td>
+    @empty
+    <tr>
+        <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
     </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">3</td>
-        <td>Kota Binjai</td>
-        <td>Deli Serdang</td>
-        <td>Tanjung Morawa</td>
-        <td>98.7900</td>
-        <td>3.5000</td>
-        <td>2023</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">4</td>
-        <td>Kabupaten Nias</td>
-        <td>Pematangsiantar</td>
-        <td>Siantar Barat</td>
-        <td>99.0687</td>
-        <td>2.9600</td>
-        <td>2022</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">5</td>
-        <td>Kabupaten Hitz</td>
-        <td>Tebing Tinggi</td>
-        <td>Rambutan</td>
-        <td>99.1623</td>
-        <td>3.3270</td>
-        <td>2021</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">6</td>
-        <td>Kota Medan</td>
-        <td>Langkat</td>
-        <td>Stabat</td>
-        <td>98.4501</td>
-        <td>3.7305</td>
-        <td>2020</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">7</td>
-        <td>Kabupaten Deli Serdang</td>
-        <td>Lubuk Pakam</td>
-        <td>Lubuk Pakam</td>
-        <td>98.8702</td>
-        <td>3.5580</td>
-        <td>2019</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">8</td>
-        <td>Kota Binjai</td>
-        <td>Binjai Selatan</td>
-        <td>Binjai Selatan</td>
-        <td>98.4803</td>
-        <td>3.6102</td>
-        <td>2018</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">9</td>
-        <td>Kabupaten Karo</td>
-        <td>Berastagi</td>
-        <td>Berastagi</td>
-        <td>98.5045</td>
-        <td>3.1947</td>
-        <td>2017</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">10</td>
-        <td>Kabupaten Simalungun</td>
-        <td>Raya</td>
-        <td>Raya</td>
-        <td>99.0612</td>
-        <td>2.9541</td>
-        <td>2016</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">11</td>
-        <td>Kota Pematangsiantar</td>
-        <td>Siantar Utara</td>
-        <td>Siantar Utara</td>
-        <td>99.0789</td>
-        <td>2.9655</td>
-        <td>2015</td>
-    </tr>
-
-    <tr class="border-b">
-        <td class="py-3 pl-5">12</td>
-        <td>Kabupaten Labuhanbatu</td>
-        <td>Rantauprapat</td>
-        <td>Rantau Utara</td>
-        <td>100.0523</td>
-        <td>2.1004</td>
-        <td>2014</td>
-    </tr>
-
+    @endforelse
 </tbody>
 
                 </table>
@@ -1047,54 +941,27 @@ document.addEventListener(
     }
 );
 
-/* =========================
-   GRAFIK (CHART.JS)
-========================= */
+// ============================================================
+// GRAFIK (CHART.JS) - PERBAIKAN DARI DATABASE
+// ============================================================
 let myChart = null;
 
-// Mock Data representasi visual sesuai gambar Grafikk.png
+// Data dari database (bukan hardcoded)
 const chartData = {
-    labels: ['2022', '2023', '2024', '2025', '2026'],
-    datasets: [
-        {
-            label: 'Kota Medan',
-            data: [11, 17, 27, 18, 14],
-            backgroundColor: '#86EFAC', // Hijau muda soft
-            borderColor: '#86EFAC',
-            borderWidth: 1,
-            borderRadius: 8
-        },
-        {
-            label: 'Binjai',
-            data: [12, 8, 17, 14, 17],
-            backgroundColor: '#FEF08A', // Kuning soft
-            borderColor: '#FEF08A',
-            borderWidth: 1,
-            borderRadius: 8
-        },
-        {
-            label: 'Deli Serdang',
-            data: [6, 17, 16, 14, 10],
-            backgroundColor: '#93C5FD', // Biru muda soft
-            borderColor: '#93C5FD',
-            borderWidth: 1,
-            borderRadius: 8
-        },
-        {
-            label: 'Pematangsiantar',
-            data: [12, 16, 8, 13, 13],
-            backgroundColor: '#FDBA74', // Oranye soft
-            borderColor: '#FDBA74',
-            borderWidth: 1,
-            borderRadius: 8
-        }
-    ]
+    labels: @json($tahunLabels ?? []),
+    datasets: [{
+        label: 'Jumlah Blank Spot',
+        data: @json($tahunCounts ?? []),
+        backgroundColor: '#86EFAC',
+        borderColor: '#86EFAC',
+        borderWidth: 1,
+        borderRadius: 8
+    }]
 };
 
 function initChart(type = 'bar') {
     const ctx = document.getElementById('blankspotChart').getContext('2d');
     
-    // Jika chart sudah ada, hancurkan dulu sebelum membuat yang baru
     if (myChart) {
         myChart.destroy();
     }
@@ -1126,7 +993,7 @@ function initChart(type = 'bar') {
             scales: {
                 x: {
                     grid: {
-                        display: false // Menghilangkan garis vertikal background agar bersih
+                        display: false
                     },
                     ticks: {
                         color: '#234B26',
@@ -1138,7 +1005,6 @@ function initChart(type = 'bar') {
                 },
                 y: {
                     min: 0,
-                    max: 30,
                     ticks: {
                         stepSize: 5,
                         color: '#234B26',
@@ -1147,7 +1013,7 @@ function initChart(type = 'bar') {
                         }
                     },
                     grid: {
-                        color: 'rgba(35, 75, 38, 0.1)' // Garis horizontal tipis transparan
+                        color: 'rgba(35, 75, 38, 0.1)'
                     }
                 }
             }

@@ -40,7 +40,6 @@ class ValidationController extends Controller
             });
         }
 
-        // Default tampilkan pending jika tidak ada filter status
         if (!$request->has('status')) {
             $query->where('status_validasi', 'pending');
         }
@@ -51,17 +50,14 @@ class ValidationController extends Controller
         $totalDisetujui = BlankSpot::where('status_validasi', 'approved')->count();
         $totalDitolak = BlankSpot::where('status_validasi', 'rejected')->count();
         
-        // Data untuk validasi menunggu di tabel
         $validasiMenunggu = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
             ->where('status_validasi', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Data untuk statistik dashboard
         $totalData = BlankSpot::count();
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         
-        // Statistik chart
         $tahunStats = BlankSpot::selectRaw('YEAR(tahun) as year, COUNT(*) as total')
             ->groupBy('year')
             ->orderBy('year', 'desc')
@@ -158,43 +154,69 @@ class ValidationController extends Controller
         }
     }
 
-   /**
- * Setujui data
- */
-public function setujui($id)
-{
-    try {
-        $blankSpot = BlankSpot::findOrFail($id);
-        $blankSpot->status_validasi = 'approved';
-        $blankSpot->validated_by = auth()->id();
-        $blankSpot->validated_at = now();
-        $blankSpot->save();
+    /**
+     * Setujui data - PERBAIKAN
+     */
+    public function setujui($id)
+    {
+        try {
+            $blankSpot = BlankSpot::findOrFail($id);
+            
+            if ($blankSpot->status_validasi === 'approved') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data sudah disetujui sebelumnya!'
+                ], 400);
+            }
+            
+            $blankSpot->status_validasi = 'approved';
+            $blankSpot->validated_by = auth()->id();
+            $blankSpot->validated_at = now();
+            $blankSpot->save();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Data berhasil disetujui!'
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Gagal menyetujui data: ' . $e->getMessage()
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil disetujui!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyetujui data: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
-/**
- * Tolak data
- */
-public function tolak($id)
-{
-    $blankSpot = BlankSpot::findOrFail($id);
-    $blankSpot->status_validasi = 'rejected';
-    $blankSpot->validated_by = auth()->id();
-    $blankSpot->validated_at = now();
-    $blankSpot->save();
 
-    // Redirect ke dashboard dengan pesan sukses
-    return redirect()->route('admin.dashboard')->with('success', 'Data berhasil ditolak!');
-}
+    /**
+     * Tolak data - PERBAIKAN
+     */
+    public function tolak($id)
+    {
+        try {
+            $blankSpot = BlankSpot::findOrFail($id);
+            
+            if ($blankSpot->status_validasi === 'rejected') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data sudah ditolak sebelumnya!'
+                ], 400);
+            }
+            
+            $blankSpot->status_validasi = 'rejected';
+            $blankSpot->validated_by = auth()->id();
+            $blankSpot->validated_at = now();
+            $blankSpot->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil ditolak!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menolak data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 
     /**
      * Validasi massal - Setujui banyak data sekaligus

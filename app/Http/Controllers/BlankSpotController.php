@@ -128,24 +128,37 @@ class BlankSpotController extends Controller
     }
 
     /**
-     * Admin - Edit blank spot
+     * Admin - Edit blank spot - PERBAIKAN
      */
     public function edit($id)
     {
-        $blankSpot  = BlankSpot::findOrFail($id);
+        $blankSpot = BlankSpot::findOrFail($id);
+        
+        // CEK APAKAH SUDAH APPROVED
+        if ($blankSpot->status_validasi === 'approved') {
+            return redirect()->route('admin.blank-spot.index')
+                ->with('error', '⚠️ Data yang sudah DISETUJUI tidak bisa diedit!');
+        }
+        
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $kecamatans = Kecamatan::where('kabupaten_id', $blankSpot->kabupaten_id)->orderBy('nama_kecamatan')->get();
-        $desas      = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
+        $desas = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
         
         return view('admin.blank-spot.edit', compact('blankSpot', 'kabupatens', 'kecamatans', 'desas'));
     }
 
     /**
-     * Admin - Update blank spot
+     * Admin - Update blank spot - PERBAIKAN (HANYA SATU)
      */
     public function update(Request $request, $id)
     {
         $blankSpot = BlankSpot::findOrFail($id);
+        
+        // CEK APAKAH SUDAH APPROVED
+        if ($blankSpot->status_validasi === 'approved') {
+            return redirect()->route('admin.blank-spot.index')
+                ->with('error', '⚠️ Data yang sudah DISETUJUI tidak bisa diubah!');
+        }
 
         $validated = $request->validate([
             'kabupaten_id'   => 'required|exists:kabupaten,id',
@@ -165,7 +178,7 @@ class BlankSpotController extends Controller
             'waktu' => now()
         ]);
 
-        return redirect()->route('admin.add')->with('success', 'Data berhasil diperbarui!');
+        return redirect()->route('admin.blank-spot.index')->with('success', 'Data berhasil diperbarui!');
     }
 
     /**
@@ -192,22 +205,34 @@ class BlankSpotController extends Controller
     /**
      * User - Index data blank spot (hanya milik sendiri)
      */
-  public function userIndex(Request $request)
-{
-    $user = Auth::user();
-    $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-        ->where('created_by', $user->id);  // ← HANYA data milik user ini
+    public function userIndex(Request $request)
+    {
+        $user = Auth::user();
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+            ->where('created_by', $user->id);
 
-    // ... filter ...
+        if ($request->tahun) {
+            $query->where('tahun', $request->tahun);
+        }
+        if ($request->status_validasi) {
+            $query->where('status_validasi', $request->status_validasi);
+        }
+        if ($request->search) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->whereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%$s%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%$s%"));
+            });
+        }
 
-    $blankSpots = $query->latest()->paginate(10)->withQueryString();
-    $tahuns = BlankSpot::where('created_by', $user->id)
-        ->selectRaw('DISTINCT tahun')
-        ->orderBy('tahun', 'desc')
-        ->pluck('tahun');
+        $blankSpots = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $tahuns = BlankSpot::where('created_by', $user->id)
+            ->selectRaw('DISTINCT tahun')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
 
-    return view('user.blank-spot.index', compact('blankSpots', 'tahuns'));
-}
+        return view('user.blank-spot.index', compact('blankSpots', 'tahuns'));
+    }
 
     /**
      * User - Form create blank spot
@@ -222,54 +247,51 @@ class BlankSpotController extends Controller
     }
 
     /**
- * User - Store blank spot
- */
-public function userStore(Request $request)
-{
-    $user = Auth::user();
+     * User - Store blank spot
+     */
+    public function userStore(Request $request)
+    {
+        $user = Auth::user();
 
-    $validated = $request->validate([
-        'kecamatan_id' => 'required|exists:kecamatan,id',
-        'nama_desa'    => 'required|string|max:255',
-        'latitude'     => 'required|numeric|between:-90,90',
-        'longitude'    => 'required|numeric|between:-180,180',
-        'keterangan'   => 'nullable|string|max:1000',
-    ]);
+        $validated = $request->validate([
+            'kecamatan_id' => 'required|exists:kecamatan,id',
+            'nama_desa'    => 'required|string|max:255',
+            'latitude'     => 'required|numeric|between:-90,90',
+            'longitude'    => 'required|numeric|between:-180,180',
+            'keterangan'   => 'nullable|string|max:1000',
+        ]);
 
-    // Cari atau buat desa baru
-    $desa = Desa::firstOrCreate([
-        'kecamatan_id' => $validated['kecamatan_id'],
-        'nama_desa' => $validated['nama_desa'],
-    ]);
+        $desa = Desa::firstOrCreate([
+            'kecamatan_id' => $validated['kecamatan_id'],
+            'nama_desa' => $validated['nama_desa'],
+        ]);
 
-    // Siapkan data untuk insert
-    $data = [
-        'kabupaten_id' => $user->kabupaten_id,
-        'kecamatan_id' => $validated['kecamatan_id'],
-        'desa_id' => $desa->id,
-        'latitude' => $validated['latitude'],
-        'longitude' => $validated['longitude'],
-        'tahun' => now()->year,
-        'keterangan' => $validated['keterangan'] ?? null,
-        'status_validasi' => 'pending',
-        'created_by' => $user->id,
-        'validated_by' => null,
-        'validated_at' => null,
-    ];
+        $data = [
+            'kabupaten_id' => $user->kabupaten_id,
+            'kecamatan_id' => $validated['kecamatan_id'],
+            'desa_id' => $desa->id,
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'tahun' => now()->year,
+            'keterangan' => $validated['keterangan'] ?? null,
+            'status_validasi' => 'pending',
+            'created_by' => $user->id,
+            'validated_by' => null,
+            'validated_at' => null,
+        ];
 
-    $bs = BlankSpot::create($data);
+        $bs = BlankSpot::create($data);
 
-    AuditLog::create([
-        'user_id' => $user->id,
-        'aktivitas' => 'Operator menambah data blank spot ID: ' . $bs->id,
-        'waktu' => now(),
-    ]);
+        AuditLog::create([
+            'user_id' => $user->id,
+            'aktivitas' => 'Operator menambah data blank spot ID: ' . $bs->id,
+            'waktu' => now(),
+        ]);
 
-    // Flash notifikasi untuk admin
-    session()->flash('notifikasi', 'Ada data baru menunggu validasi!');
+        session()->flash('notifikasi', 'Ada data baru menunggu validasi!');
 
-    return redirect()->route('user.blank-spot.index')->with('success', 'Data berhasil dikirim dan menunggu validasi admin.');
-}
+        return redirect()->route('user.blank-spot.index')->with('success', 'Data berhasil dikirim dan menunggu validasi admin.');
+    }
 
     /**
      * User - Show detail blank spot
@@ -303,36 +325,49 @@ public function userStore(Request $request)
     }
 
     /**
-     * User - Update blank spot
-     */
-    public function userUpdate(Request $request, $id)
-    {
-        $user      = Auth::user();
-        $blankSpot = BlankSpot::where('created_by', $user->id)->findOrFail($id);
+ * User - Update blank spot
+ */
+public function userUpdate(Request $request, $id)
+{
+    $user = Auth::user();
+    $blankSpot = BlankSpot::where('created_by', $user->id)->findOrFail($id);
 
-        if ($blankSpot->status_validasi === 'approved') {
-            return redirect()->route('user.blank-spot.index')->with('error', 'Data yang sudah disetujui tidak bisa diedit.');
-        }
-
-        $validated = $request->validate([
-            'kecamatan_id' => 'required|exists:kecamatan,id',
-            'desa_id'      => 'required|exists:desa,id',
-            'latitude'     => 'required|numeric|between:-90,90',
-            'longitude'    => 'required|numeric|between:-180,180',
-            'keterangan'   => 'nullable|string|max:1000',
-        ]);
-
-        $validated['status_validasi'] = 'pending';
-        $blankSpot->update($validated);
-
-        AuditLog::create([
-            'user_id' => $user->id,
-            'aktivitas' => 'Operator mengedit blank spot ID: ' . $id,
-            'waktu' => now()
-        ]);
-
-        return redirect()->route('user.blank-spot.index')->with('success', 'Data diperbarui dan menunggu validasi ulang.');
+    if ($blankSpot->status_validasi === 'approved') {
+        return redirect()->route('user.blank-spot.index')->with('error', 'Data yang sudah disetujui tidak bisa diedit.');
     }
+
+    $validated = $request->validate([
+        'kecamatan_id' => 'required|exists:kecamatan,id',
+        'nama_desa'    => 'required|string|max:255',
+        'latitude'     => 'required|numeric|between:-90,90',
+        'longitude'    => 'required|numeric|between:-180,180',
+        'keterangan'   => 'nullable|string|max:1000',
+    ]);
+
+    // Cari atau buat desa berdasarkan nama
+    $desa = Desa::firstOrCreate([
+        'kecamatan_id' => $validated['kecamatan_id'],
+        'nama_desa' => $validated['nama_desa'],
+    ]);
+
+    // Update data
+    $blankSpot->update([
+        'kecamatan_id' => $validated['kecamatan_id'],
+        'desa_id' => $desa->id,
+        'latitude' => $validated['latitude'],
+        'longitude' => $validated['longitude'],
+        'keterangan' => $validated['keterangan'] ?? null,
+        'status_validasi' => 'pending', // Kembali ke pending
+    ]);
+
+    AuditLog::create([
+        'user_id' => $user->id,
+        'aktivitas' => 'Operator mengedit blank spot ID: ' . $id,
+        'waktu' => now()
+    ]);
+
+    return redirect()->route('user.blank-spot.index')->with('success', 'Data diperbarui dan menunggu validasi ulang.');
+}
 
     /**
      * User - Delete blank spot

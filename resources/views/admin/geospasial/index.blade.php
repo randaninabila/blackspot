@@ -39,6 +39,26 @@
 </div>
 
 @push('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+const allSpots = @json($allSpots->map(fn($s) => [
+    'id'        => $s->id,
+    'lat'       => $s->latitude,
+    'lng'       => $s->longitude,
+    'kabupaten' => $s->kabupaten->nama_kabupaten ?? '-',
+    'kecamatan' => $s->kecamatan->nama_kecamatan ?? '-',
+    'desa'      => $s->desa->nama_desa ?? '-',
+    'tahun'     => $s->tahun,
+    'kab_id'    => $s->kabupaten_id,
+    'status'    => $s->status_validasi ?? 'pending', // TAMBAHKAN STATUS
+]));
+
+// ... kode selanjutnya sama seperti sebelumnya ...
+</script>
+@endpush
+
 <script>
 const allSpots = @json($allSpots->map(fn($s) => [
     'id'        => $s->id,

@@ -13,32 +13,38 @@ use Illuminate\Support\Facades\Auth;
 class AdminController extends Controller
 {
     /**
-     * Show admin dashboard
+     * Show admin dashboard - PERBAIKAN (data dari database)
      */
     public function dashboard()
     {
         $user = Auth::user();
         
-        // Statistik
+        // ============================================================
+        // STATISTIK DARI DATABASE
+        // ============================================================
         $totalData = BlankSpot::count();
         $pendingCount = BlankSpot::where('status_validasi', 'pending')->count();
         $approvedCount = BlankSpot::where('status_validasi', 'approved')->count();
         $rejectedCount = BlankSpot::where('status_validasi', 'rejected')->count();
         
-        // Data untuk tabel
+        // ============================================================
+        // DATA TABEL - AMBIL SEMUA DATA DARI DATABASE
+        // ============================================================
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            ->get(); // <-- PERBAIKAN: ambil SEMUA data, bukan limit 10
         
-        // Data pending untuk validasi
+        // ============================================================
+        // DATA PENDING UNTUK VALIDASI
+        // ============================================================
         $pendingSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('status_validasi', 'pending')
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            ->get(); // <-- PERBAIKAN: ambil SEMUA pending
         
-        // Data untuk chart
+        // ============================================================
+        // DATA UNTUK CHART (GRAFIK)
+        // ============================================================
         $statusLabels = ['Pending', 'Approved', 'Rejected'];
         $statusCounts = [
             BlankSpot::where('status_validasi', 'pending')->count(),
@@ -46,7 +52,7 @@ class AdminController extends Controller
             BlankSpot::where('status_validasi', 'rejected')->count()
         ];
         
-        // Data per tahun
+        // Data per tahun untuk grafik
         $tahunData = BlankSpot::selectRaw('tahun, count(*) as total')
             ->groupBy('tahun')
             ->orderBy('tahun', 'asc')
@@ -55,19 +61,25 @@ class AdminController extends Controller
         $tahunLabels = $tahunData->pluck('tahun')->toArray();
         $tahunCounts = $tahunData->pluck('total')->toArray();
         
-        // Data untuk peta
+        // ============================================================
+        // DATA UNTUK PETA
+        // ============================================================
         $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('status_validasi', 'approved')
             ->get();
-
-        // Data untuk filter
+        
+        // ============================================================
+        // DATA UNTUK FILTER
+        // ============================================================
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $tahunList = BlankSpot::select('tahun')
             ->distinct()
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
-
-        // Data validasi
+        
+        // ============================================================
+        // DATA VALIDASI MENUNGGU
+        // ============================================================
         $totalMenunggu = BlankSpot::where('status_validasi', 'pending')->count();
         $totalDisetujui = BlankSpot::where('status_validasi', 'approved')->count();
         $totalDitolak = BlankSpot::where('status_validasi', 'rejected')->count();
@@ -75,32 +87,33 @@ class AdminController extends Controller
         $validasiMenunggu = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
             ->where('status_validasi', 'pending')
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-        // Statistik card
+            ->get(); // <-- PERBAIKAN: ambil SEMUA
+        
+        // ============================================================
+        // STATISTIK CARD
+        // ============================================================
         $tahunStats = BlankSpot::selectRaw('YEAR(tahun) as year, COUNT(*) as total')
             ->groupBy('year')
             ->orderBy('year', 'desc')
             ->get();
-
+        
         $nilaiRataRata = $tahunStats->avg('total') ?? 0;
-
+        
         $nilaiTertinggiData = BlankSpot::selectRaw('YEAR(tahun) as year, COUNT(*) as total')
             ->groupBy('year')
             ->orderBy('total', 'desc')
             ->first();
-
+        
         $nilaiTerendahData = BlankSpot::selectRaw('YEAR(tahun) as year, COUNT(*) as total')
             ->groupBy('year')
             ->orderBy('total', 'asc')
             ->first();
-
+        
         $nilaiTertinggi = $nilaiTertinggiData ? $nilaiTertinggiData->total : 0;
         $tahunTertinggi = $nilaiTertinggiData ? $nilaiTertinggiData->year : '-';
         $nilaiTerendah = $nilaiTerendahData ? $nilaiTerendahData->total : 0;
         $tahunTerendah = $nilaiTerendahData ? $nilaiTerendahData->year : '-';
-
+        
         return view('admin.dashboard', compact(
             'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
             'blankSpots', 'pendingSpots',
@@ -115,39 +128,35 @@ class AdminController extends Controller
     }
 
     /**
- * Halaman daftar kabupaten/kota (card view)
- * MENAMPILKAN SEMUA KABUPATEN TANPA PAGINASI
- */
-public function addPage()
-{
-    // Ambil SEMUA kabupaten dengan jumlah blank spot
-    $kabupatens = Kabupaten::withCount('blankSpots')
-        ->orderBy('nama_kabupaten')
-        ->get();
+     * Halaman daftar kabupaten/kota (card view)
+     */
+    public function addPage()
+    {
+        $kabupatens = Kabupaten::withCount('blankSpots')
+            ->orderBy('nama_kabupaten')
+            ->get();
 
-    return view('admin.add', compact('kabupatens'));
-}
-    /**
- * Halaman detail per kabupaten
- */
-public function detailPage($kabupaten_id)
-{
-    // Ambil data kabupaten
-    $kabupaten = Kabupaten::findOrFail($kabupaten_id);
+        return view('admin.add', compact('kabupatens'));
+    }
     
-    // Ambil data blank spot HANYA untuk kabupaten ini
-    $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-        ->where('kabupaten_id', $kabupaten_id)
-        ->orderBy('created_at', 'desc')
-        ->paginate(10);
+    /**
+     * Halaman detail per kabupaten
+     */
+    public function detailPage($kabupaten_id)
+    {
+        $kabupaten = Kabupaten::findOrFail($kabupaten_id);
+        
+        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+            ->where('kabupaten_id', $kabupaten_id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-    // Ambil kecamatan HANYA untuk kabupaten ini
-    $kecamatans = Kecamatan::where('kabupaten_id', $kabupaten_id)  // ← FILTER INI
-        ->orderBy('nama_kecamatan')
-        ->get();
+        $kecamatans = Kecamatan::where('kabupaten_id', $kabupaten_id)
+            ->orderBy('nama_kecamatan')
+            ->get();
 
-    return view('admin.detail', compact('kabupaten', 'blankSpots', 'kecamatans'));
-}
+        return view('admin.detail', compact('kabupaten', 'blankSpots', 'kecamatans'));
+    }
 
     /**
      * Halaman detail wilayah (untuk route /wilayah/{slug})

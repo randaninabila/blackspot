@@ -12,15 +12,11 @@ class WilayahSeeder extends Seeder
 {
     public function run(): void
     {
-        // Kosongkan tabel terlebih dahulu
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Kecamatan::truncate();
         Kabupaten::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // ===========================
-        // DATA KABUPATEN
-        // ===========================
         $kabupatens = [
             ['nama_kabupaten' => 'Nias', 'kode_kabupaten' => '1'],
             ['nama_kabupaten' => 'Mandailing Natal', 'kode_kabupaten' => '2'],

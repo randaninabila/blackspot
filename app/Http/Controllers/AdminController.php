@@ -15,7 +15,7 @@ class AdminController extends Controller
     /**
      * Show admin dashboard - PERBAIKAN (data dari database)
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $user = Auth::user();
         
@@ -84,10 +84,15 @@ class AdminController extends Controller
         $totalDisetujui = BlankSpot::where('status_validasi', 'approved')->count();
         $totalDitolak = BlankSpot::where('status_validasi', 'rejected')->count();
         
-        $validasiMenunggu = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
-            ->where('status_validasi', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->get(); // <-- PERBAIKAN: ambil SEMUA
+        $status = $request->status ?? 'pending';
+
+        $validasiMenunggu = BlankSpot::with([
+            'kabupaten',
+            'kecamatan',
+            'desa',
+            'creator'
+        ])->orderBy('created_at', 'desc')
+        ->get();
         
         // ============================================================
         // STATISTIK CARD

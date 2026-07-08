@@ -11,9 +11,6 @@ class UsersSeeder extends Seeder
 {
     public function run(): void
     {
-        // ===========================
-        // Admin Utama
-        // ===========================
         User::create([
             'nama' => 'Admin Diskominfo Sumut',
             'email' => 'admin@sumutprov.go.id',

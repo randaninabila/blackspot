@@ -25,7 +25,7 @@
     <!-- Filter -->
     <form method="GET" action="{{ route('admin.blank-spot.index') }}"
           class="bg-[#F3F3E8] rounded-2xl p-6 mb-8 flex flex-wrap gap-4 items-end">
-       <div>
+       <!-- <div>
     <label class="block text-[#234B26] font-bold text-sm mb-1">Tahun</label>
     <select name="tahun"
         class="bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm outline-none min-w-[120px] appearance-none focus:border-[#234B26] transition-all"
@@ -34,10 +34,10 @@
         <option value="2025">2025</option>
         <option value="2026">2026</option>
     </select>
-</div>
+</div> -->
         <div>
             <label class="block text-[#234B26] font-bold text-sm mb-1">Status Validasi</label>
-            <select name="status_validasi"
+            <select id="status_validasi" name="status_validasi"
                 class="bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm outline-none min-w-[150px] appearance-none focus:border-[#234B26] transition-all"
                 style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
                 <option value="">-- Semua --</option>
@@ -48,7 +48,7 @@
         </div>
         <div>
             <label class="block text-[#234B26] font-bold text-sm mb-1">Tahun</label>
-            <select name="tahun"
+            <select id="tahun" name="tahun"
                 class="bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm outline-none min-w-[120px] appearance-none focus:border-[#234B26] transition-all"
                 style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
                 <option value="">-- Semua --</option>
@@ -72,6 +72,28 @@
             Reset
         </a>
     </form>
+
+    @php
+    $judul = 'Daftar Seluruh Data Blank Spot';
+
+    switch(request('status_validasi')) {
+        case 'pending':
+            $judul = 'Daftar Data Menunggu Validasi';
+            break;
+
+        case 'approved':
+            $judul = 'Daftar Data Disetujui';
+            break;
+
+        case 'rejected':
+            $judul = 'Daftar Data Ditolak';
+            break;
+    }
+@endphp
+
+<h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
+    {{ $judul }}
+</h4>
 
     <!-- Tabel -->
     <div class="bg-[#F3F3E8] rounded-3xl shadow-xl p-8 overflow-x-auto">
@@ -174,6 +196,16 @@
     select::-ms-expand {
         display: none;
     }
+
+<script>
+document.getElementById('status_validasi').addEventListener('change', function () {
+    this.form.submit();
+});
+</script>
 </style>
+
+document.getElementById('tahun').addEventListener('change', function () {
+    this.form.submit();
+});
 
 @endsection

@@ -432,8 +432,10 @@
             </div>
         </div>
 
-        <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
-            Daftar Data Menunggu Validasi
+              <h4 id="judulValidasi"
+    class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
+    Daftar Data 
+</h4>
         </h4>
 
         <!-- Tabel Validasi -->
@@ -630,11 +632,22 @@ function filterValidasiTable() {
     const tahun = document.getElementById('filterTahun')?.value || '';
     const cari = document.getElementById('filterCari')?.value?.toLowerCase() || '';
 
+    // Ganti judul
+    const judul = document.getElementById('judulValidasi');
+
+    if (status === 'approved') {
+        judul.innerText = 'Daftar Data Disetujui';
+    } else if (status === 'rejected') {
+        judul.innerText = 'Daftar Data Ditolak';
+    } else {
+        judul.innerText = 'Daftar Data Menunggu Validasi';
+    }
+
     document.querySelectorAll('#validasiTableBody tr.data-row').forEach(function(row) {
         const matchKab = !kabupaten || row.dataset.kabupatenId === kabupaten;
         const matchStatus = !status || status === 'all' || row.dataset.statusValidasi === status;
         const matchTahun = !tahun || row.dataset.tahun === tahun;
-        const matchCari = !cari || 
+        const matchCari = !cari ||
             row.dataset.kabupaten?.toLowerCase().includes(cari) ||
             row.dataset.kecamatan?.toLowerCase().includes(cari) ||
             row.dataset.desa?.toLowerCase().includes(cari);

@@ -183,7 +183,7 @@
 
                     <tbody id="tableBody">
 
-    <tr class="border-b">
+    <!-- <tr class="border-b">
         <td class="py-3 pl-5">1</td>
         <td>Kota Medan</td>
         <td>Kota Medan</td>
@@ -301,7 +301,7 @@
         <td>100.0523</td>
         <td>2.1004</td>
         <td>2014</td>
-    </tr>
+    </tr> -->
 
 </tbody>
 

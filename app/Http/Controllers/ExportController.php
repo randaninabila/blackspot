@@ -8,24 +8,35 @@ use Illuminate\Support\Facades\Auth;
 
 class ExportController extends Controller
 {
-    public function exportPdf(Request $request)
+        public function exportPdf(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
-            ->where('status_validasi', 'approved');
+        $query = BlankSpot::with([
+            'kabupaten',
+            'kecamatan',
+            'desa',
+            'creator'
+        ])->where('status_validasi', 'approved');
 
-        if ($request->kabupaten_id) $query->where('kabupaten_id', $request->kabupaten_id);
-        if ($request->tahun)        $query->where('tahun', $request->tahun);
-
-        $data = $query->orderBy('kabupaten_id')->orderBy('kecamatan_id')->get();
-
-        // Gunakan DomPDF jika tersedia, fallback ke HTML download
-        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.blankspot-pdf', compact('data'))
-                ->setPaper('a4', 'landscape');
-            return $pdf->download('laporan-blankspot-' . date('Ymd') . '.pdf');
+        if ($request->kabupaten_id) {
+            $query->where('kabupaten_id', $request->kabupaten_id);
         }
 
-        return view('exports.blankspot-pdf', compact('data'));
+        if ($request->tahun) {
+            $query->where('tahun', $request->tahun);
+        }
+
+        $data = $query->orderBy('kabupaten_id')
+                    ->orderBy('kecamatan_id')
+                    ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'exports.blankspot-pdf',
+            compact('data')
+        )->setPaper('a4', 'landscape');
+
+        return $pdf->download(
+            'laporan-blankspot-'.now()->format('Ymd-His').'.pdf'
+        );
     }
 
     public function exportExcel(Request $request)
@@ -41,36 +52,43 @@ class ExportController extends Controller
         return $this->downloadCsv(null, $request->all());
     }
 
-    public function exportPdfUser(Request $request)
+        public function exportPdfUser(Request $request)
     {
-        $user = Auth::user();
-        $data = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
-            ->where('status_validasi', 'approved')
-            ->orderBy('tahun', 'desc')
-            ->get();
+        $query = BlankSpot::with([
+            'kabupaten',
+            'kecamatan',
+            'desa',
+            'creator'
+        ])->where('status_validasi', 'approved');
 
-        if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.blankspot-pdf', compact('data'))
-                ->setPaper('a4', 'landscape');
-            return $pdf->download('laporan-blankspot-' . date('Ymd') . '.pdf');
+        if ($request->kabupaten_id) {
+            $query->where('kabupaten_id', $request->kabupaten_id);
         }
 
-        return view('exports.blankspot-pdf', compact('data'));
+        if ($request->tahun) {
+            $query->where('tahun', $request->tahun);
+        }
+
+        $data = $query->orderBy('kabupaten_id')
+                    ->orderBy('kecamatan_id')
+                    ->get();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'exports.blankspot-pdf',
+            compact('data')
+        )->setPaper('a4', 'landscape');
+
+        return $pdf->download(
+            'laporan-blankspot-' . date('Ymd') . '.pdf'
+        );
     }
 
-    public function exportExcelUser(Request $request)
+        public function exportExcelUser(Request $request)
     {
-        $userId = Auth::id();
-
-        if (class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
-            return \Maatwebsite\Excel\Facades\Excel::download(
-                new \App\Exports\BlankSpotExport($request->all(), $userId),
-                'laporan-blankspot-' . date('Ymd') . '.xlsx'
-            );
-        }
-
-        return $this->downloadCsv($userId, $request->all());
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\BlankSpotExport($request->all(), null),
+            'laporan-blankspot-' . date('Ymd') . '.xlsx'
+        );
     }
 
     private function downloadCsv(?int $userId, array $filters)

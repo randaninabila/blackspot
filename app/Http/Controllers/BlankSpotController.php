@@ -205,29 +205,37 @@ class BlankSpotController extends Controller
     /**
      * User - Index data blank spot (hanya milik sendiri)
      */
-    public function userIndex(Request $request)
+        public function userIndex(Request $request)
     {
-        $user = Auth::user();
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
 
         if ($request->tahun) {
             $query->where('tahun', $request->tahun);
         }
+
         if ($request->status_validasi) {
             $query->where('status_validasi', $request->status_validasi);
         }
+
         if ($request->search) {
             $s = $request->search;
+
             $query->where(function ($q) use ($s) {
-                $q->whereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%$s%"))
-                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%$s%"));
+                $q->whereHas('kabupaten', function ($sq) use ($s) {
+                    $sq->where('nama_kabupaten', 'like', "%{$s}%");
+                })
+                ->orWhereHas('kecamatan', function ($sq) use ($s) {
+                    $sq->where('nama_kecamatan', 'like', "%{$s}%");
+                })
+                ->orWhereHas('desa', function ($sq) use ($s) {
+                    $sq->where('nama_desa', 'like', "%{$s}%");
+                });
             });
         }
 
-        $blankSpots = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
-        $tahuns = BlankSpot::where('created_by', $user->id)
-            ->selectRaw('DISTINCT tahun')
+        $blankSpots = $query->latest()->paginate(10);
+
+        $tahuns = BlankSpot::selectRaw('DISTINCT tahun')
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 

@@ -96,28 +96,27 @@
         <!-- Download -->
         <div class="flex justify-between items-center gap-2">
 
-    <!-- Tambah Data -->
+    <!-- Tambah Data
    <a href="{{ route('admin.add') }}" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">
     + Tambah Data
-</a>
+</a> -->
 
     <!-- Download -->
-    <button
-  class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    class="w-5 h-5"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor">
-    <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="2"
-      d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
-  </svg>
-  <span>Download</span>
-</button>
+    <div class="flex items-center gap-2">
+           <a href="{{ route('admin.add') }}" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
+                    </svg>
+                    <span>Download</span>
+                </button>
+                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden min-w-[160px]">
+                    <a href="{{ route('admin.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">Export PDF</a>
+                    <a href="{{ route('admin.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">Export Excel</a>
+                </div>
+            </div>
+        </div>
 
 </div>
 

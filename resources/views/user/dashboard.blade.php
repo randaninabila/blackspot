@@ -60,8 +60,8 @@
                     <span>Download</span>
                 </button>
                 <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden min-w-[160px]">
-                    <a href="{{ route('user.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">📄 Export PDF</a>
-                    <a href="{{ route('user.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">📊 Export Excel</a>
+                    <a href="{{ route('user.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">Export PDF</a>
+                    <a href="{{ route('user.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium"> Export Excel</a>
                 </div>
             </div>
         </div>

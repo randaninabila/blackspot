@@ -17,26 +17,24 @@ class UserController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        
+
+        // Tabel Dashboard (SEMUA DATA)
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
-        $totalData = BlankSpot::where('created_by', $user->id)->count();
-        $pendingCount = BlankSpot::where('created_by', $user->id)
-            ->where('status_validasi', 'pending')
-            ->count();
-        $approvedCount = BlankSpot::where('created_by', $user->id)
-            ->where('status_validasi', 'approved')
-            ->count();
-        $rejectedCount = BlankSpot::where('created_by', $user->id)
-            ->where('status_validasi', 'rejected')
-            ->count();
+        // Statistik
+        $totalData = BlankSpot::count();
 
-        $tahunData = BlankSpot::where('created_by', $user->id)
-            ->selectRaw('tahun, count(*) as total')
+        $pendingCount = BlankSpot::where('status_validasi', 'pending')->count();
+
+        $approvedCount = BlankSpot::where('status_validasi', 'approved')->count();
+
+        $rejectedCount = BlankSpot::where('status_validasi', 'rejected')->count();
+
+        // Grafik
+        $tahunData = BlankSpot::selectRaw('tahun, count(*) as total')
             ->groupBy('tahun')
             ->orderBy('tahun', 'asc')
             ->get();
@@ -44,40 +42,40 @@ class UserController extends Controller
         $grafikLabels = $tahunData->pluck('tahun')->toArray();
         $grafikData = $tahunData->pluck('total')->toArray();
 
+        // Peta
         $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
             ->where('status_validasi', 'approved')
             ->get();
 
         $kabupaten = Kabupaten::find($user->kabupaten_id);
-        $tahunList = BlankSpot::where('created_by', $user->id)
-            ->select('tahun')
+
+        // List Tahun
+        $tahunList = BlankSpot::select('tahun')
             ->distinct()
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
-        $nilaiRataRata = BlankSpot::where('created_by', $user->id)
-            ->selectRaw('YEAR(tahun) as year, COUNT(*) as total')
-            ->groupBy('year')
+        // Statistik Tahunan
+        $nilaiRataRata = BlankSpot::selectRaw('tahun, COUNT(*) as total')
+            ->groupBy('tahun')
             ->get()
             ->avg('total') ?? 0;
 
-        $nilaiTertinggiData = BlankSpot::where('created_by', $user->id)
-            ->selectRaw('YEAR(tahun) as year, COUNT(*) as total')
-            ->groupBy('year')
-            ->orderBy('total', 'desc')
+        $nilaiTertinggiData = BlankSpot::selectRaw('tahun, COUNT(*) as total')
+            ->groupBy('tahun')
+            ->orderByDesc('total')
             ->first();
 
-        $nilaiTerendahData = BlankSpot::where('created_by', $user->id)
-            ->selectRaw('YEAR(tahun) as year, COUNT(*) as total')
-            ->groupBy('year')
-            ->orderBy('total', 'asc')
+        $nilaiTerendahData = BlankSpot::selectRaw('tahun, COUNT(*) as total')
+            ->groupBy('tahun')
+            ->orderBy('total')
             ->first();
 
-        $nilaiTertinggi = $nilaiTertinggiData ? $nilaiTertinggiData->total : 0;
-        $tahunTertinggi = $nilaiTertinggiData ? $nilaiTertinggiData->year : '-';
-        $nilaiTerendah = $nilaiTerendahData ? $nilaiTerendahData->total : 0;
-        $tahunTerendah = $nilaiTerendahData ? $nilaiTerendahData->year : '-';
+        $nilaiTertinggi = $nilaiTertinggiData?->total ?? 0;
+        $tahunTertinggi = $nilaiTertinggiData?->tahun ?? '-';
+
+        $nilaiTerendah = $nilaiTerendahData?->total ?? 0;
+        $tahunTerendah = $nilaiTerendahData?->tahun ?? '-';
 
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
 
@@ -94,16 +92,20 @@ class UserController extends Controller
      * - Menampilkan SEMUA kabupaten
      * - Angka = total data milik user di kabupaten tersebut
      */
-    public function addPage()
+        public function addPage()
     {
         $user = Auth::user();
-        
-        // Ambil SEMUA kabupaten dengan total blank spot (HANYA milik user ini)
-        $kabupatens = Kabupaten::withCount(['blankSpots' => function($query) use ($user) {
-            $query->where('created_by', $user->id);
-        }])->orderBy('nama_kabupaten')->get();
 
-        return view('user.add', compact('kabupatens'));
+        $kabupatens = Kabupaten::withCount('blankSpots')
+            ->orderBy('nama_kabupaten')
+            ->get();
+
+        $userKabupatenId = $user->kabupaten_id;
+
+        return view('user.add', compact(
+            'kabupatens',
+            'userKabupatenId'
+        ));
     }
 
     /**
@@ -111,16 +113,15 @@ class UserController extends Controller
      * - Hanya menampilkan data milik user
      * - Hanya bisa tambah/edit/hapus di kabupaten sendiri
      */
-    public function detailPage($kabupaten_id)
+        public function detailPage($kabupaten_id)
     {
         $user = Auth::user();
-        
+
         $kabupaten = Kabupaten::findOrFail($kabupaten_id);
-        
-        // Hanya tampilkan data milik user ini
+
+        // Semua data di kabupaten tersebut
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('kabupaten_id', $kabupaten_id)
-            ->where('created_by', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -128,9 +129,14 @@ class UserController extends Controller
             ->orderBy('nama_kecamatan')
             ->get();
 
-        // Cek apakah ini kabupaten milik user (bisa edit/hapus/tambah)
+        // Apakah ini kabupaten milik user?
         $isOwner = ($user->kabupaten_id == $kabupaten_id);
 
-        return view('user.detail', compact('kabupaten', 'blankSpots', 'kecamatans', 'isOwner'));
+        return view('user.detail', compact(
+            'kabupaten',
+            'blankSpots',
+            'kecamatans',
+            'isOwner'
+        ));
     }
 }

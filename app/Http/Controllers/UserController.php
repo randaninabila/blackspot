@@ -20,7 +20,7 @@ class UserController extends Controller
 
         // Data tabel - HANYA data milik user
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
+            // ->where('created_by', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -45,7 +45,7 @@ class UserController extends Controller
         // (sebelum user menekan tombol Pratinjau). Setelah difilter, JS akan
         // mengganti isi peta dengan hasil dari endpoint /user/api/filter-geospasial.
         $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
+            // ->where('created_by', $user->id)
             ->where('status_validasi', 'approved')
             ->get();
 
@@ -101,17 +101,18 @@ class UserController extends Controller
      * Halaman daftar kabupaten/kota untuk user (card view)
      */
     public function addPage()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $kabupatens = Kabupaten::withCount(['blankSpots' => function($query) use ($user) {
-            $query->where('created_by', $user->id);
-        }])->orderBy('nama_kabupaten')->get();
+    $kabupatens = Kabupaten::withCount([
+        'blankSpots'
+    ])->orderBy('nama_kabupaten')
+      ->get();
 
-        $userKabupatenId = $user->kabupaten_id;
+    $userKabupatenId = $user->kabupaten_id;
 
-        return view('user.add', compact('kabupatens', 'userKabupatenId'));
-    }
+    return view('user.add', compact('kabupatens', 'userKabupatenId'));
+}
 
     /**
      * Halaman detail per kabupaten untuk user
@@ -125,7 +126,7 @@ class UserController extends Controller
         // Hanya data milik user di kabupaten tersebut
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('kabupaten_id', $kabupaten_id)
-            ->where('created_by', $user->id)
+            // ->where('created_by', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

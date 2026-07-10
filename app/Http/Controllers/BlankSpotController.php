@@ -311,7 +311,7 @@ class BlankSpotController extends Controller
     public function userShow($id)
     {
         $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', Auth::id())
+            // ->where('created_by', Auth::id())
             ->findOrFail($id);
         
         return view('user.blank-spot.show', compact('blankSpot'));

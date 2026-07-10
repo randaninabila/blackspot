@@ -530,7 +530,7 @@
         </div>
 
         <!-- Tombol Setujui & Tolak -->
-        <div class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60">
+        <div id="aksiValidasi" class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60">
             <button type="button" onclick="aksiSetujui()"
                 class="flex items-center gap-2 bg-[#234B26] hover:bg-[#1a381c] text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -1239,6 +1239,14 @@ function filterValidasiTable() {
     const tahun = document.getElementById('filterTahun')?.value || '';
     const cari = document.getElementById('filterCari')?.value?.toLowerCase() || '';
 
+const aksi = document.getElementById('aksiValidasi');
+
+if (status === 'pending') {
+    aksi.classList.remove('hidden');
+} else {
+    aksi.classList.add('hidden');
+}
+
     document.querySelectorAll('#validasiTableBody tr.data-row').forEach(function(row) {
         const matchKab = !kabupaten || row.dataset.kabupatenId === kabupaten;
         const matchStatus = !status || status === 'all' || row.dataset.statusValidasi === status;
@@ -1354,50 +1362,6 @@ function aksiSetujui() {
     .catch(error => { alert('Gagal terhubung ke server.'); });
 }
 
-function aksiTolak() {
-    if (!activeSpotId) {
-        alert('Pilih data terlebih dahulu dengan mengklik baris pada tabel.');
-        return;
-    }
-    if (!confirm('Apakah Anda yakin ingin menolak data ini?')) return;
-
-    fetch('/admin/validasi/' + activeSpotId + '/tolak', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': getCsrfToken(),
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            // Hapus row
-            const row = document.getElementById('row-' + activeSpotId);
-            if (row) { row.style.display = 'none'; }
-            
-            // Update counter
-            const menunggu = document.querySelector('[data-counter="menunggu"]');
-            if (menunggu) { menunggu.textContent = Math.max(0, parseInt(menunggu.textContent) - 1); }
-            const ditolak = document.querySelector('[data-counter="ditolak"]');
-            if (ditolak) { ditolak.textContent = parseInt(ditolak.textContent) + 1; }
-            
-            document.getElementById('detailSection')?.classList.add('hidden');
-            activeSpotId = null;
-            
-            alert(data.message || 'Data berhasil ditolak!');
-            
-            // Refresh halaman dashboard setelah tolak
-            setTimeout(function() {
-                window.location.href = '/admin/dashboard';
-            }, 1000);
-        } else {
-            alert('Error: ' + (data.message || 'Silakan coba lagi.'));
-        }
-    })
-    .catch(error => { alert('Gagal terhubung ke server.'); });
-}
 
 function aksiTolak() {
     if (!activeSpotId) {

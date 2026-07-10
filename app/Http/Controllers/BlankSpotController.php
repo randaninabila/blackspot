@@ -207,24 +207,27 @@ class BlankSpotController extends Controller
      */
         public function userIndex(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $user = Auth::user();
 
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
+            ->where('kabupaten_id', $user->kabupaten_id);
+
+        // Filter Tahun
         if ($request->tahun) {
             $query->where('tahun', $request->tahun);
         }
 
+        // Filter Status
         if ($request->status_validasi) {
             $query->where('status_validasi', $request->status_validasi);
         }
 
+        // Search Kecamatan / Desa
         if ($request->search) {
             $s = $request->search;
 
             $query->where(function ($q) use ($s) {
-                $q->whereHas('kabupaten', function ($sq) use ($s) {
-                    $sq->where('nama_kabupaten', 'like', "%{$s}%");
-                })
-                ->orWhereHas('kecamatan', function ($sq) use ($s) {
+                $q->whereHas('kecamatan', function ($sq) use ($s) {
                     $sq->where('nama_kecamatan', 'like', "%{$s}%");
                 })
                 ->orWhereHas('desa', function ($sq) use ($s) {
@@ -235,7 +238,8 @@ class BlankSpotController extends Controller
 
         $blankSpots = $query->latest()->paginate(10);
 
-        $tahuns = BlankSpot::selectRaw('DISTINCT tahun')
+        $tahuns = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
+            ->selectRaw('DISTINCT tahun')
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 

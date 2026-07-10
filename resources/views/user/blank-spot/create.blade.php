@@ -106,7 +106,7 @@
 
             <!-- Informasi -->
             <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-sm text-yellow-700">
-                ⚠️ Data yang dikirim akan berstatus <strong>Menunggu Validasi</strong> hingga disetujui oleh Admin Diskominfo
+                 Data yang dikirim akan berstatus <strong>Menunggu Validasi</strong> hingga disetujui oleh Admin Diskominfo
             </div>
 
             <!-- Tombol -->

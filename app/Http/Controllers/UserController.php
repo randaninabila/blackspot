@@ -20,15 +20,15 @@ class UserController extends Controller
 
         // Data tabel - HANYA data milik user
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            // ->where('created_by', $user->id)
+            ->where('status_validasi', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Statistik - HANYA data milik user
-        $totalData = BlankSpot::where('created_by', $user->id)->count();
-        $pendingCount = BlankSpot::where('created_by', $user->id)->where('status_validasi', 'pending')->count();
-        $approvedCount = BlankSpot::where('created_by', $user->id)->where('status_validasi', 'approved')->count();
-        $rejectedCount = BlankSpot::where('created_by', $user->id)->where('status_validasi', 'rejected')->count();
+        $totalData = BlankSpot::where('status_validasi','approved')->count();
+        $pendingCount = BlankSpot::where('status_validasi', 'pending')->count();
+        $approvedCount = BlankSpot::where('status_validasi', 'approved')->count();
+        $rejectedCount = BlankSpot::where('status_validasi', 'rejected')->count();
 
         // Grafik - HANYA data milik user
         $tahunData = BlankSpot::where('created_by', $user->id)
@@ -63,19 +63,19 @@ class UserController extends Controller
             ->toArray();
 
         // Statistik tahunan user
-        $nilaiRataRata = BlankSpot::where('created_by', $user->id)
+        $nilaiRataRata = BlankSpot::where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->get()
             ->avg('total') ?? 0;
 
-        $nilaiTertinggiData = BlankSpot::where('created_by', $user->id)
+        $nilaiTertinggiData = BlankSpot::where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->orderByDesc('total')
             ->first();
 
-        $nilaiTerendahData = BlankSpot::where('created_by', $user->id)
+        $nilaiTerendahData = BlankSpot::where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->orderBy('total')
@@ -105,9 +105,11 @@ class UserController extends Controller
     $user = Auth::user();
 
     $kabupatens = Kabupaten::withCount([
-        'blankSpots'
+    'blankSpots' => function ($query) {
+        $query->where('status_validasi', 'approved');
+    }
     ])->orderBy('nama_kabupaten')
-      ->get();
+    ->get();
 
     $userKabupatenId = $user->kabupaten_id;
 
@@ -126,7 +128,7 @@ class UserController extends Controller
         // Hanya data milik user di kabupaten tersebut
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('kabupaten_id', $kabupaten_id)
-            // ->where('created_by', $user->id)
+            ->where('status_validasi', 'approved')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

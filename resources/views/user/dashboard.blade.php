@@ -337,6 +337,13 @@ switchTab = function(tab) {
     if (tab === 'grafik') {
         setTimeout(() => { initChart(document.getElementById('chartType').value); }, 50);
     }
+    if (tab === 'geo') {
+        // Peta baru diinisialisasi di sini karena #map berada di dalam
+        // tab-content yang hidden saat page load. Leaflet butuh container
+        // yang sudah terlihat & punya ukuran sebelum L.map() dipanggil,
+        // jadi initMap() dipanggil setelah tab-content di-unhide.
+        setTimeout(() => { initMap(); }, 50);
+    }
 }
 
 let map = null;
@@ -360,9 +367,10 @@ function initMap() {
     renderMarkers();
 }
 
-function renderMarkers() {
+function renderMarkers(locations) {
+    const data = locations || blankspotLocations;
     markersLayer.clearLayers();
-    blankspotLocations.forEach(loc => {
+    data.forEach(loc => {
         if (loc.lat && loc.lng) {
             L.marker([loc.lat, loc.lng]).addTo(markersLayer).bindPopup('<b>' + loc.name + '</b><br>Tahun: ' + loc.year);
         }
@@ -372,13 +380,55 @@ function renderMarkers() {
 function filterGeospatial() {
     const region = document.getElementById("geoRegion").value;
     const year = document.getElementById("geoYear").value;
-    alert('Memfilter Peta untuk Wilayah: ' + region + ' | Tahun: ' + (year || 'Semua'));
-}
 
-const baseSwitchTab = switchTab;
-switchTab = function(tab) {
-    baseSwitchTab(tab);
-    if (tab === 'geo') { setTimeout(() => { initMap(); }, 100); }
+    if (!map) {
+        alert('Peta belum siap. Silakan tunggu sebentar');
+        return;
+    }
+
+    // Tampilkan loading
+    const btn = document.querySelector('button[onclick="filterGeospatial()"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Memuat...';
+    btn.disabled = true;
+
+    // Panggil API user filter
+    fetch(`/user/api/filter-geospasial?kabupaten_id=${region}&tahun=${year}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const filteredLocations = data.data.map(function(s) {
+                    return {
+                        name: (s.kecamatan ? s.kecamatan : '-') + ', ' + (s.desa ? s.desa : '-'),
+                        lat: s.lat,
+                        lng: s.lng,
+                        year: s.tahun,
+                        status: s.keterangan || 'Blank Spot',
+                        kab: s.kabupaten_id
+                    };
+                });
+                renderMarkers(filteredLocations);
+
+                if (filteredLocations.length > 0) {
+                    var bounds = filteredLocations.map(function(loc) {
+                        return [loc.lat, loc.lng];
+                    });
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    alert('Tidak ada data untuk filter yang dipilih');
+                }
+            } else {
+                alert('Gagal memuat data untuk filter ini');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memfilter data');
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
 }
 </script>
 

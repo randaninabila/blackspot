@@ -8,7 +8,7 @@ use App\Http\Controllers\ValidationController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GeospasialController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\MapController; // <-- TAMBAHKAN INI
+use App\Http\Controllers\MapController;
 
 // ============================================================
 // ROOT
@@ -43,7 +43,7 @@ Route::get('/api/kabupaten/{id}/data', [GeospasialController::class, 'getKabupat
 Route::get('/api/all-spots', [GeospasialController::class, 'getAllSpots'])->name('api.all.spots');
 
 // ============================================================
-// MAP V2 - PASTIKAN MapController ADA
+// MAP V2
 // ============================================================
 Route::get('/map-v2', [MapController::class, 'index'])->name('map.index');
 
@@ -56,7 +56,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/add', [AdminController::class, 'addPage'])->name('add');
     Route::get('/detail/{kabupaten_id}', [AdminController::class, 'detailPage'])->name('detail');
 
-    // CRUD Blank Spot
     Route::get('/blank-spot', [BlankSpotController::class, 'adminIndex'])->name('blank-spot.index');
     Route::get('/blank-spot/create', [BlankSpotController::class, 'create'])->name('blank-spot.create');
     Route::post('/blank-spot', [BlankSpotController::class, 'store'])->name('blank-spot.store');
@@ -65,7 +64,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/blank-spot/{id}', [BlankSpotController::class, 'update'])->name('blank-spot.update');
     Route::delete('/blank-spot/{id}', [BlankSpotController::class, 'destroy'])->name('blank-spot.destroy');
 
-    // Validasi
     Route::get('/validasi', [ValidationController::class, 'index'])->name('validasi.index');
     Route::get('/validasi/{id}', [ValidationController::class, 'show'])->name('validasi.show');
     Route::post('/validasi/{id}/setujui', [ValidationController::class, 'setujui'])->name('validasi.setujui');
@@ -74,20 +72,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::put('/validasi/{id}', [ValidationController::class, 'update'])->name('validasi.update');
     Route::delete('/validasi/{id}', [ValidationController::class, 'destroy'])->name('validasi.destroy');
 
-    // Validasi Massal
     Route::post('/validasi/massal/setujui', [ValidationController::class, 'massalSetujui'])->name('validasi.massal.setujui');
     Route::post('/validasi/massal/tolak', [ValidationController::class, 'massalTolak'])->name('validasi.massal.tolak');
 
-    // Geospasial Admin
     Route::get('/geospasial', [GeospasialController::class, 'index'])->name('geospasial.index');
     Route::get('/api/kabupaten/{id}/data', [GeospasialController::class, 'getKabupatenData'])->name('api.kabupaten.data');
     Route::get('/api/all-spots', [GeospasialController::class, 'getAllSpots'])->name('api.all.spots');
 
-    // API Dropdown Admin
     Route::get('/api/kecamatan/{kabupaten_id}', [BlankSpotController::class, 'getKecamatan'])->name('api.kecamatan');
     Route::get('/api/desa/{kecamatan_id}', [BlankSpotController::class, 'getDesa'])->name('api.desa');
 
-    // Export
     Route::get('/export/pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
 });
@@ -114,14 +108,20 @@ Route::middleware(['auth', 'operator'])->prefix('user')->name('user.')->group(fu
 
     Route::get('/export/pdf', [ExportController::class, 'exportPdfUser'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcelUser'])->name('export.excel');
+
+    // ============================================================
+    // API FILTER GEOSPASIAL - TARUH DI DALAM GROUP INI
+    // ============================================================
+    Route::get('/api/filter-geospasial', [UserController::class, 'filterGeospasial'])->name('api.filter.geospasial');
 });
 
-// CRUD Blank Spot
+// ============================================================
+// CRUD BLANK SPOT (PUBLIC/ADMIN)
+// ============================================================
 Route::get('/blank-spot', [BlankSpotController::class, 'adminIndex'])->name('blank-spot.index');
 Route::get('/blank-spot/create', [BlankSpotController::class, 'create'])->name('blank-spot.create');
 Route::post('/blank-spot', [BlankSpotController::class, 'store'])->name('blank-spot.store');
 Route::get('/blank-spot/{id}', [BlankSpotController::class, 'show'])->name('blank-spot.show');
-
 Route::put('/blank-spot/{id}', [BlankSpotController::class, 'update'])->name('blank-spot.update');
 Route::delete('/blank-spot/{id}', [BlankSpotController::class, 'destroy'])->name('blank-spot.destroy');
 

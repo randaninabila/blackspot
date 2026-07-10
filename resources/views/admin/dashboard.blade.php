@@ -400,15 +400,6 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
-                    <label class="block text-[#234B26] text-xs font-bold mb-1.5 pl-1">Status Validasi</label>
-                    <select id="filterStatus" 
-                            class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
-                        <option value="pending" selected>Menunggu Validasi</option>
-                        <option value="approved">Disetujui</option>
-                        <option value="rejected">Ditolak</option>
-                    </select>
-                </div>
                 <!-- Tahun -->
 <div>
     <label class="block text-[#234B26] text-xs font-bold mb-1.5 pl-1">Tahun</label>

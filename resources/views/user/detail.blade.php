@@ -82,6 +82,8 @@
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
+                            <th class="px-3 py-3 font-bold">Prioritas</th>
+                            <th class="px-3 py-3 font-bold">Foto</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                             <th class="px-4 py-3 text-center font-bold">Status</th>
                             <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -95,6 +97,8 @@
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
+                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
                             <td class="px-4 py-3 text-center">
     <div class="flex justify-center items-center">
@@ -190,41 +194,130 @@
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
-                <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+            <!-- KOORDINAT -->
+<div class="grid grid-cols-2 gap-2.5">
+    <!-- LONGITUDE -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
+        <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+    </div>
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
-                <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+    <!-- LATITUDE -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
+        <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
+               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+    </div>
+</div>
 
-                        <div>
-                <label class="block text-white font-bold text-sm mb-1.5">
-                    Tahun <span class="text-red-500">*</span>
-                </label>
+                        <!-- KETERANGAN & TAHUN -->
+<div class="grid grid-cols-4 gap-2.5">
 
-                <input
-                    type="text"
-                    value="{{ date('Y') }}"
-                    readonly
-                    class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-                >
+    <!-- KETERANGAN (lebih panjang) -->
+    <div class="col-span-3">
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Status
+        </label>
 
-                <input
-                    type="hidden"
-                    name="tahun"
-                    value="{{ date('Y') }}">
-            </div>
+        <select name="keterangan"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Keterangan</label>
-                <input type="text" name="keterangan" placeholder="Status jaringan (opsional)"
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+            <option value="">-- Pilih Prioritas --</option>
+            <option value="Priority 1">
+                Prioritas 1 
+            </option>
+            <option value="Priority 2">
+                Prioritas 2 
+            </option>
+            <option value="Priority 3">
+                Prioritas 3 
+            </option>
+            <option value="Priority 4">
+                Prioritas 4 
+            </option>
+            <option value="Priority 5">
+                Prioritas 5
+            </option>
+            <option value="Priority 5">
+                Prioritas 6
+            </option>
+            <option value="Priority 2">
+                Prioritas 7 
+            </option>
+            <option value="Priority 3">
+                Prioritas 8 
+            </option>
+            <option value="Priority 4">
+                Prioritas 9
+            </option>
+            <option value="Priority 5">
+                Prioritas 10 (Bisa lebih dari 1)
+            </option>
+
+        </select>
+        <p class="text-xs text-white/70 mt-1">
+       Setiap prioritas hanya dapat dipilih satu kali untuk setiap kab/kota
+    </p>
+    </div>
+
+
+    <!-- TAHUN (lebih kecil) -->
+    <div class="col-span-1">
+        <label class="block text-white font-bold text-sm mb-1.5">
+            Tahun <span class="text-red-500">*</span>
+        </label>
+
+        <input
+            type="text"
+            value="{{ date('Y') }}"
+            readonly
+            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+        >
+
+        <input
+            type="hidden"
+            name="tahun"
+            value="{{ date('Y') }}">
+    </div>
+
+   <!-- FOTO -->
+<div class="col-span-4 mt-1">
+    <label class="block text-white font-semibold mb-1.5 text-sm">
+        Foto Blankspot
+    </label>
+
+    <div class="flex">
+        <!-- Nama file -->
+        <div id="file-name"
+             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+            Belum ada file dipilih
+        </div>
+
+        <!-- Tombol -->
+        <label for="foto"
+               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+            Choose File
+        </label>
+    </div>
+
+    <input
+        type="file"
+        id="foto"
+        name="foto"
+        accept="image/*"
+        class="hidden"
+        onchange="document.getElementById('file-name').textContent =
+            this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
+    >
+
+    <p class="text-xs text-white/70 mt-1">
+        Format: JPG, JPEG, PNG. Maksimal 2 MB.
+    </p>
+</div>
+</div>
 
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" onclick="closeModal()"

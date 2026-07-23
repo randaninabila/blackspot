@@ -37,7 +37,7 @@
 
 
     <!-- Statistik -->
-    <div class="grid md:grid-cols-4 gap-6 mt-28">
+    <div class="grid md:grid-cols-3 gap-6 mt-28">
 
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
             <p class="font-semibold">Total Data</p>
@@ -46,19 +46,13 @@
         </div>
 
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Rata-rata Tiap Tahun</p>
-            <h3 class="text-5xl font-bold my-2">{{ $nilaiRataRata ?? 0 }}</h3>
-            <p class="font-semibold">4 Tahun Terakhir</p>
-        </div>
-
-        <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Tertinggi</p>
+            <p class="font-semibold">Nama Kab/Kota Terbanyak</p>
             <h3 class="text-5xl font-bold my-2">{{ $nilaiTertinggi ?? 0 }}</h3>
             <p class="font-semibold">Tahun {{ $tahunTertinggi ?? '-' }}</p>
         </div>
 
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Terendah</p>
+            <p class="font-semibold">Nama Kab/Kota Tersedikit</p>
             <h3 class="text-5xl font-bold my-2">{{ $nilaiTerendah ?? 0 }}</h3>
             <p class="font-semibold">Tahun {{ $tahunTerendah ?? '-' }}</p>
         </div>
@@ -103,9 +97,9 @@
 
     <!-- Download -->
     <div class="flex items-center gap-2">
-           <a href="{{ route('admin.add') }}" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
+           <a href="{{ route('admin.add') }}" class="bg-[#008001] text-white px-5 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
             <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
+                <button @click="open = !open" class="bg-[#0F2AF4] text-white px-5 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
                     </svg>
@@ -199,6 +193,8 @@
                             <th class="pb-4">Nama Desa</th>
                             <th class="pb-4">Longitude</th>
                             <th class="pb-4">Latitude</th>
+                            <th class="pb-4">Prioritas</th>
+                            <th class="pb-4">Foto</th>
                             <th class="pb-4">Tahun</th>
 
                         </tr>
@@ -370,20 +366,20 @@
         
         <!-- Statistik Validasi -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            <div class="bg-[#FEF9C3] border border-yellow-200 rounded-2xl p-6 shadow-sm transition-all hover:shadow-md">
-                <p class="font-semibold text-[20px]">Menunggu Validasi</p>
-                <h3 class="text-5xl font-bold my-2" data-counter="menunggu">{{ $totalMenunggu ?? 0 }}</h3>
-                <p class="font-semibold text-[20px]">Data</p>
+            <div class="bg-[#FFE200] border border-yellow-200 rounded-2xl p-6 shadow-sm transition-all hover:shadow-md">
+                <p class="font-semibold text-[20px] text-white">Menunggu Validasi</p>
+                <h3 class="text-5xl font-bold my-2 text-white" data-counter="menunggu">{{ $totalMenunggu ?? 0 }}</h3>
+                <p class="font-semibold text-[20px] text-white">Data</p>
             </div>
-            <div class="bg-[#DCFCE7] border border-green-200 rounded-2xl p-6 shadow-sm transition-all hover:shadow-md">
-                <p class="font-semibold text-[20px]">Disetujui</p>
-                <h3 class="text-5xl font-bold my-2" data-counter="disetujui">{{ $totalDisetujui ?? 0 }}</h3>
-                <p class="font-semibold text-[20px]">Data</p>
+            <div class="bg-[#008001] border border-green-200 rounded-2xl p-6 shadow-sm transition-all hover:shadow-md">
+                <p class="font-semibold text-[20px] text-white">Disetujui</p>
+                <h3 class="text-5xl font-bold my-2 text-white" data-counter="disetujui">{{ $totalDisetujui ?? 0 }}</h3>
+                <p class="font-semibold text-[20px] text-white">Data</p>
             </div>
-            <div class="bg-[#FCE7F3] border border-pink-200 rounded-2xl p-6 text-black shadow-sm transition-all hover:shadow-md">
-                <p class="font-semibold text-[20px]">Ditolak</p>
-                <h3 class="text-5xl font-bold my-2" data-counter="ditolak">{{ $totalDitolak ?? 0 }}</h3>
-                <p class="font-semibold text-[20px]">Data</p>
+            <div class="bg-[#E30304] border border-red-900 rounded-2xl p-6 text-black shadow-sm transition-all hover:shadow-md">
+                <p class="font-semibold text-[20px] text-white">Ditolak</p>
+                <h3 class="text-5xl font-bold my-2 text-white" data-counter="ditolak">{{ $totalDitolak ?? 0 }}</h3>
+                <p class="font-semibold text-[20px] text-white">Data</p>
             </div>
         </div>
 
@@ -447,7 +443,7 @@
                         <th class="px-4 py-3.5">Kab/Kota</th>
                         <th class="px-4 py-3.5">Kecamatan</th>
                         <th class="px-4 py-3.5">Desa</th>
-                        <th class="px-4 py-3.5">Status Jaringan</th>
+                        <th class="px-4 py-3.5">Prioritas</th>
                         <th class="px-4 py-3.5 text-center">Tahun</th>
                         <th class="px-4 py-3.5">Tanggal Input</th>
                         <th class="px-4 py-3.5 text-center">Aksi</th>
@@ -478,12 +474,7 @@
                         <td class="px-4 py-3.5">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                         <td class="px-4 py-3.5">{{ $spot->desa->nama_desa ?? '-' }}</td>
                         <td class="px-4 py-3.5">
-                            <span class="px-2.5 py-1 text-xs font-bold rounded-full
-                                @if(str_contains(strtolower($spot->keterangan ?? ''), 'lemah')) bg-yellow-100 text-yellow-700
-                                @elseif(str_contains(strtolower($spot->keterangan ?? ''), 'stabil')) bg-blue-100 text-blue-700
-                                @else bg-red-100 text-red-600 @endif">
-                                {{ $spot->keterangan ?? 'Tidak Ada Sinyal' }}
-                            </span>
+                           {{ $spot->tahun }}
                         </td>
                         <td class="px-4 py-3.5 text-center">{{ $spot->tahun }}</td>
                         <td class="px-4 py-3.5 text-gray-500">{{ $spot->created_at->format('d M Y') }}</td>
@@ -525,7 +516,8 @@
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Status Jaringan</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Foto</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Diinput Oleh</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
@@ -540,19 +532,19 @@
 
         <!-- Tombol Setujui & Tolak -->
         <div id="aksiValidasi" class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60">
-            <button type="button" onclick="aksiSetujui()"
-                class="flex items-center gap-2 bg-[#234B26] hover:bg-[#1a381c] text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Setujui
-            </button>
             <button type="button" onclick="aksiTolak()"
-                class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
+                class="flex items-center gap-2 bg-[#E30304] hover:bg-red-800 text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
                 </svg>
                 Tolak
+            </button>
+            <button type="button" onclick="aksiSetujui()"
+                class="flex items-center gap-2 bg-[#008001] hover:bg-[#1a381c] text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Setujui
             </button>
         </div>
 

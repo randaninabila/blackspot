@@ -58,20 +58,26 @@
         <a href="{{ route('user.detail', $kab->id) }}"
             data-type="{{ $type }}"
             data-nama="{{ $namaLower }}"
-            class="wilayah-card group block bg-[#234B26] text-white rounded-2xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg {{ $isUserKabupaten ? 'hover:bg-[#1a381c] ring-2 ring-[#E6EB9C]' : 'hover:bg-[#3a5a3d]' }}">
+            class="wilayah-card group block rounded-2xl p-6 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-lg
+{{ $isUserKabupaten
+    ? 'bg-[#E6EB9C] text-[#234B26] hover:bg-[#dbe48b]'
+    : 'bg-[#234B26] text-white hover:bg-[#3a5a3d]'
+}}">
             <div class="flex flex-col h-full justify-between">
                 <div>
                     <h3 class="text-lg font-semibold tracking-wide min-h-[3.5rem]">{{ $kab->nama_kabupaten }}</h3>
-                    <p class="text-5xl font-bold mt-2 text-[#E6EB9C] tracking-tight">{{ $kab->blank_spots_count ?? 0 }}</p>
+                    <p class="text-5xl font-bold mt-2 {{ $isUserKabupaten ? 'text-[#234B26]' : 'text-[#E6EB9C]' }} tracking-tight">
+    {{ $kab->blank_spots_count ?? 0 }}
+</p>
                 </div>
-                <div class="mt-6 pt-4 border-t border-white/20">
-                    <p class="text-xs text-white/70 tracking-wider">
-                        @if($isUserKabupaten)
-                            Kabupaten Anda
-                        @else
-                            Total Data
-                        @endif
-                    </p>
+                <div class="mt-6 pt-4 border-t {{ $isUserKabupaten ? 'border-[#234B26]/20' : 'border-white/20' }}">
+   <p class="text-xs {{ $isUserKabupaten ? 'text-black' : 'text-white/70' }} tracking-wider">
+    @if($isUserKabupaten)
+        Kabupaten Anda
+    @else
+        Total Data
+    @endif
+</p>
                 </div>
             </div>
         </a>

@@ -56,12 +56,18 @@
                             class="w-full md:w-80 border-2 border-[#234B26] rounded-xl pl-10 py-2 outline-none focus:ring-2 focus:ring-[#234B26]/20">
                     </div>
                     <button onclick="openModal()" 
-                        class="bg-[#234B26] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
+                        class="bg-[#008001] text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         Tambah
                     </button>
+                    <button @click="open = !open" class="bg-[#0F2AF4] text-white px-4 py-2.5 rounded-xl font-medium hover:opacity-90 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
+                    </svg>
+                    <span>Download</span>
+                </button>
                 </div>
             </div>
 
@@ -69,14 +75,16 @@
                 <table class="w-full text-sm text-left text-[#234B26] border-collapse">
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
-                            <th class="px-4 py-3 text-center font-bold">No</th>
-                            <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
-                            <th class="px-4 py-3 font-bold">Nama Desa</th>
-                            <th class="px-4 py-3 font-bold">Longitude</th>
-                            <th class="px-4 py-3 font-bold">Latitude</th>
-                            <th class="px-4 py-3 font-bold">Tahun</th>
-                            <th class="px-4 py-3 text-center font-bold">Status</th>
-                            <th class="px-4 py-3 text-center font-bold">Aksi</th>
+                            <th class="px-3 py-3 text-center font-bold">No</th>
+                            <th class="px-3 py-3 font-bold">Nama Kecamatan</th>
+                            <th class="px-3 py-3 font-bold">Nama Desa</th>
+                            <th class="px-3 py-3 font-bold">Longitude</th>
+                            <th class="px-3 py-3 font-bold">Latitude</th>
+                            <th class="px-3 py-3 font-bold">Prioritas</th>
+                            <th class="px-3 py-3 font-bold">Foto</th>
+                            <th class="px-3 py-3 font-bold">Tahun</th>
+                            <th class="px-3 py-3 text-center font-bold">Status</th>
+                            <th class="px-3 py-3 text-center font-bold">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -93,13 +101,15 @@
     data-operator="{{ $spot->user->name ?? '-' }}"
     data-tanggal="{{ $spot->created_at->format('d-m-Y') }}"
     data-keterangan="{{ $spot->keterangan ?? '-' }}">
-                            <td class="px-4 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
-                            <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->longitude }}</td>
-                            <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3 text-center">
+                            <td class="px-3 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
+                            <td class="px-3 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
+                            <td class="px-3 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
+                            <td class="px-3 py-3">{{ $spot->longitude }}</td>
+                            <td class="px-3 py-3">{{ $spot->latitude }}</td>
+                             <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                             <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                             <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-3 py-3 text-center">
     <div class="flex justify-center items-center">
         <span class="px-2 py-1 rounded-full text-xs font-bold 
             {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
@@ -174,10 +184,10 @@
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
 
                 </tbody>
             </table>
@@ -227,45 +237,113 @@
                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
             </div>
 
-            <!-- LONGITUDE -->
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
-                <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+           <!-- KOORDINAT -->
+<div class="grid grid-cols-2 gap-2.5">
+    <!-- LONGITUDE -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
+        <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+    </div>
 
-            <!-- LATITUDE -->
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
-                <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+    <!-- LATITUDE -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
+        <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
+               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+    </div>
+</div>
 
             
-            <div>
-                <label class="block text-white font-bold text-sm mb-1.5">
-                    Tahun <span class="text-red-500">*</span>
-                </label>
+            <!-- KETERANGAN & TAHUN -->
+<div class="grid grid-cols-4 gap-2.5">
 
-                <input
-                    type="text"
-                    value="{{ date('Y') }}"
-                    readonly
-                    class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-                >
+    <!-- KETERANGAN (lebih panjang) -->
+    <div class="col-span-3">
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Status
+        </label>
 
-                <input
-                    type="hidden"
-                    name="tahun"
-                    value="{{ date('Y') }}">
-            </div>
+        <select name="keterangan"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-            <!-- KETERANGAN -->
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Keterangan</label>
-                <input type="text" name="keterangan" placeholder="Status jaringan (opsional)"
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
+            <option value="">-- Pilih Prioritas --</option>
+            <option value="Priority 1">
+                Prioritas 1 (Hanya dapat memilih 1 setiap kab/kota)
+            </option>
+            <option value="Priority 2">
+                Prioritas 2 (Hanya dapat memilih 2 setiap kab/kota)
+            </option>
+            <option value="Priority 3">
+                Prioritas 3 (Hanya dapat memilih 3 setiap kab/kota)
+            </option>
+            <option value="Priority 4">
+                Prioritas 4 (Hanya dapat memilih 4 setiap kab/kota)
+            </option>
+            <option value="Priority 5">
+                Prioritas 5
+            </option>
+
+        </select>
+    </div>
+
+
+    <!-- TAHUN (lebih kecil) -->
+    <div class="col-span-1">
+        <label class="block text-white font-bold text-sm mb-1.5">
+            Tahun <span class="text-red-500">*</span>
+        </label>
+
+        <input
+            type="text"
+            value="{{ date('Y') }}"
+            readonly
+            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+        >
+
+        <input
+            type="hidden"
+            name="tahun"
+            value="{{ date('Y') }}">
+    </div>
+
+   <!-- FOTO -->
+<div class="col-span-4">
+    <label class="block text-white font-semibold mb-1.5 text-sm">
+        Foto Blankspot
+    </label>
+
+    <div class="flex">
+        <!-- Nama file -->
+        <div id="file-name"
+             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+            Belum ada file dipilih
+        </div>
+
+        <!-- Tombol -->
+        <label for="foto"
+               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+            Choose File
+        </label>
+    </div>
+
+    <input
+        type="file"
+        id="foto"
+        name="foto"
+        accept="image/*"
+        class="hidden"
+        onchange="document.getElementById('file-name').textContent =
+            this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
+    >
+
+    <p class="text-xs text-white/70 mt-1">
+        Format: JPG, JPEG, PNG. Maksimal 2 MB.
+    </p>
+</div>
+</div>
 
             <!-- BUTTON -->
             <div class="flex justify-end gap-3 pt-3">

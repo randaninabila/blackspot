@@ -63,12 +63,18 @@
                     {{-- TOMBOL TAMBAH HANYA UNTUK KABUPATEN SENDIRI --}}
                     @if($isOwner)
                     <button onclick="openModal()" 
-                        class="bg-[#234B26] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
+                        class="bg-[#008001] text-white font-semibold px-5 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         Tambah
                     </button>
+                    <button @click="open = !open" class="bg-[#0F2AF4] text-white px-4 py-2.5 rounded-xl font-medium hover:opacity-90 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
+                    </svg>
+                    <span>Download</span>
+                </button>
                     @endif
                 </div>
             </div>

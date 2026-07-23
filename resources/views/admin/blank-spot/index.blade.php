@@ -25,16 +25,6 @@
     <!-- Filter -->
     <form method="GET" action="{{ route('admin.blank-spot.index') }}"
           class="bg-[#F3F3E8] rounded-2xl p-6 mb-8 flex flex-wrap gap-4 items-end">
-       <!-- <div>
-    <label class="block text-[#234B26] font-bold text-sm mb-1">Tahun</label>
-    <select name="tahun"
-        class="bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm outline-none min-w-[120px] appearance-none focus:border-[#234B26] transition-all"
-        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-        <option value="">-- Semua --</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-    </select>
-</div> -->
         <div>
             <label class="block text-[#234B26] font-bold text-sm mb-1">Status Validasi</label>
             <select id="status_validasi" name="status_validasi"
@@ -44,6 +34,7 @@
                 <option value="pending"   {{ request('status_validasi') == 'pending'   ? 'selected' : '' }}>Menunggu</option>
                 <option value="approved"  {{ request('status_validasi') == 'approved'  ? 'selected' : '' }}>Disetujui</option>
                 <option value="rejected"  {{ request('status_validasi') == 'rejected'  ? 'selected' : '' }}>Ditolak</option>
+                <option value="revisi"    {{ request('status_validasi') == 'revisi'    ? 'selected' : '' }}>Perlu Revisi</option>
             </select>
         </div>
         <div>
@@ -80,20 +71,21 @@
         case 'pending':
             $judul = 'Daftar Data Menunggu Validasi';
             break;
-
         case 'approved':
             $judul = 'Daftar Data Disetujui';
             break;
-
         case 'rejected':
             $judul = 'Daftar Data Ditolak';
             break;
+        case 'revisi':
+            $judul = 'Daftar Data Perlu Revisi';
+            break;
     }
-@endphp
+    @endphp
 
-<h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
-    {{ $judul }}
-</h4>
+    <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
+        {{ $judul }}
+    </h4>
 
     <!-- Tabel -->
     <div class="bg-[#F3F3E8] rounded-3xl shadow-xl p-8 overflow-x-auto">
@@ -106,6 +98,7 @@
                     <th class="px-4 py-3 font-bold">Desa</th>
                     <th class="px-4 py-3 font-bold">Latitude</th>
                     <th class="px-4 py-3 font-bold">Longitude</th>
+                    <th class="px-4 py-3 font-bold">Prioritas</th>
                     <th class="px-4 py-3 text-center font-bold">Tahun</th>
                     <th class="px-4 py-3 text-center font-bold">Status</th>
                     <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -120,31 +113,26 @@
                     <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                     <td class="px-4 py-3">{{ $spot->latitude }}</td>
                     <td class="px-4 py-3">{{ $spot->longitude }}</td>
+                    <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
                     <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold 
-                            {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
-                            {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
-                            {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
-                            {{ ucfirst($spot->status_validasi) }}
+                    <td class="px-4 py-3 text-center">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
+                            {{ $spot->status_label }}
                         </span>
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex justify-center gap-2">
-                            <!-- EDIT -->
                             <a href="{{ route('admin.blank-spot.edit', $spot->id) }}"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition">
+                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.25 2.25 0 113.182 3.182L7.5 20.213 3 21l.787-4.5L16.862 4.487z" />
                                 </svg>
                             </a>
-
-                            <!-- HAPUS -->
                             <form action="{{ route('admin.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition">
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition" title="Hapus">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M10 11v6M14 11v6M5 7l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                                     </svg>
@@ -155,7 +143,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center py-8 text-gray-400">
+                    <td colspan="10" class="text-center py-8 text-gray-400">
                         Tidak ada data yang ditemukan
                     </td>
                 </tr>
@@ -173,39 +161,13 @@
     </div>
 </div>
 
-<style>
-    /* Style dropdown */
-    select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        background-size: 12px;
-        padding-right: 36px !important;
-        cursor: pointer;
-    }
-
-    select:focus {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23234B26' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-        border-color: #234B26 !important;
-        outline: none;
-    }
-
-    select::-ms-expand {
-        display: none;
-    }
-
 <script>
-document.getElementById('status_validasi').addEventListener('change', function () {
+document.getElementById('status_validasi')?.addEventListener('change', function () {
+    this.form.submit();
+});
+document.getElementById('tahun')?.addEventListener('change', function () {
     this.form.submit();
 });
 </script>
-</style>
-
-document.getElementById('tahun').addEventListener('change', function () {
-    this.form.submit();
-});
 
 @endsection

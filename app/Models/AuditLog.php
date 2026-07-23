@@ -7,11 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 class AuditLog extends Model
 {
     protected $table = 'audit_logs';
+    
     public $timestamps = false;
-    protected $fillable = ['user_id', 'aktivitas', 'waktu'];
+
+    protected $fillable = [
+        'user_id',
+        'aktivitas',
+        'ip_address',
+        'waktu',
+    ];
+
+    protected $casts = [
+        'waktu' => 'datetime',
+    ];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -20,27 +20,26 @@
     </div>
 
     <!-- Statistik -->
-    <div class="grid md:grid-cols-4 gap-6 mt-28">
+     <div class="grid md:grid-cols-3 gap-6 mt-28">
+
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
             <p class="font-semibold">Total Data</p>
             <h3 class="text-5xl font-bold my-2">{{ $totalData ?? 0 }}</h3>
             <p class="font-semibold">Data Keseluruhan</p>
         </div>
+
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Rata-rata Tiap Tahun</p>
-            <h3 class="text-5xl font-bold my-2">{{ $nilaiRataRata ?? 0 }}</h3>
-            <p class="font-semibold">4 Tahun Terakhir</p>
-        </div>
-        <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Tertinggi</p>
+            <p class="font-semibold">Nama Kab/Kota Terbanyak</p>
             <h3 class="text-5xl font-bold my-2">{{ $nilaiTertinggi ?? 0 }}</h3>
             <p class="font-semibold">Tahun {{ $tahunTertinggi ?? '-' }}</p>
         </div>
+
         <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nilai Terendah</p>
+            <p class="font-semibold">Nama Kab/Kota Tersedikit</p>
             <h3 class="text-5xl font-bold my-2">{{ $nilaiTerendah ?? 0 }}</h3>
             <p class="font-semibold">Tahun {{ $tahunTerendah ?? '-' }}</p>
         </div>
+
     </div>
 
     <!-- TOP ACTION -->
@@ -51,9 +50,9 @@
             <button onclick="switchTab('geo')" id="btn-geo" class="tab-btn inactive-tab px-14 py-3 font-semibold border-r border-[#234B26]">Geopasial</button>
         </div>
         <div class="flex items-center gap-2">
-           <a href="{{ route('user.add') }}" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
+           <a href="{{ route('user.add') }}" class="bg-[#008001] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
             <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" class="bg-[#234B26] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
+                <button @click="open = !open" class="bg-[#0F2AF4] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
                     </svg>
@@ -106,6 +105,8 @@
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
+                            <th class="px-4 py-3 font-bold">Prioritas</th>
+                            <th class="px-4 py-3 font-bold">Foto</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                         </tr>
                     </thead>
@@ -118,11 +119,19 @@
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
+                            <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                            <td class="px-4 py-3">
+                                @if($spot->foto)
+                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
                         </tr>
                         @endforelse
                     </tbody>

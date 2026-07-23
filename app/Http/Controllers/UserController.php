@@ -5,56 +5,59 @@ namespace App\Http\Controllers;
 use App\Models\BlankSpot;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
-use App\Models\Desa;
+use App\Services\DashboardService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    protected DashboardService $dashboardService;
+
+    public function __construct(DashboardService $dashboardService)
+    {
+        $this->dashboardService = $dashboardService;
+    }
+
     /**
-     * User dashboard
+     * User dashboard (Operator Kabupaten)
      */
     public function dashboard()
     {
         $user = Auth::user();
 
-        // Data tabel - HANYA data milik user
+        // Data tabel - HANYA data milik kabupaten user
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+            ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Statistik - HANYA data milik user
-        $totalData = BlankSpot::where('status_validasi','approved')->count();
-        $pendingCount = BlankSpot::where('status_validasi', 'pending')->count();
-        $approvedCount = BlankSpot::where('status_validasi', 'approved')->count();
-        $rejectedCount = BlankSpot::where('status_validasi', 'rejected')->count();
+        // Statistik - HANYA data milik kabupaten user
+        $totalData     = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'approved')->count();
+        $pendingCount  = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'pending')->count();
+        $approvedCount = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'approved')->count();
+        $rejectedCount = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'rejected')->count();
 
-        // Grafik - HANYA data milik user
-        $tahunData = BlankSpot::where('created_by', $user->id)
+        // Grafik - HANYA data milik kabupaten user
+        $tahunData = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
             ->selectRaw('tahun, count(*) as total')
             ->groupBy('tahun')
             ->orderBy('tahun', 'asc')
             ->get();
 
         $grafikLabels = $tahunData->pluck('tahun')->toArray();
-        $grafikData = $tahunData->pluck('total')->toArray();
+        $grafikData   = $tahunData->pluck('total')->toArray();
 
-        // Peta - HANYA data milik user yang sudah approved
-        // Ini adalah dataset AWAL yang tampil saat halaman pertama kali dibuka
-        // (sebelum user menekan tombol Pratinjau). Setelah difilter, JS akan
-        // mengganti isi peta dengan hasil dari endpoint /user/api/filter-geospasial.
+        // Peta - HANYA data milik kabupaten user yang sudah approved
         $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            // ->where('created_by', $user->id)
+            ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved')
             ->get();
 
         $kabupaten = Kabupaten::find($user->kabupaten_id);
 
-        // List Tahun dari data user - dipakai untuk isi dropdown "Tahun" di tab Geospasial
-        // PENTING: nama variabel HARUS "tahuns" karena itu yang dipakai di dashboard.blade.php
-        // (sebelumnya bernama "tahunList" sehingga tidak pernah sampai ke view dan dropdown kosong)
-        $tahuns = BlankSpot::where('created_by', $user->id)
+        // List Tahun dari data kabupaten user
+        $tahuns = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved')
             ->select('tahun')
             ->distinct()
@@ -63,19 +66,22 @@ class UserController extends Controller
             ->toArray();
 
         // Statistik tahunan user
-        $nilaiRataRata = BlankSpot::where('status_validasi', 'approved')
+        $nilaiRataRata = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
+            ->where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->get()
             ->avg('total') ?? 0;
 
-        $nilaiTertinggiData = BlankSpot::where('status_validasi', 'approved')
+        $nilaiTertinggiData = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
+            ->where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->orderByDesc('total')
             ->first();
 
-        $nilaiTerendahData = BlankSpot::where('status_validasi', 'approved')
+        $nilaiTerendahData = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
+            ->where('status_validasi', 'approved')
             ->selectRaw('tahun, COUNT(*) as total')
             ->groupBy('tahun')
             ->orderBy('total')
@@ -83,8 +89,8 @@ class UserController extends Controller
 
         $nilaiTertinggi = $nilaiTertinggiData?->total ?? 0;
         $tahunTertinggi = $nilaiTertinggiData?->tahun ?? '-';
-        $nilaiTerendah = $nilaiTerendahData?->total ?? 0;
-        $tahunTerendah = $nilaiTerendahData?->tahun ?? '-';
+        $nilaiTerendah  = $nilaiTerendahData?->total ?? 0;
+        $tahunTerendah  = $nilaiTerendahData?->tahun ?? '-';
 
         // Kabupaten untuk filter
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
@@ -101,20 +107,20 @@ class UserController extends Controller
      * Halaman daftar kabupaten/kota untuk user (card view)
      */
     public function addPage()
-{
-    $user = Auth::user();
+    {
+        $user = Auth::user();
 
-    $kabupatens = Kabupaten::withCount([
-    'blankSpots' => function ($query) {
-        $query->where('status_validasi', 'approved');
+        $kabupatens = Kabupaten::withCount([
+            'blankSpots' => function ($query) {
+                $query->where('status_validasi', 'approved');
+            }
+        ])->orderBy('nama_kabupaten')
+        ->get();
+
+        $userKabupatenId = $user->kabupaten_id;
+
+        return view('user.add', compact('kabupatens', 'userKabupatenId'));
     }
-    ])->orderBy('nama_kabupaten')
-    ->get();
-
-    $userKabupatenId = $user->kabupaten_id;
-
-    return view('user.add', compact('kabupatens', 'userKabupatenId'));
-}
 
     /**
      * Halaman detail per kabupaten untuk user
@@ -122,10 +128,8 @@ class UserController extends Controller
     public function detailPage($kabupaten_id)
     {
         $user = Auth::user();
-
         $kabupaten = Kabupaten::findOrFail($kabupaten_id);
 
-        // Hanya data milik user di kabupaten tersebut
         $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('kabupaten_id', $kabupaten_id)
             ->where('status_validasi', 'approved')
@@ -143,34 +147,20 @@ class UserController extends Controller
 
     /**
      * API Filter Geospasial untuk User
-     *
-     * Endpoint ini dipanggil oleh tombol "Pratinjau" di tab Geospasial dashboard user.
-     * Logika filter di method ini sudah benar sejak awal:
-     * - hanya data milik user yang sedang login (created_by)
-     * - hanya status_validasi = 'approved'
-     * - opsional difilter oleh kabupaten_id dan tahun
-     *
-     * Data JSON yang dikembalikan di sini SUDAH benar; masalah sebelumnya ada di sisi
-     * JavaScript (renderMarkers) yang tidak memakai hasil fetch ini untuk menggambar ulang
-     * peta. Setelah renderMarkers() diperbaiki agar menerima parameter, endpoint ini akan
-     * langsung berfungsi tanpa perubahan tambahan.
      */
     public function filterGeospasial(Request $request)
     {
         $user = Auth::user();
 
-        // Query hanya untuk data user yang sudah approved
         $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('created_by', $user->id)
+            ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved');
 
-        // Filter berdasarkan kabupaten
-        if ($request->has('kabupaten_id') && $request->kabupaten_id != '' && $request->kabupaten_id != 'all') {
+        if ($request->filled('kabupaten_id') && $request->kabupaten_id !== 'all') {
             $query->where('kabupaten_id', $request->kabupaten_id);
         }
 
-        // Filter berdasarkan tahun
-        if ($request->has('tahun') && $request->tahun != '') {
+        if ($request->filled('tahun')) {
             $query->where('tahun', $request->tahun);
         }
 
@@ -178,23 +168,27 @@ class UserController extends Controller
 
         $formattedSpots = $spots->map(function ($spot) {
             return [
-                'id' => $spot->id,
-                'lat' => (float) $spot->latitude,
-                'lng' => (float) $spot->longitude,
-                'kabupaten' => $spot->kabupaten->nama_kabupaten ?? '-',
-                'kecamatan' => $spot->kecamatan->nama_kecamatan ?? '-',
-                'desa' => $spot->desa->nama_desa ?? '-',
-                'tahun' => $spot->tahun,
-                'keterangan' => $spot->keterangan ?? 'Blank Spot',
-                'kabupaten_id' => $spot->kabupaten_id,
-                'status' => $spot->status_validasi,
+                'id'              => $spot->id,
+                'lat'             => (float) $spot->latitude,
+                'lng'             => (float) $spot->longitude,
+                'radius'          => (float) ($spot->radius ?? 0),
+                'prioritas'       => $spot->prioritas ?? '-',
+                'status_jaringan' => $spot->status_jaringan ?? '-',
+                'nama_lokasi'     => $spot->nama_lokasi ?? '-',
+                'kabupaten'       => $spot->kabupaten->nama_kabupaten ?? '-',
+                'kecamatan'       => $spot->kecamatan->nama_kecamatan ?? '-',
+                'desa'            => $spot->desa->nama_desa ?? '-',
+                'tahun'           => $spot->tahun,
+                'keterangan'      => $spot->keterangan ?? 'Blank Spot',
+                'kabupaten_id'    => $spot->kabupaten_id,
+                'status'          => $spot->status_validasi,
             ];
         });
 
         return response()->json([
             'success' => true,
-            'data' => $formattedSpots,
-            'total' => $formattedSpots->count()
+            'data'    => $formattedSpots,
+            'total'   => $formattedSpots->count()
         ]);
     }
 }

@@ -3,54 +3,88 @@
 namespace App\Exports;
 
 use App\Models\BlankSpot;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class BlankSpotExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAutoSize
 {
     protected array $filters;
-    protected ?int $userId;
+    protected ?int $kabupatenId;
 
-    public function __construct(array $filters = [], ?int $userId = null)
+    public function __construct(array $filters = [], ?int $kabupatenId = null)
     {
         $this->filters = $filters;
-        $this->userId  = $userId;
+        $this->kabupatenId = $kabupatenId;
     }
 
-    public function collection()
+    public function query()
     {
         $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
             ->where('status_validasi', 'approved');
 
-        if ($this->userId) $query->where('created_by', $this->userId);
-        if (!empty($this->filters['kabupaten_id'])) $query->where('kabupaten_id', $this->filters['kabupaten_id']);
-        if (!empty($this->filters['tahun'])) $query->where('tahun', $this->filters['tahun']);
+        if ($this->kabupatenId) {
+            $query->where('kabupaten_id', $this->kabupatenId);
+        } elseif (!empty($this->filters['kabupaten_id'])) {
+            $query->where('kabupaten_id', $this->filters['kabupaten_id']);
+        }
 
-        return $query->orderBy('kabupaten_id')->get();
+        if (!empty($this->filters['tahun'])) {
+            $query->where('tahun', $this->filters['tahun']);
+        }
+
+        if (!empty($this->filters['prioritas'])) {
+            $query->where('prioritas', $this->filters['prioritas']);
+        }
+
+        if (!empty($this->filters['status_jaringan'])) {
+            $query->where('status_jaringan', $this->filters['status_jaringan']);
+        }
+
+        return $query->orderBy('kabupaten_id')->orderBy('kecamatan_id');
     }
 
     public function headings(): array
     {
-        return ['No', 'Kabupaten/Kota', 'Kecamatan', 'Desa', 'Latitude', 'Longitude', 'Tahun', 'Keterangan', 'Status', 'Tanggal Input'];
+        return [
+            'No',
+            'Kabupaten/Kota',
+            'Kecamatan',
+            'Desa',
+            'Nama Lokasi',
+            'Latitude',
+            'Longitude',
+            'Radius (m)',
+            'Status Jaringan',
+            'Prioritas',
+            'Tahun',
+            'Keterangan',
+            'Status Validasi',
+            'Petugas Input',
+        ];
     }
 
-    public function map($row): array
+    private static int $rowNumber = 0;
+
+    public function map($blankSpot): array
     {
-        static $no = 0;
-        $no++;
+        self::$rowNumber++;
         return [
-            $no,
-            $row->kabupaten->nama_kabupaten ?? '-',
-            $row->kecamatan->nama_kecamatan ?? '-',
-            $row->desa->nama_desa ?? '-',
-            $row->latitude,
-            $row->longitude,
-            $row->tahun,
-            $row->keterangan ?? '-',
-            'Disetujui',
-            $row->created_at->format('d/m/Y'),
+            self::$rowNumber,
+            $blankSpot->kabupaten->nama_kabupaten ?? '-',
+            $blankSpot->kecamatan->nama_kecamatan ?? '-',
+            $blankSpot->desa->nama_desa ?? '-',
+            $blankSpot->nama_lokasi ?? '-',
+            $blankSpot->latitude,
+            $blankSpot->longitude,
+            $blankSpot->radius ?? '-',
+            $blankSpot->status_jaringan ?? '-',
+            $blankSpot->prioritas ? 'Prioritas ' . $blankSpot->prioritas : '-',
+            $blankSpot->tahun,
+            $blankSpot->keterangan ?? '-',
+            $blankSpot->status_label,
+            $blankSpot->creator->nama ?? '-',
         ];
     }
 }

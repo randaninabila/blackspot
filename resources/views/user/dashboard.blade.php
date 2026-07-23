@@ -105,6 +105,8 @@
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
+                            <th class="px-4 py-3 font-bold">Prioritas</th>
+                            <th class="px-4 py-3 font-bold">Foto</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                         </tr>
                     </thead>
@@ -117,11 +119,19 @@
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
+                            <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                            <td class="px-4 py-3">
+                                @if($spot->foto)
+                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
                         </tr>
                         @endforelse
                     </tbody>

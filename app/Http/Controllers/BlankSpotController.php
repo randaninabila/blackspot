@@ -6,35 +6,64 @@ use App\Models\BlankSpot;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
 use App\Models\Desa;
-use App\Models\AuditLog;
+use App\Http\Requests\StoreBlankSpotRequest;
+use App\Http\Requests\UpdateBlankSpotRequest;
+use App\Services\BlankSpotService;
+use App\Services\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class BlankSpotController extends Controller
 {
+    protected BlankSpotService $blankSpotService;
+
+    public function __construct(BlankSpotService $blankSpotService)
+    {
+        $this->blankSpotService = $blankSpotService;
+    }
+
     /**
-     * API get kecamatan berdasarkan kabupaten_id
+     * API JSON: Get kecamatan berdasarkan kabupaten_id (AJAX Only)
      */
     public function getKecamatan($kabupaten_id)
     {
         $kecamatans = Kecamatan::where('kabupaten_id', $kabupaten_id)
             ->orderBy('nama_kecamatan')
             ->get(['id', 'nama_kecamatan']);
-        
+
         return response()->json($kecamatans);
     }
 
     /**
-     * API get desa berdasarkan kecamatan_id
+     * API JSON: Get desa berdasarkan kecamatan_id (AJAX Only)
      */
     public function getDesa($kecamatan_id)
     {
         $desas = Desa::where('kecamatan_id', $kecamatan_id)
             ->orderBy('nama_desa')
             ->get(['id', 'nama_desa']);
-        
+
         return response()->json($desas);
     }
+
+    /**
+     * Serve foto dari storage
+     */
+    public function servePhoto(string $filename)
+    {
+        $path = 'blank-spots/' . $filename;
+        if (!Storage::disk('public')->exists($path)) {
+            abort(404, 'Foto tidak ditemukan.');
+        }
+
+        return response()->file(Storage::disk('public')->path($path));
+    }
+
+    // ============================================================
+    // ADMIN METHODS
+    // ============================================================
 
     /**
      * Admin - Index data blank spot
@@ -43,21 +72,25 @@ class BlankSpotController extends Controller
     {
         $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
 
-        if ($request->kabupaten_id) {
+        if ($request->filled('kabupaten_id')) {
             $query->where('kabupaten_id', $request->kabupaten_id);
         }
-        if ($request->status_validasi) {
+        if ($request->filled('status_validasi')) {
             $query->where('status_validasi', $request->status_validasi);
         }
-        if ($request->tahun) {
+        if ($request->filled('tahun')) {
             $query->where('tahun', $request->tahun);
         }
-        if ($request->search) {
+        if ($request->filled('prioritas')) {
+            $query->where('prioritas', $request->prioritas);
+        }
+        if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'like', "%$s%"))
-                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%$s%"))
-                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%$s%"));
+                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'like', "%{$s}%"))
+                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%{$s}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%{$s}%"))
+                  ->orWhere('nama_lokasi', 'like', "%{$s}%");
             });
         }
 
@@ -82,40 +115,15 @@ class BlankSpotController extends Controller
     /**
      * Admin - Store blank spot
      */
-    public function store(Request $request)
+    public function store(StoreBlankSpotRequest $request)
     {
-        $validated = $request->validate([
-            'kabupaten_id' => 'required|exists:kabupaten,id',
-            'kecamatan_id' => 'required|exists:kecamatan,id',
-            'nama_desa'    => 'required|string|max:255',
-            'latitude'     => 'required|numeric|between:-90,90',
-            'longitude'    => 'required|numeric|between:-180,180',
-            'keterangan'   => 'nullable|string|max:1000',
-        ]);
+        $data = $request->validated();
+        $user = Auth::user();
+        $photo = $request->file('foto');
 
-        $desa = Desa::firstOrCreate([
-            'kecamatan_id' => $validated['kecamatan_id'],
-            'nama_desa' => $validated['nama_desa'],
-        ]);
+        $bs = $this->blankSpotService->store($data, $user, $photo);
 
-        $validated['desa_id'] = $desa->id;
-        $validated['tahun'] = now()->year;
-        $validated['status_validasi'] = 'pending';
-        $validated['created_by'] = Auth::id();
-        $validated['validated_by'] = null;
-        $validated['validated_at'] = null;
-
-        unset($validated['nama_desa']);
-
-        $bs = BlankSpot::create($validated);
-
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Admin menambah data blank spot ID: ' . $bs->id,
-            'waktu' => now(),
-        ]);
-
-        return redirect()->route('admin.add')->with('success', 'Data blank spot berhasil ditambahkan!');
+        return redirect()->back()->with('success', "Data blank spot berhasil ditambahkan dan masuk ke antrean validasi Admin.");
     }
 
     /**
@@ -128,57 +136,43 @@ class BlankSpotController extends Controller
     }
 
     /**
-     * Admin - Edit blank spot - PERBAIKAN
+     * Admin - Edit blank spot
      */
     public function edit($id)
     {
         $blankSpot = BlankSpot::findOrFail($id);
-        
-        // CEK APAKAH SUDAH APPROVED
+
         if ($blankSpot->status_validasi === 'approved') {
-            return redirect()->route('admin.blank-spot.index')
-                ->with('error', '⚠️ Data yang sudah DISETUJUI tidak bisa diedit!');
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang sudah DISETUJUI (Approved) tidak bisa diedit lagi.');
         }
-        
+
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $kecamatans = Kecamatan::where('kabupaten_id', $blankSpot->kabupaten_id)->orderBy('nama_kecamatan')->get();
-        $desas = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
-        
+        $desas      = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
+
         return view('admin.blank-spot.edit', compact('blankSpot', 'kabupatens', 'kecamatans', 'desas'));
     }
 
     /**
-     * Admin - Update blank spot - PERBAIKAN (HANYA SATU)
+     * Admin - Update blank spot
      */
-    public function update(Request $request, $id)
+    public function update(UpdateBlankSpotRequest $request, $id)
     {
         $blankSpot = BlankSpot::findOrFail($id);
-        
-        // CEK APAKAH SUDAH APPROVED
+
         if ($blankSpot->status_validasi === 'approved') {
-            return redirect()->route('admin.blank-spot.index')
-                ->with('error', '⚠️ Data yang sudah DISETUJUI tidak bisa diubah!');
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang sudah DISETUJUI (Approved) tidak dapat diubah.');
         }
 
-        $validated = $request->validate([
-            'kabupaten_id'   => 'required|exists:kabupaten,id',
-            'kecamatan_id'   => 'required|exists:kecamatan,id',
-            'desa_id'        => 'required|exists:desa,id',
-            'latitude'       => 'required|numeric|between:-90,90',
-            'longitude'      => 'required|numeric|between:-180,180',
-            'keterangan'     => 'nullable|string|max:1000',
-            'status_validasi' => 'required|in:pending,approved,rejected',
-        ]);
+        $data  = $request->validated();
+        $user  = Auth::user();
+        $photo = $request->file('foto');
 
-        $blankSpot->update($validated);
+        $this->blankSpotService->update($blankSpot, $data, $user, $photo);
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Admin mengedit blank spot ID: ' . $id,
-            'waktu' => now()
-        ]);
-
-        return redirect()->route('admin.blank-spot.index')->with('success', 'Data berhasil diperbarui!');
+        return redirect()->route('admin.blank-spot.index')->with('success', 'Data blank spot berhasil diperbarui!');
     }
 
     /**
@@ -187,15 +181,14 @@ class BlankSpotController extends Controller
     public function destroy($id)
     {
         $blankSpot = BlankSpot::findOrFail($id);
-        $blankSpot->delete();
 
-        AuditLog::create([
-            'user_id' => Auth::id(),
-            'aktivitas' => 'Admin menghapus blank spot ID: ' . $id,
-            'waktu' => now()
-        ]);
+        if ($blankSpot->status_validasi === 'approved') {
+            return redirect()->back()->with('error', '⚠️ Data yang sudah DISETUJUI (Approved) tidak dapat dihapus.');
+        }
 
-        return redirect()->route('admin.add')->with('success', 'Data berhasil dihapus.');
+        $this->blankSpotService->delete($blankSpot, Auth::user());
+
+        return redirect()->back()->with('success', 'Data blank spot berhasil dihapus.');
     }
 
     // ============================================================
@@ -203,40 +196,34 @@ class BlankSpotController extends Controller
     // ============================================================
 
     /**
-     * User - Index data blank spot (hanya milik sendiri)
+     * User - Index data blank spot (hanya milik Kabupaten sendiri)
      */
-        public function userIndex(Request $request)
+    public function userIndex(Request $request)
     {
         $user = Auth::user();
 
         $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
             ->where('kabupaten_id', $user->kabupaten_id);
 
-        // Filter Tahun
-        if ($request->tahun) {
+        if ($request->filled('tahun')) {
             $query->where('tahun', $request->tahun);
         }
-
-        // Filter Status
-        if ($request->status_validasi) {
+        if ($request->filled('status_validasi')) {
             $query->where('status_validasi', $request->status_validasi);
         }
-
-        // Search Kecamatan / Desa
-        if ($request->search) {
+        if ($request->filled('prioritas')) {
+            $query->where('prioritas', $request->prioritas);
+        }
+        if ($request->filled('search')) {
             $s = $request->search;
-
             $query->where(function ($q) use ($s) {
-                $q->whereHas('kecamatan', function ($sq) use ($s) {
-                    $sq->where('nama_kecamatan', 'like', "%{$s}%");
-                })
-                ->orWhereHas('desa', function ($sq) use ($s) {
-                    $sq->where('nama_desa', 'like', "%{$s}%");
-                });
+                $q->whereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%{$s}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%{$s}%"))
+                  ->orWhere('nama_lokasi', 'like', "%{$s}%");
             });
         }
 
-        $blankSpots = $query->latest()->paginate(10);
+        $blankSpots = $query->latest()->paginate(10)->withQueryString();
 
         $tahuns = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
             ->selectRaw('DISTINCT tahun')
@@ -254,79 +241,56 @@ class BlankSpotController extends Controller
         $user       = Auth::user();
         $kabupaten  = Kabupaten::find($user->kabupaten_id);
         $kecamatans = Kecamatan::where('kabupaten_id', $user->kabupaten_id)->orderBy('nama_kecamatan')->get();
-        
+
         return view('user.blank-spot.create', compact('kabupaten', 'kecamatans'));
     }
 
     /**
      * User - Store blank spot
      */
-    public function userStore(Request $request)
+    public function userStore(StoreBlankSpotRequest $request)
     {
-        $user = Auth::user();
+        $user  = Auth::user();
+        $data  = $request->validated();
+        $photo = $request->file('foto');
 
-        $validated = $request->validate([
-            'kecamatan_id' => 'required|exists:kecamatan,id',
-            'nama_desa'    => 'required|string|max:255',
-            'latitude'     => 'required|numeric|between:-90,90',
-            'longitude'    => 'required|numeric|between:-180,180',
-            'keterangan'   => 'nullable|string|max:1000',
-        ]);
+        $data['kabupaten_id'] = $user->kabupaten_id;
 
-        $desa = Desa::firstOrCreate([
-            'kecamatan_id' => $validated['kecamatan_id'],
-            'nama_desa' => $validated['nama_desa'],
-        ]);
+        $this->blankSpotService->store($data, $user, $photo);
 
-        $data = [
-            'kabupaten_id' => $user->kabupaten_id,
-            'kecamatan_id' => $validated['kecamatan_id'],
-            'desa_id' => $desa->id,
-            'latitude' => $validated['latitude'],
-            'longitude' => $validated['longitude'],
-            'tahun' => now()->year,
-            'keterangan' => $validated['keterangan'] ?? null,
-            'status_validasi' => 'pending',
-            'created_by' => $user->id,
-            'validated_by' => null,
-            'validated_at' => null,
-        ];
-
-        $bs = BlankSpot::create($data);
-
-        AuditLog::create([
-            'user_id' => $user->id,
-            'aktivitas' => 'Operator menambah data blank spot ID: ' . $bs->id,
-            'waktu' => now(),
-        ]);
-
-        session()->flash('notifikasi', 'Ada data baru menunggu validasi!');
-
-        return redirect()->route('user.blank-spot.index')->with('success', 'Data berhasil dikirim dan menunggu validasi admin.');
+        return redirect()->back()
+            ->with('success', 'Data berhasil dikirim dan masuk ke antrean validasi Admin Diskominfo.');
     }
 
     /**
-     * User - Show detail blank spot
+     * User - Show detail blank spot (hanya milik kabupaten sendiri)
      */
     public function userShow($id)
     {
-        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            // ->where('created_by', Auth::id())
+        $user = Auth::user();
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator'])
+            ->where('kabupaten_id', $user->kabupaten_id)
             ->findOrFail($id);
-        
+
         return view('user.blank-spot.show', compact('blankSpot'));
     }
 
     /**
-     * User - Edit blank spot
+     * User - Edit blank spot (HANYA data berstatus rejected atau revisi/perlu_revisi)
      */
     public function userEdit($id)
     {
         $user      = Auth::user();
-        $blankSpot = BlankSpot::where('created_by', $user->id)->findOrFail($id);
+        $blankSpot = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
 
         if ($blankSpot->status_validasi === 'approved') {
-            return redirect()->route('user.blank-spot.index')->with('error', 'Data yang sudah disetujui tidak bisa diedit.');
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang sudah disetujui (Approved) tidak bisa diedit.');
+        }
+
+        if ($blankSpot->status_validasi === 'pending') {
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang masih berstatus Pending belum dapat diedit. Tunggu validasi dari Admin.');
         }
 
         $kabupaten  = Kabupaten::find($user->kabupaten_id);
@@ -337,63 +301,44 @@ class BlankSpotController extends Controller
     }
 
     /**
- * User - Update blank spot
- */
-public function userUpdate(Request $request, $id)
-{
-    $user = Auth::user();
-    $blankSpot = BlankSpot::where('created_by', $user->id)->findOrFail($id);
+     * User - Update blank spot
+     */
+    public function userUpdate(UpdateBlankSpotRequest $request, $id)
+    {
+        $user      = Auth::user();
+        $blankSpot = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
 
-    if ($blankSpot->status_validasi === 'approved') {
-        return redirect()->route('user.blank-spot.index')->with('error', 'Data yang sudah disetujui tidak bisa diedit.');
+        if ($blankSpot->status_validasi === 'approved') {
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang sudah disetujui (Approved) tidak dapat diubah.');
+        }
+
+        $data  = $request->validated();
+        $photo = $request->file('foto');
+
+        $data['kabupaten_id'] = $user->kabupaten_id;
+
+        $this->blankSpotService->update($blankSpot, $data, $user, $photo);
+
+        return redirect()->back()
+            ->with('success', 'Data berhasil diperbarui dan dikirim ulang untuk menunggu validasi Admin.');
     }
-
-    $validated = $request->validate([
-        'kecamatan_id' => 'required|exists:kecamatan,id',
-        'nama_desa'    => 'required|string|max:255',
-        'latitude'     => 'required|numeric|between:-90,90',
-        'longitude'    => 'required|numeric|between:-180,180',
-        'keterangan'   => 'nullable|string|max:1000',
-    ]);
-
-    // Cari atau buat desa berdasarkan nama
-    $desa = Desa::firstOrCreate([
-        'kecamatan_id' => $validated['kecamatan_id'],
-        'nama_desa' => $validated['nama_desa'],
-    ]);
-
-    // Update data
-    $blankSpot->update([
-        'kecamatan_id' => $validated['kecamatan_id'],
-        'desa_id' => $desa->id,
-        'latitude' => $validated['latitude'],
-        'longitude' => $validated['longitude'],
-        'keterangan' => $validated['keterangan'] ?? null,
-        'status_validasi' => 'pending', // Kembali ke pending
-    ]);
-
-    AuditLog::create([
-        'user_id' => $user->id,
-        'aktivitas' => 'Operator mengedit blank spot ID: ' . $id,
-        'waktu' => now()
-    ]);
-
-    return redirect()->route('user.blank-spot.index')->with('success', 'Data diperbarui dan menunggu validasi ulang.');
-}
 
     /**
      * User - Delete blank spot
      */
     public function userDestroy($id)
     {
-        $blankSpot = BlankSpot::where('created_by', Auth::id())->findOrFail($id);
+        $user      = Auth::user();
+        $blankSpot = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
 
         if ($blankSpot->status_validasi === 'approved') {
-            return redirect()->route('user.blank-spot.index')->with('error', 'Data yang sudah disetujui tidak bisa dihapus.');
+            return redirect()->back()
+                ->with('error', '⚠️ Data yang sudah disetujui (Approved) tidak dapat dihapus.');
         }
 
-        $blankSpot->delete();
-        
-        return redirect()->route('user.blank-spot.index')->with('success', 'Data berhasil dihapus.');
+        $this->blankSpotService->delete($blankSpot, $user);
+
+        return redirect()->back()->with('success', 'Data blank spot berhasil dihapus.');
     }
 }

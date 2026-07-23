@@ -203,18 +203,26 @@
 
                 <tbody id="tableBody">
     @forelse($blankSpots as $i => $spot)
-    <tr class="border-b">
-        <td class="py-3 pl-5">{{ $loop->iteration }}</td>
-        <td>{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
-        <td>{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
-        <td>{{ $spot->desa->nama_desa ?? '-' }}</td>
-        <td>{{ $spot->longitude }}</td>
-        <td>{{ $spot->latitude }}</td>
-        <td>{{ $spot->tahun }}</td>
+    <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
+        <td class="py-3 pl-5 text-center">{{ $loop->iteration }}</td>
+        <td class="py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
+        <td class="py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
+        <td class="py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
+        <td class="py-3">{{ $spot->longitude }}</td>
+        <td class="py-3">{{ $spot->latitude }}</td>
+        <td class="py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+        <td class="py-3">
+            @if($spot->foto)
+                <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
+            @else
+                <span class="text-gray-400">-</span>
+            @endif
+        </td>
+        <td class="py-3 text-center">{{ $spot->tahun }}</td>
     </tr>
     @empty
     <tr>
-        <td colspan="7" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+        <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
     </tr>
     @endforelse
 </tbody>
@@ -474,7 +482,7 @@
                         <td class="px-4 py-3.5">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                         <td class="px-4 py-3.5">{{ $spot->desa->nama_desa ?? '-' }}</td>
                         <td class="px-4 py-3.5">
-                           {{ $spot->tahun }}
+                           <span class="font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</span>
                         </td>
                         <td class="px-4 py-3.5 text-center">{{ $spot->tahun }}</td>
                         <td class="px-4 py-3.5 text-gray-500">{{ $spot->created_at->format('d M Y') }}</td>

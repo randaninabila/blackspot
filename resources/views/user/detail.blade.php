@@ -28,6 +28,27 @@
         @endif
     </div>
     
+    @if(session('success'))
+    <div class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-xl font-semibold">
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if(session('error'))
+    <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl font-semibold">
+        {{ session('error') }}
+    </div>
+    @endif
+
+    @if($errors->any())
+    <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+        <ul class="list-disc pl-5">
+            @foreach($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
 
     <div id="content-table" class="tab-content mt-10">
         <div class="bg-[#F3F3E8] rounded-3xl shadow-2xl p-8">
@@ -69,12 +90,12 @@
                         </svg>
                         Tambah
                     </button>
-                    <button @click="open = !open" class="bg-[#0F2AF4] text-white px-4 py-2.5 rounded-xl font-medium hover:opacity-90 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
-                    </svg>
-                    <span>Download</span>
-                </button>
+                    <a href="{{ route('user.export.pdf') }}" class="bg-[#0F2AF4] text-white px-4 py-2.5 rounded-xl font-medium hover:opacity-90 flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
+                        </svg>
+                        <span>Download</span>
+                    </a>
                     @endif
                 </div>
             </div>
@@ -89,7 +110,7 @@
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Foto</th>
+                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                             <th class="px-4 py-3 text-center font-bold">Status</th>
                             <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -103,35 +124,24 @@
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
                             <td class="px-4 py-3 text-center">
-    <div class="flex justify-center items-center">
-        <span class="px-2 py-1 rounded-full text-xs font-bold 
-            {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
-            {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
-            {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
-            {{ ucfirst($spot->status_validasi) }}
-        </span>
-    </div>
-</td>
+                                <div class="flex justify-center items-center">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
+                                        {{ $spot->status_label }}
+                                    </span>
+                                </div>
+                            </td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-center gap-2">
-                                    {{-- EDIT & HAPUS HANYA UNTUK KABUPATEN SENDIRI DAN STATUS PENDING --}}
                                     @if($isOwner && $spot->status_validasi != 'approved')
                                     <a href="{{ route('user.blank-spot.edit', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
-                                        <svg xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke-width="1.8"
-        stroke="currentColor"
-        class="w-4 h-4">
-        <path stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M16.862 4.487a2.25 2.25 0 113.182 3.182L7.5 20.213 3 21l.787-4.5L16.862 4.487z" />
-    </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-4 h-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487a2.25 2.25 0 113.182 3.182L7.5 20.213 3 21l.787-4.5L16.862 4.487z" />
+                                        </svg>
                                     </a>
                                     <form action="{{ route('user.blank-spot.destroy', $spot->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data ini?')">
                                         @csrf
@@ -148,7 +158,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center py-8 text-gray-400">Belum ada data untuk kabupaten ini.</td>
+                            <td colspan="10" class="text-center py-8 text-gray-400">Belum ada data untuk kabupaten ini.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -179,7 +189,7 @@
             <p class="text-xl italic font-bold text-[#E6EB9C]">Blankspot</p>
         </div>
 
-        <form action="{{ route('user.blank-spot.store') }}" method="POST" class="space-y-3">
+        <form action="{{ route('user.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
             @csrf
             <input type="hidden" name="kabupaten_id" value="{{ $kabupaten->id }}">
 
@@ -201,129 +211,104 @@
             </div>
 
             <!-- KOORDINAT -->
-<div class="grid grid-cols-2 gap-2.5">
-    <!-- LONGITUDE -->
-    <div>
-        <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
-        <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
-               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-    </div>
+            <div class="grid grid-cols-2 gap-2.5">
+                <!-- LONGITUDE -->
+                <div>
+                    <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
+                    <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+                           class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                </div>
 
-    <!-- LATITUDE -->
-    <div>
-        <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
-        <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
-               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-    </div>
-</div>
+                <!-- LATITUDE -->
+                <div>
+                    <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
+                    <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
+                           class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                </div>
+            </div>
 
-                        <!-- KETERANGAN & TAHUN -->
-<div class="grid grid-cols-4 gap-2.5">
+            <!-- PRIORITAS & TAHUN -->
+            <div class="grid grid-cols-4 gap-2.5">
 
-    <!-- KETERANGAN (lebih panjang) -->
-    <div class="col-span-3">
-        <label class="block text-white font-semibold mb-1.5 text-sm">
-            Status
-        </label>
+                <!-- PRIORITAS P1-P10 -->
+                <div class="col-span-3">
+                    <label class="block text-white font-semibold mb-1.5 text-sm">
+                        Tingkat Prioritas (P1–P10)
+                    </label>
 
-        <select name="keterangan"
-                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                required
-                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                    <select name="prioritas"
+                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                            required
+                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-            <option value="">-- Pilih Prioritas --</option>
-            <option value="Priority 1">
-                Prioritas 1 
-            </option>
-            <option value="Priority 2">
-                Prioritas 2 
-            </option>
-            <option value="Priority 3">
-                Prioritas 3 
-            </option>
-            <option value="Priority 4">
-                Prioritas 4 
-            </option>
-            <option value="Priority 5">
-                Prioritas 5
-            </option>
-            <option value="Priority 5">
-                Prioritas 6
-            </option>
-            <option value="Priority 2">
-                Prioritas 7 
-            </option>
-            <option value="Priority 3">
-                Prioritas 8 
-            </option>
-            <option value="Priority 4">
-                Prioritas 9
-            </option>
-            <option value="Priority 5">
-                Prioritas 10 (Bisa lebih dari 1)
-            </option>
+                        <option value="">-- Pilih Prioritas --</option>
+                        <option value="1">Prioritas 1 (P1)</option>
+                        <option value="2">Prioritas 2 (P2)</option>
+                        <option value="3">Prioritas 3 (P3)</option>
+                        <option value="4">Prioritas 4 (P4)</option>
+                        <option value="5">Prioritas 5 (P5)</option>
+                        <option value="6">Prioritas 6 (P6)</option>
+                        <option value="7">Prioritas 7 (P7)</option>
+                        <option value="8">Prioritas 8 (P8)</option>
+                        <option value="9">Prioritas 9 (P9)</option>
+                        <option value="10">Prioritas 10 (P10)</option>
+                    </select>
+                    <p class="text-xs text-white/70 mt-1">
+                        Maksimal 1 data per prioritas di kabupaten ini.
+                    </p>
+                </div>
 
-        </select>
-        <p class="text-xs text-white/70 mt-1">
-       Setiap prioritas hanya dapat dipilih satu kali untuk setiap kab/kota
-    </p>
-    </div>
+                <!-- TAHUN -->
+                <div class="col-span-1">
+                    <label class="block text-white font-bold text-sm mb-1.5">
+                        Tahun <span class="text-red-500">*</span>
+                    </label>
 
+                    <input
+                        type="text"
+                        value="{{ date('Y') }}"
+                        readonly
+                        class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+                    >
 
-    <!-- TAHUN (lebih kecil) -->
-    <div class="col-span-1">
-        <label class="block text-white font-bold text-sm mb-1.5">
-            Tahun <span class="text-red-500">*</span>
-        </label>
+                    <input
+                        type="hidden"
+                        name="tahun"
+                        value="{{ date('Y') }}">
+                </div>
 
-        <input
-            type="text"
-            value="{{ date('Y') }}"
-            readonly
-            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-        >
+                <!-- FOTO -->
+                <div class="col-span-4 mt-1">
+                    <label class="block text-white font-semibold mb-1.5 text-sm">
+                        Foto Blankspot
+                    </label>
 
-        <input
-            type="hidden"
-            name="tahun"
-            value="{{ date('Y') }}">
-    </div>
+                    <div class="flex">
+                        <div id="file-name"
+                             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+                            Belum ada file dipilih
+                        </div>
 
-   <!-- FOTO -->
-<div class="col-span-4 mt-1">
-    <label class="block text-white font-semibold mb-1.5 text-sm">
-        Foto Blankspot
-    </label>
+                        <label for="foto"
+                               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+                            Choose File
+                        </label>
+                    </div>
 
-    <div class="flex">
-        <!-- Nama file -->
-        <div id="file-name"
-             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
-            Belum ada file dipilih
-        </div>
+                    <input
+                        type="file"
+                        id="foto"
+                        name="foto"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
+                    >
 
-        <!-- Tombol -->
-        <label for="foto"
-               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
-            Choose File
-        </label>
-    </div>
-
-    <input
-        type="file"
-        id="foto"
-        name="foto"
-        accept="image/*"
-        class="hidden"
-        onchange="document.getElementById('file-name').textContent =
-            this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
-    >
-
-    <p class="text-xs text-white/70 mt-1">
-        Format: JPG, JPEG, PNG. Maksimal 2 MB.
-    </p>
-</div>
-</div>
+                    <p class="text-xs text-white/70 mt-1">
+                        Format: JPG, JPEG, PNG. Maksimal 5 MB.
+                    </p>
+                </div>
+            </div>
 
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" onclick="closeModal()"
@@ -463,7 +448,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTable();
 });
 
-// PASTIKAN MODAL TERTUTUP SAAT HALAMAN DIMUAT
 document.addEventListener("DOMContentLoaded", function() {
     const modal = document.getElementById('blankspotModal');
     if (modal) {

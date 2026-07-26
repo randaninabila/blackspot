@@ -6,15 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+        public function up(): void
     {
         Schema::table('blank_spots', function (Blueprint $table) {
 
-            $table->foreignId('updated_by')
-                ->nullable()
-                ->after('validated_by')
-                ->constrained('users')
-                ->nullOnDelete();
+            if (!Schema::hasColumn('blank_spots', 'updated_by')) {
+
+                $table->foreignId('updated_by')
+                    ->nullable()
+                    ->after('validated_by')
+                    ->constrained('users')
+                    ->nullOnDelete();
+
+            }
 
         });
     }

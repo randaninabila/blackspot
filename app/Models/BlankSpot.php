@@ -37,49 +37,32 @@ class BlankSpot extends Model
         'validated_at' => 'datetime',
     ];
 
-    /**
-     * Relasi ke kabupaten
-     */
     public function kabupaten()
     {
         return $this->belongsTo(Kabupaten::class, 'kabupaten_id');
     }
 
-    /**
-     * Relasi ke kecamatan
-     */
+
     public function kecamatan()
     {
         return $this->belongsTo(Kecamatan::class, 'kecamatan_id');
     }
 
-    /**
-     * Relasi ke desa
-     */
     public function desa()
     {
         return $this->belongsTo(Desa::class, 'desa_id');
     }
 
-    /**
-     * Relasi ke user (creator)
-     */
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relasi ke user (validator)
-     */
     public function validator()
     {
         return $this->belongsTo(User::class, 'validated_by');
     }
 
-    /**
-     * Attribute untuk status label
-     */
     public function getStatusLabelAttribute()
     {
         return [
@@ -91,9 +74,6 @@ class BlankSpot extends Model
         ][$this->status_validasi] ?? ucfirst($this->status_validasi);
     }
 
-    /**
-     * Attribute untuk status badge CSS class
-     */
     public function getStatusBadgeAttribute()
     {
         return [
@@ -105,25 +85,16 @@ class BlankSpot extends Model
         ][$this->status_validasi] ?? 'bg-gray-100 text-gray-700';
     }
 
-    /**
-     * Query Scope: Data disetujui (Approved)
-     */
     public function scopeApproved($query)
     {
         return $query->where('status_validasi', 'approved');
     }
 
-    /**
-     * Query Scope: Data pending
-     */
     public function scopePending($query)
     {
         return $query->where('status_validasi', 'pending');
     }
 
-    /**
-     * Query Scope: Filter berdasarkan kabupaten user (jika operator)
-     */
     public function scopeForKabupaten($query, $kabupatenId)
     {
         if ($kabupatenId) {

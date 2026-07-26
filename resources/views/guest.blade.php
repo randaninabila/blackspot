@@ -83,13 +83,13 @@
     </div>
 
     <!-- PIE CHART -->
-    <div class="bg-[#234B26] rounded-3xl shadow-2xl p-8">
+    <div class="bg-[#234B26] rounded-3xl shadow-2xl p-8 h-[550px] overflow-hidden">
 
         <h2 class="text-2xl font-bold text-[#E6EB9C] mb-6">
             Persentase
         </h2>
 
-        <div class="relative h-[280px] flex items-center justify-center">
+        <div class="relative h-[430px] flex items-center justify-center">
             <canvas id="blankspotPieChart"></canvas>
         </div>
 
@@ -129,11 +129,14 @@
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
                             <th class="px-4 py-3 text-center font-bold">No</th>
-                            <th class="px-4 py-3 font-bold">Nama Kab/Kota</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
+                            <th class="px-3 py-3 font-bold">Prioritas</th>
+                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                         </tr>
                     </thead>
@@ -145,47 +148,23 @@
     <td class="px-4 py-3">Lau Cih</td>
     <td class="px-4 py-3">98.6523</td>
     <td class="px-4 py-3">3.5214</td>
-    <td class="px-4 py-3 text-center">2024</td>
+    <td class="px-4 py-3 text-center">p1</td>
+    <td class="px-4 py-3">Medan</td>
+    <td class="px-4 py-3">Medan Tuntungan</td>
+    <td class="px-4 py-3">Lau Cih</td>
 </tr>
 
 <tr>
     <td class="px-4 py-3 text-center">2</td>
-    <td class="px-4 py-3">Deli Serdang</td>
-    <td class="px-4 py-3">Lubuk Pakam</td>
-    <td class="px-4 py-3">Pagar Jati</td>
-    <td class="px-4 py-3">98.8731</td>
-    <td class="px-4 py-3">3.5598</td>
-    <td class="px-4 py-3 text-center">2024</td>
-</tr>
-
-<tr>
-    <td class="px-4 py-3 text-center">3</td>
-    <td class="px-4 py-3">Langkat</td>
-    <td class="px-4 py-3">Stabat</td>
-    <td class="px-4 py-3">Kwala Begumit</td>
-    <td class="px-4 py-3">98.4321</td>
-    <td class="px-4 py-3">3.7312</td>
-    <td class="px-4 py-3 text-center">2023</td>
-</tr>
-
-<tr>
-    <td class="px-4 py-3 text-center">4</td>
     <td class="px-4 py-3">Binjai</td>
     <td class="px-4 py-3">Binjai Timur</td>
     <td class="px-4 py-3">Timbang Langkat</td>
     <td class="px-4 py-3">98.5123</td>
     <td class="px-4 py-3">3.6002</td>
     <td class="px-4 py-3 text-center">2022</td>
-</tr>
-
-<tr>
-    <td class="px-4 py-3 text-center">5</td>
-    <td class="px-4 py-3">Simalungun</td>
-    <td class="px-4 py-3">Raya</td>
-    <td class="px-4 py-3">Sondi Raya</td>
-    <td class="px-4 py-3">98.9812</td>
-    <td class="px-4 py-3">2.9542</td>
-    <td class="px-4 py-3 text-center">2024</td>
+    <td class="px-4 py-3">Binjai Timur</td>
+    <td class="px-4 py-3">Timbang Langkat</td>
+    <td class="px-4 py-3">98.5123</td>
 </tr>
                     </tbody>
                 </table>
@@ -503,65 +482,88 @@ function initDashboardCharts() {
     // PIE / DOUGHNUT CHART
     // =========================
 
-    const pieCanvas = document.getElementById('blankspotPieChart');
+    // =========================
+// PIE / DOUGHNUT CHART
+// =========================
 
-    if (pieCanvas) {
+const pieCanvas = document.getElementById('blankspotPieChart');
 
-        if (pieChart) {
-            pieChart.destroy();
+if (pieCanvas) {
+
+    if (pieChart) {
+        pieChart.destroy();
+    }
+
+    pieChart = new Chart(pieCanvas, {
+
+        type: 'pie',
+
+data: {
+    labels: [
+        "Zero Blankspot",
+        "Sinyal Sangat Lemah",
+        "Sinyal Lemah",
+        "2G",
+        "3G",
+        "4G Tidak Stabil"
+    ],
+
+    datasets: [{
+        data: [
+            25,
+            18,
+            20,
+            15,
+            12,
+            10
+        ],
+
+        backgroundColor: [
+    '#E6EB9C',
+    '#D8E58A',
+    '#C5DB75',
+    '#AED05F',
+    '#95C04F',
+    '#79AD45'
+],
+
+        borderColor: '#234B26',
+        borderWidth: 2
+    }]
+},       options: {
+
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+    position: 'bottom',
+    align: 'start', // rata kiri
+
+    labels: {
+        color: '#E6EB9C',
+        boxWidth: 18,
+        boxHeight: 18,
+        padding: 20,
+        font: {
+            size: 15,
+            weight: 'bold'
         }
+    }
+},
 
-        pieChart = new Chart(pieCanvas, {
-
-            type: 'doughnut',
-
-            data: {
-                labels: chartLabels,
-
-                datasets: [{
-                    data: chartValues,
-
-                    backgroundColor: [
-                        '#234B26',
-                        '#5B8C5A',
-                        '#86A789',
-                        '#B2C8BA',
-                        '#E6EB9C',
-                        '#D7E3D4',
-                        '#A8C3A0',
-                        '#6F9670'
-                    ],
-
-                    borderWidth: 2,
-                    borderColor: '#234B26'
-                }]
-            },
-
-            options: {
-
-                responsive: true,
-                maintainAspectRatio: false,
-
-                cutout: '60%',
-
-                plugins: {
-
-                    legend: {
-                        position: 'bottom',
-
-                        labels: {
-                            color: '#E6EB9C',
-                            padding: 12,
-                            font: {
-                                size: 11,
-                                weight: 'bold'
-                            }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ": " + context.raw + "%";
                         }
                     }
                 }
             }
-        });
-    }
+        }
+    });
+}
 }
 
 const originalSwitchTab = switchTab;

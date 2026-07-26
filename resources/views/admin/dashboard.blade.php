@@ -14,7 +14,7 @@
     </div>
 @endif
 
-<section class="max-w-7xl mx-auto py-16 px-8">
+<section class="max-w-7xl mx-auto py-16">
 
     <!-- Hero -->
     <div class="text-center mt-14">
@@ -190,56 +190,48 @@
 
 
             <!-- TABLE -->
-            <div class="mt-10">
-
-                <table class="w-full text-[#234B26]" id="dataTable">
-
-                    <thead class="border-b border-[#234B26]">
-
-                        <tr class="text-left">
-
-                            <th class="pl-5 pb-4">No</th>
-                            <th class="pb-4">Nama Kab/Kota</th>
-                            <th class="pb-4">Nama Kecamatan</th>
-                            <th class="pb-4">Nama Desa</th>
-                            <th class="pb-4">Longitude</th>
-                            <th class="pb-4">Latitude</th>
-                            <th class="pb-4">Prioritas</th>
-                            <th class="pb-4">Foto</th>
-                            <th class="pb-4">Tahun</th>
-
+            <div class="mt-10 overflow-x-auto">
+                <table class="w-full text-sm text-left text-[#234B26] border-collapse">
+                    <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
+                        <tr>
+                            <th class="px-4 py-3 text-center font-bold">No</th>
+                            <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
+                            <th class="px-4 py-3 font-bold">Nama Desa</th>
+                            <th class="px-4 py-3 font-bold">Longitude</th>
+                            <th class="px-4 py-3 font-bold">Latitude</th>
+                            <th class="px-3 py-3 font-bold">Prioritas</th>
+                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
+                            <th class="px-4 py-3 font-bold">Tahun</th>
                         </tr>
-
                     </thead>
-
-                <tbody id="tableBody">
-    @forelse($blankSpots as $i => $spot)
-    <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
-        <td class="py-3 pl-5 text-center">{{ $loop->iteration }}</td>
-        <td class="py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
-        <td class="py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
-        <td class="py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-        <td class="py-3">{{ $spot->longitude }}</td>
-        <td class="py-3">{{ $spot->latitude }}</td>
-        <td class="py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
-        <td class="py-3">
-            @if($spot->foto)
-                <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
-            @else
-                <span class="text-gray-400">-</span>
-            @endif
-        </td>
-        <td class="py-3 text-center">{{ $spot->tahun }}</td>
-    </tr>
-    @empty
-    <tr>
-        <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
-    </tr>
-    @endforelse
-</tbody>
-
+                    <tbody id="tableBody">
+                        @forelse($blankSpots as $i => $spot)
+                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
+                            <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
+                            <td class="px-4 py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->longitude }}</td>
+                            <td class="px-4 py-3">{{ $spot->latitude }}</td>
+                            <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                            <td class="px-4 py-3">
+                                @if($spot->foto)
+                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
+                                @else
+                                    <span class="text-gray-400">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
                 </table>
-
             </div>
 
             <!-- Pagination -->
@@ -536,6 +528,9 @@
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kondisi Geografis</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
+                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jumlah Penduduk</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
+                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jarak ke Ibu Kota</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Foto</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Diinput Oleh</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>

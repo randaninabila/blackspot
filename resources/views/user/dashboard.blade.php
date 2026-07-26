@@ -20,10 +20,10 @@
     </div>
 
     <!-- Statistik -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-28 mx-50">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-28">
 
-    <!-- Total Data (1/4) -->
-    <div class="md:col-span-1 bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+    <!-- Card 1 -->
+    <div class="bg-[#0F2AF4] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
         <p class="font-semibold">
             Total Data
         </p>
@@ -34,20 +34,49 @@
             Data Keseluruhan
         </p>
     </div>
-   
 
-    <!-- Kabupaten/Kota Terbanyak (3/4) -->
-    <div class="md:col-span-2 bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+    <!-- Card 2 -->
+    <div class="bg-[#FFE200] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
         <p class="font-semibold">
-            Kab/Kota dengan Area Blankspot Terbanyak
+            Menunggu Validasi
         </p>
 
         <h3 class="text-5xl font-bold my-2">
-            Kab Johor
+            12
         </h3>
 
         <p class="font-semibold">
-            Tahun 2026
+            Desa
+        </p>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="bg-[#008001] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+        <p class="font-semibold">
+            Disetujui
+        </p>
+
+        <h3 class="text-5xl font-bold my-2">
+            {{ $totalKabupaten ?? 0 }}
+        </h3>
+
+        <p class="font-semibold">
+            Desa
+        </p>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="bg-[#E30304] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+        <p class="font-semibold">
+            Ditolak
+        </p>
+
+        <h3 class="text-5xl font-bold my-2">
+            {{ $totalKecamatan ?? 0 }}
+        </h3>
+
+        <p class="font-semibold">
+            Desa
         </p>
     </div>
 

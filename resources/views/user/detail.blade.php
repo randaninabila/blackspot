@@ -232,7 +232,6 @@
                 </div>
             </div>
 
-            <!-- PRIORITAS & TAHUN -->
            <!-- PRIORITAS & KONDISI GEOGRAFIS -->
 <div class="grid grid-cols-2 gap-2.5">
 

@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto py-10">
 
     <div class="flex items-center gap-2 mb-8">
         <a href="{{ route('admin.dashboard') }}"
@@ -77,7 +77,6 @@
                             placeholder="Cari kecamatan / desa..."
                             class="w-full md:w-80 border-2 border-[#234B26] rounded-xl pl-10 py-2 outline-none focus:ring-2 focus:ring-[#234B26]/20">
                     </div>
-<<<<<<< HEAD
                     <button onclick="openModal()" 
                         class="bg-[#008001] text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -91,45 +90,6 @@
                         </svg>
                         <span>Download</span>
                     </a>
-=======
-                    <button onclick="openModal()"
-    class="bg-[#008001] text-white font-semibold px-4 py-2.5 rounded-xl hover:bg-[#1a381c] transition-colors shadow-sm flex items-center whitespace-nowrap gap-1">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /> </svg>
-    Tambah
-</button>
-
-<!-- Wrapper Download -->
-<div x-data="{ open: false }" class="relative inline-block">
-    <button
-        @click="open = !open"
-        class="bg-[#0F2AF4] text-white px-4 py-2.5 rounded-xl font-medium hover:opacity-90 flex items-center gap-1">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-            viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
-        </svg>
-        <span>Download</span>
-    </button>
-
-    <!-- Dropdown -->
-    <div
-        x-show="open"
-        @click.away="open = false"
-        x-transition
-        class="absolute top-full left-0 mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden">
-
-        <a href="{{ route('admin.export.pdf') }}"
-            class="block px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">
-            Export PDF
-        </a>
-
-        <a href="{{ route('admin.export.excel') }}"
-            class="block px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">
-            Export Excel
-        </a>
-    </div>
-</div>
->>>>>>> 76fe772 (perbaiki yang aku)
                 </div>
             </div>
 
@@ -137,35 +97,23 @@
                 <table class="w-full text-sm text-left text-[#234B26] border-collapse">
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
-<<<<<<< HEAD
-                            <th class="px-3 py-3 text-center font-bold">No</th>
-                            <th class="px-3 py-3 font-bold">Nama Kecamatan</th>
-                            <th class="px-3 py-3 font-bold">Nama Desa</th>
-                            <th class="px-3 py-3 font-bold">Longitude</th>
-                            <th class="px-3 py-3 font-bold">Latitude</th>
-                            <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
-                            <th class="px-3 py-3 font-bold">Tahun</th>
-                            <th class="px-3 py-3 text-center font-bold">Status</th>
-                            <th class="px-3 py-3 text-center font-bold">Aksi</th>
-=======
                             <th class="px-4 py-3 text-center font-bold">No</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
-                            <th class="px-4 py-3 font-bold">Prioritas</th>
-                            <th class="px-4 py-3 font-bold">Foto</th>
+                            <th class="px-3 py-3 font-bold">Prioritas</th>
+                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                             <th class="px-4 py-3 text-center font-bold">Status</th>
                             <th class="px-4 py-3 text-center font-bold">Aksi</th>
->>>>>>> 76fe772 (perbaiki yang aku)
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         @forelse($blankSpots as $i => $spot)
                         <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition cursor-pointer"
-<<<<<<< HEAD
                             onclick="showDetail(this)"
                             data-id="{{ $spot->id }}"
                             data-kabupaten="{{ $kabupaten->nama_kabupaten }}"
@@ -185,6 +133,8 @@
                             <td class="px-3 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
                             <td class="px-3 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
                             <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-3 py-3">{{ $spot->tahun }}</td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex justify-center items-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
@@ -192,37 +142,6 @@
                                     </span>
                                 </div>
                             </td>
-=======
-    onclick="showDetail(this)"
-    data-id="{{ $spot->id }}"
-    data-kabupaten="{{ $kabupaten->nama_kabupaten }}"
-    data-kecamatan="{{ $spot->kecamatan->nama_kecamatan ?? '-' }}"
-    data-desa="{{ $spot->desa->nama_desa ?? '-' }}"
-    data-latitude="{{ $spot->latitude }}"
-    data-longitude="{{ $spot->longitude }}"
-    data-status="{{ $spot->status_validasi }}"
-    data-operator="{{ $spot->user->name ?? '-' }}"
-    data-tanggal="{{ $spot->created_at->format('d-m-Y') }}"
-    data-keterangan="{{ $spot->keterangan ?? '-' }}">
-                            <td class="px-4 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
-                            <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->longitude }}</td>
-                            <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
-                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-4 py-3 text-center">
-    <div class="flex justify-center items-center">
-        <span class="px-2 py-1 rounded-full text-xs font-bold 
-            {{ $spot->status_validasi == 'pending' ? 'bg-yellow-100 text-yellow-700' : '' }}
-            {{ $spot->status_validasi == 'approved' ? 'bg-green-100 text-green-700' : '' }}
-            {{ $spot->status_validasi == 'rejected' ? 'bg-red-100 text-red-700' : '' }}">
-            {{ ucfirst($spot->status_validasi) }}
-        </span>
-    </div>
-</td>
->>>>>>> 76fe772 (perbaiki yang aku)
                             <td class="px-4 py-3">
                                 <div class="flex justify-center gap-2">
                                     @if($spot->status_validasi != 'approved')
@@ -285,12 +204,7 @@
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-<<<<<<< HEAD
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
-=======
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
-
->>>>>>> 76fe772 (perbaiki yang aku)
                 </tbody>
             </table>
         </div>
@@ -354,147 +268,163 @@
                 </div>
             </div>
 
-            <!-- PRIORITAS & TAHUN -->
-            <div class="grid grid-cols-4 gap-2.5">
+            <!-- PRIORITAS & KONDISI GEOGRAFIS -->
+<div class="grid grid-cols-2 gap-2.5">
 
-<<<<<<< HEAD
-                <div class="col-span-3">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Tingkat Prioritas (P1–P10)
-                    </label>
-=======
-    <!-- KETERANGAN (lebih panjang) -->
-    <div class="col-span-3">
+    <!-- TINGKAT PRIORITAS -->
+    <div>
         <label class="block text-white font-semibold mb-1.5 text-sm">
-            Prioritas
+         Prioritas
         </label>
->>>>>>> 76fe772 (perbaiki yang aku)
 
-                    <select name="prioritas"
-                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                            required
-                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+        <select name="prioritas"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-<<<<<<< HEAD
-                        <option value="">-- Pilih Prioritas --</option>
-=======
             <option value="">-- Pilih Prioritas --</option>
->>>>>>> 76fe772 (perbaiki yang aku)
-                        <option value="1">Prioritas 1 (P1)</option>
-                        <option value="2">Prioritas 2 (P2)</option>
-                        <option value="3">Prioritas 3 (P3)</option>
-                        <option value="4">Prioritas 4 (P4)</option>
-                        <option value="5">Prioritas 5 (P5)</option>
-                        <option value="6">Prioritas 6 (P6)</option>
-                        <option value="7">Prioritas 7 (P7)</option>
-                        <option value="8">Prioritas 8 (P8)</option>
-                        <option value="9">Prioritas 9 (P9)</option>
-<<<<<<< HEAD
-                        <option value="10">Prioritas 10 (P10)</option>
-                    </select>
-                    <p class="text-xs text-white/70 mt-1">
-                        Maksimal 1 data per prioritas di kabupaten ini.
-                    </p>
-                </div>
-
-                <div class="col-span-1">
-                    <label class="block text-white font-bold text-sm mb-1.5">
-                        Tahun <span class="text-red-500">*</span>
-                    </label>
-=======
-                        <option value="10">Prioritas 10 (P10) Bisa lebih dari 1</option>
-                    </select>
-                    <p class="text-xs text-white/80 mt-1">
-                        Maksimal 1 data per prioritas di kab/kota ini.
-                    </p>
+            <option value="1">Zero Blankspot</option>
+            <option value="2">Sinyal Sangat Lemah</option>
+            <option value="3">Sinyal Lemah</option>
+            <option value="4">2G</option>
+            <option value="5">3G</option>
+            <option value="6">4G Tidak Stabil</option>
+        </select>
     </div>
->>>>>>> 76fe772 (perbaiki yang aku)
 
-                    <input
-                        type="text"
-                        value="{{ date('Y') }}"
-                        readonly
-                        class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-                    >
+    <!-- KONDISI GEOGRAFIS -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Kondisi Geografis
+        </label>
 
-                    <input
-                        type="hidden"
-                        name="tahun"
-                        value="{{ date('Y') }}">
-                </div>
+        <select name="kondisi_geografis"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-                <!-- FOTO -->
-                <div class="col-span-4 mt-1">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Foto Blankspot
-                    </label>
+            <option value="">-- Pilih Kondisi --</option>
+            <option value="Pegunungan">Pegunungan</option>
+            <option value="Daerah Pantai">Daerah Pantai</option>
+            <option value="Daerah Sungai">Daerah Sungai</option>
+            <option value="Dataran Rendah">Dataran Rendah</option>
+            <option value="Perkebunan">Perkebunan</option>
+            <option value="Danau">Danau</option>
+            <option value="Perbukitan">Perbukitan</option>
+            <option value="Hutan">Hutan</option>
+            <option value="Pesisir">Pesisir</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+    </div>
 
-                    <div class="flex">
-                        <div id="file-name"
-                             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
-                            Belum ada file dipilih
-                        </div>
-
-<<<<<<< HEAD
-                        <label for="foto"
-                               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
-                            Choose File
-                        </label>
-                    </div>
-
-                    <input
-                        type="file"
-                        id="foto"
-                        name="foto"
-                        accept="image/*"
-                        class="hidden"
-                        onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
-                    >
-
-                    <p class="text-xs text-white/70 mt-1">
-                        Format: JPG, JPEG, PNG. Maksimal 5 MB.
-                    </p>
-                </div>
-            </div>
-=======
 </div>
 
 
-<div>
-    <label class="block text-white font-semibold mb-1.5 text-sm">
-        Upload Foto
-    </label>
+<!-- JUMLAH PENDUDUK & JARAK -->
+<div class="grid grid-cols-2 gap-2.5">
 
-    <div class="flex items-center">
-        <!-- Nama file -->
-        <span id="file-name"
-            class="flex-1 bg-white text-[#234B26] px-4 py-2.5 rounded-l-xl text-sm">
-            Pilih File
-        </span>
-
-        <!-- Tombol -->
-        <label for="foto"
-            class="cursor-pointer bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl font-semibold text-sm">
-            Choose File
+    <!-- JUMLAH PENDUDUK -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Jumlah Penduduk
         </label>
 
-        <!-- Input asli disembunyikan -->
+        <select name="jumlah_penduduk"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+
+            <option value="">-- Pilih Jumlah Penduduk --</option>
+            <option value="1-10">1–10 orang</option>
+            <option value="11-50">11–50 orang</option>
+            <option value="51-100">51–100 orang</option>
+            <option value="101-200">101–200 orang</option>
+            <option value="201-500">201–500 orang</option>
+            <option value="501-1000">501–1.000 orang</option>
+            <option value="1001-5000">1.001–5.000 orang</option>
+            <option value="5001-10000">5.001–10.000 orang</option>
+            <option value="10001-50000">10.001–50.000 orang</option>
+            <option value="50000+">50.000 orang</option>
+        </select>
+    </div>
+
+
+    <!-- JARAK DARI IBU KOTA -->
+  
+<div>
+    <label class="block text-white font-semibold mb-1.5 text-sm">
+        Jarak ke Ibu Kota (Km)
+    </label>
+
+    <input
+        type="number"
+        name="jarak_ibukota"
+        placeholder="Contoh: 25"
+        min="0"
+        step="10"
+        required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+</div>
+
+
+<!-- FOTO & TAHUN -->
+<div class="grid grid-cols-4 gap-2.5">
+
+    <!-- FOTO BLANKSPOT -->
+    <div class="col-span-3 mt-1">
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Foto Blankspot
+        </label>
+
+        <div class="flex">
+            <div id="file-name"
+                 class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+                Belum ada file dipilih
+            </div>
+
+            <label for="foto"
+                   class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+                Choose File
+            </label>
+        </div>
+
         <input
-            id="foto"
             type="file"
+            id="foto"
             name="foto"
             accept="image/*"
             class="hidden"
-            onchange="document.getElementById('file-name').textContent = this.files[0] ? this.files[0].name : 'Belum ada file dipilih';"
+            onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
         >
+
+        <p class="text-xs text-white/70 mt-1">
+            Format: JPG, JPEG, PNG. Maksimal 5 MB.
+        </p>
     </div>
 
-    <p class="text-xs text-white/80 mt-1">
-        Format: JPG, JPEG, PNG (Maks. 2 MB)
-    </p>
-</div>
 
->>>>>>> 76fe772 (perbaiki yang aku)
+    <!-- TAHUN -->
+    <div class="col-span-1 mt-1">
+        <label class="block text-white font-bold text-sm mb-1.5">
+            Tahun <span class="text-red-500">*</span>
+        </label>
+
+        <input
+            type="text"
+            value="{{ date('Y') }}"
+            readonly
+            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+        >
+
+        <input
+            type="hidden"
+            name="tahun"
+            value="{{ date('Y') }}">
+    </div>
+
+</div>
 
             <!-- BUTTON -->
             <div class="flex justify-end gap-3 pt-3">

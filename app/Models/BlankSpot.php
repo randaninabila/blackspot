@@ -20,12 +20,40 @@ class BlankSpot extends Model
         'nama_lokasi',
         'status_jaringan',
         'tahun',
+        'semester',
         'keterangan',
         'status_validasi',
         'catatan_revisi',
         'created_by',
         'validated_by',
         'validated_at',
+        'verifikator_id',
+        'tanggal_verifikasi',
+        'hasil_verifikasi',
+        'catatan_verifikasi',
+    ];
+
+    public const PRIORITAS_LABELS = [
+        1  => 'Prioritas paling tinggi (sangat mendesak)',
+        2  => 'Sangat tinggi',
+        3  => 'Tinggi',
+        4  => 'Cukup tinggi',
+        5  => 'Sedang',
+        6  => 'Menengah',
+        7  => 'Rendah',
+        8  => 'Rendah',
+        9  => 'Sangat rendah',
+        10 => 'Prioritas paling rendah',
+    ];
+
+    public const STATUS_JARINGAN_GUIDE = [
+        'Blank Spot Total'    => 'Tidak terdapat layanan jaringan sama sekali.',
+        'Sinyal Sangat Lemah' => 'Jaringan tersedia tetapi sangat sulit digunakan.',
+        'Sinyal Lemah'        => 'Dapat digunakan namun sering terputus.',
+        '2G'                  => 'Hanya tersedia jaringan 2G.',
+        '3G'                  => 'Hanya tersedia jaringan 3G.',
+        '4G Tidak Stabil'     => '4G tersedia tetapi tidak stabil.',
+        '5G Belum Tersedia'   => 'Wilayah belum memiliki layanan 5G.',
     ];
 
     protected $casts = [
@@ -34,9 +62,27 @@ class BlankSpot extends Model
         'radius' => 'float',
         'prioritas' => 'integer',
         'tahun' => 'integer',
+        'semester' => 'integer',
         'validated_at' => 'datetime',
+        'tanggal_verifikasi' => 'datetime',
     ];
 
+<<<<<<< HEAD
+=======
+    public function getPrioritasLabelAttribute()
+    {
+        return isset($this->prioritas) ? "P{$this->prioritas}" : '-';
+    }
+
+    public function getPrioritasKeteranganAttribute()
+    {
+        return self::PRIORITAS_LABELS[$this->prioritas] ?? '-';
+    }
+
+    /**
+     * Relasi ke kabupaten
+     */
+>>>>>>> 0e156c1 (feat: improve blankspot validation workflow and UI logic)
     public function kabupaten()
     {
         return $this->belongsTo(Kabupaten::class, 'kabupaten_id');
@@ -63,6 +109,36 @@ class BlankSpot extends Model
         return $this->belongsTo(User::class, 'validated_by');
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Relasi ke user (verifikator)
+     */
+    public function verifikator()
+    {
+        return $this->belongsTo(User::class, 'verifikator_id');
+    }
+
+    /**
+     * Multiple foto pendukung
+     */
+    public function photos()
+    {
+        return $this->hasMany(BlankSpotPhoto::class, 'blank_spot_id');
+    }
+
+    /**
+     * History riwayat perubahan data
+     */
+    public function histories()
+    {
+        return $this->hasMany(BlankSpotHistory::class, 'blank_spot_id')->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Attribute untuk status label
+     */
+>>>>>>> 0e156c1 (feat: improve blankspot validation workflow and UI logic)
     public function getStatusLabelAttribute()
     {
         return [

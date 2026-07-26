@@ -63,10 +63,33 @@ class ValidationController extends Controller
         $totalDitolak   = BlankSpot::where('status_validasi', 'rejected')->count();
         $totalRevisi    = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
-        $validasiMenunggu = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
-            ->where('status_validasi', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+
+        if ($request->filled('kabupaten_id')) {
+            $vmQuery->where('kabupaten_id', $request->kabupaten_id);
+        }
+
+        if ($request->filled('status_validasi')) {
+            $vmQuery->where('status_validasi', $request->status_validasi);
+        } elseif ($request->filled('status') && $request->status !== 'all') {
+            $vmQuery->where('status_validasi', $request->status);
+        }
+
+        if ($request->filled('tahun')) {
+            $vmQuery->where('tahun', $request->tahun);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $vmQuery->where(function ($q) use ($search) {
+                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'LIKE', "%{$search}%"))
+                  ->orWhere('nama_lokasi', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $validasiMenunggu = $vmQuery->orderBy('created_at', 'desc')->get();
 
         $totalData  = BlankSpot::count();
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
@@ -117,6 +140,11 @@ class ValidationController extends Controller
     public function edit($id)
     {
         $blankSpot  = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])->findOrFail($id);
+
+        if (!str_contains(url()->previous(), '/edit')) {
+            session(['blank_spot_return_url' => url()->previous()]);
+        }
+
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $kecamatans = Kecamatan::where('kabupaten_id', $blankSpot->kabupaten_id)->get();
         $desas      = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->get();
@@ -134,7 +162,10 @@ class ValidationController extends Controller
         $validated = $request->validate([
             'kabupaten_id'    => 'required|exists:kabupaten,id',
             'kecamatan_id'    => 'required|exists:kecamatan,id',
-            'desa_id'         => 'nullable|exists:desa,id',
+            'desa_id'         => 'nullable',
+            'nama_desa'       => 'nullable|string|max:255',
+            'desa'            => 'nullable|string|max:255',
+            'prioritas'       => 'required|integer|between:1,10',
             'latitude'        => 'required|numeric|between:-90,90',
             'longitude'       => 'required|numeric|between:-180,180',
             'tahun'           => 'required|integer|min:2000|max:' . (date('Y') + 1),
@@ -143,12 +174,28 @@ class ValidationController extends Controller
             'keterangan'      => 'nullable|string',
         ]);
 
+        $namaDesaInput = $validated['nama_desa'] ?? $validated['desa'] ?? null;
+        if (empty($validated['desa_id']) && !empty($namaDesaInput) && !empty($validated['kecamatan_id'])) {
+            $desa = Desa::firstOrCreate([
+                'kecamatan_id' => $validated['kecamatan_id'],
+                'nama_desa'    => trim($namaDesaInput),
+            ]);
+            $validated['desa_id'] = $desa->id;
+        } elseif (!empty($validated['desa_id']) && !is_numeric($validated['desa_id']) && !empty($validated['kecamatan_id'])) {
+            $desa = Desa::firstOrCreate([
+                'kecamatan_id' => $validated['kecamatan_id'],
+                'nama_desa'    => trim($validated['desa_id']),
+            ]);
+            $validated['desa_id'] = $desa->id;
+        }
+        unset($validated['nama_desa'], $validated['desa']);
+
         $blankSpot->update($validated);
 
         AuditLogService::log("Admin memperbarui data validasi Blank Spot ID: {$id}", $request);
 
-        return redirect()->route('admin.validasi.index')
-            ->with('success', 'Data validasi berhasil diperbarui!');
+        $returnUrl = session()->pull('blank_spot_return_url', route('admin.validasi.index'));
+        return redirect()->to($returnUrl)->with('success', 'Data validasi berhasil diperbarui!');
     }
 
     /**
@@ -169,7 +216,7 @@ class ValidationController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.validasi.index')->with('success', 'Data berhasil dihapus!');
+            return redirect()->back()->with('success', 'Data berhasil dihapus!');
         } catch (\Exception $e) {
             if (request()->wantsJson()) {
                 return response()->json([
@@ -189,11 +236,12 @@ class ValidationController extends Controller
     {
         try {
             $blankSpot = BlankSpot::findOrFail($id);
+            $blankSpot->refresh();
             $admin = Auth::user();
 
             if ($blankSpot->status_validasi === 'approved') {
                 $msg = 'Data sudah disetujui sebelumnya!';
-                return request()->wantsJson() 
+                return (request()->expectsJson() || request()->ajax() || request()->wantsJson())
                     ? response()->json(['success' => false, 'message' => $msg], 400)
                     : back()->with('error', $msg);
             }
@@ -201,18 +249,18 @@ class ValidationController extends Controller
             $this->validationService->approve($blankSpot, $admin);
 
             $msg = 'Data blank spot berhasil disetujui!';
-            if (request()->wantsJson()) {
+            if (request()->expectsJson() || request()->ajax() || request()->wantsJson()) {
                 return response()->json(['success' => true, 'message' => $msg]);
             }
 
             return back()->with('success', $msg);
         } catch (InvalidArgumentException $e) {
-            if (request()->wantsJson()) {
+            if (request()->expectsJson() || request()->ajax() || request()->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
             }
             return back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
-            if (request()->wantsJson()) {
+            if (request()->expectsJson() || request()->ajax() || request()->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Gagal menyetujui data: ' . $e->getMessage()], 500);
             }
             return back()->with('error', 'Gagal menyetujui data.');

@@ -10,7 +10,33 @@ class UpdateBlankSpotRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check();
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isOperator()) {
+            $id = $this->route('id') ?? $this->route('blank_spot');
+            if ($id) {
+                $blankSpot = BlankSpot::find($id);
+                if ($blankSpot && (int) $blankSpot->kabupaten_id !== (int) $user->kabupaten_id) {
+                    return false; // 403 Forbidden
+                }
+            }
+
+            $inputKab = $this->input('kabupaten_id');
+            if ($inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
+                return false; // 403 Forbidden
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     protected function prepareForValidation(): void
@@ -30,8 +56,8 @@ class UpdateBlankSpotRequest extends FormRequest
             }
         }
 
-        // Auto assign kabupaten_id if user is operator
-        if (!$this->filled('kabupaten_id') && $user && $user->isOperator()) {
+        // Paksa kabupaten_id milik Operator sendiri
+        if ($user && $user->isOperator()) {
             $this->merge([
                 'kabupaten_id' => $user->kabupaten_id,
             ]);
@@ -51,13 +77,14 @@ class UpdateBlankSpotRequest extends FormRequest
         return [
             'kabupaten_id'    => $user->isOperator() ? 'nullable' : 'required|exists:kabupaten,id',
             'kecamatan_id'    => 'required|exists:kecamatan,id',
-            'desa_id'         => 'nullable|exists:desa,id',
+            'desa_id'         => 'nullable',
             'nama_desa'       => 'nullable|string|max:255',
+            'desa'            => 'nullable|string|max:255',
             'latitude'        => 'required|numeric|between:-90,90',
             'longitude'       => 'required|numeric|between:-180,180',
             'radius'          => 'nullable|numeric|min:0',
             'prioritas'       => [
-                'nullable',
+                'required',
                 'integer',
                 'between:1,10',
                 function ($attribute, $value, $fail) use ($kabupatenId, $id) {
@@ -72,7 +99,9 @@ class UpdateBlankSpotRequest extends FormRequest
                     }
                 },
             ],
-            'foto'            => 'nullable|file|image|mimes:jpg,jpeg,png|max:5120',
+            'tahun'           => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'semester'        => 'nullable|integer|between:1,2',
+            'foto'            => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
             'nama_lokasi'     => 'nullable|string|max:255',
             'status_jaringan' => 'nullable|string|max:255',
             'keterangan'      => 'nullable|string|max:1000',

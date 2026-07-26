@@ -49,16 +49,26 @@ class BlankSpotController extends Controller
     }
 
     /**
-     * Serve foto dari storage
+     * Serve foto dari storage secara publik tanpa 403 Forbidden
      */
     public function servePhoto(string $filename)
     {
-        $path = 'blank-spots/' . $filename;
+        $path = str_contains($filename, '/') ? $filename : 'blank-spots/' . $filename;
+
         if (!Storage::disk('public')->exists($path)) {
-            abort(404, 'Foto tidak ditemukan.');
+            if (Storage::disk('public')->exists($filename)) {
+                $path = $filename;
+            } else {
+                abort(404, 'Foto tidak ditemukan.');
+            }
         }
 
-        return response()->file(Storage::disk('public')->path($path));
+        $fullPath = Storage::disk('public')->path($path);
+        
+        return response()->file($fullPath, [
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
     }
 
     // ============================================================
@@ -117,9 +127,17 @@ class BlankSpotController extends Controller
      */
     public function store(StoreBlankSpotRequest $request)
     {
-        $data = $request->validated();
-        $user = Auth::user();
+        $user  = Auth::user();
+        $data  = $request->validated();
         $photo = $request->file('foto');
+
+        if ($user->isOperator()) {
+            $inputKab = $request->input('kabupaten_id');
+            if ($inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
+                abort(403, 'Anda tidak memiliki otorisasi untuk menambah data pada Kabupaten/Kota lain.');
+            }
+            $data['kabupaten_id'] = $user->kabupaten_id;
+        }
 
         $bs = $this->blankSpotService->store($data, $user, $photo);
 
@@ -147,6 +165,10 @@ class BlankSpotController extends Controller
                 ->with('error', '⚠️ Data yang sudah DISETUJUI (Approved) tidak bisa diedit lagi.');
         }
 
+        if (!str_contains(url()->previous(), '/edit')) {
+            session(['blank_spot_return_url' => url()->previous()]);
+        }
+
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $kecamatans = Kecamatan::where('kabupaten_id', $blankSpot->kabupaten_id)->orderBy('nama_kecamatan')->get();
         $desas      = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
@@ -172,7 +194,8 @@ class BlankSpotController extends Controller
 
         $this->blankSpotService->update($blankSpot, $data, $user, $photo);
 
-        return redirect()->route('admin.blank-spot.index')->with('success', 'Data blank spot berhasil diperbarui!');
+        $returnUrl = session()->pull('blank_spot_return_url', route('admin.blank-spot.index'));
+        return redirect()->to($returnUrl)->with('success', 'Data blank spot berhasil diperbarui!');
     }
 
     /**
@@ -254,6 +277,11 @@ class BlankSpotController extends Controller
         $data  = $request->validated();
         $photo = $request->file('foto');
 
+        $inputKab = $request->input('kabupaten_id');
+        if ($user->isOperator() && $inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
+            abort(403, 'Anda tidak memiliki otorisasi untuk menambah data pada Kabupaten/Kota lain.');
+        }
+
         $data['kabupaten_id'] = $user->kabupaten_id;
 
         $this->blankSpotService->store($data, $user, $photo);
@@ -293,6 +321,10 @@ class BlankSpotController extends Controller
                 ->with('error', '⚠️ Data yang masih berstatus Pending belum dapat diedit. Tunggu validasi dari Admin.');
         }
 
+        if (!str_contains(url()->previous(), '/edit')) {
+            session(['blank_spot_return_url' => url()->previous()]);
+        }
+
         $kabupaten  = Kabupaten::find($user->kabupaten_id);
         $kecamatans = Kecamatan::where('kabupaten_id', $user->kabupaten_id)->orderBy('nama_kecamatan')->get();
         $desas      = Desa::where('kecamatan_id', $blankSpot->kecamatan_id)->orderBy('nama_desa')->get();
@@ -320,8 +352,8 @@ class BlankSpotController extends Controller
 
         $this->blankSpotService->update($blankSpot, $data, $user, $photo);
 
-        return redirect()->back()
-            ->with('success', 'Data berhasil diperbarui dan dikirim ulang untuk menunggu validasi Admin.');
+        $returnUrl = session()->pull('blank_spot_return_url', route('user.blank-spot.index'));
+        return redirect()->to($returnUrl)->with('success', 'Data berhasil diperbarui dan dikirim ulang untuk menunggu validasi Admin.');
     }
 
     /**

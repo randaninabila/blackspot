@@ -118,7 +118,23 @@
                     </thead>
                     <tbody id="tableBody">
                         @forelse($blankSpots as $i => $spot)
-                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
+                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition cursor-pointer"
+                            onclick="showDetail(this)"
+                            data-id="{{ $spot->id }}"
+                            data-kabupaten="{{ $kabupaten->nama_kabupaten }}"
+                            data-kecamatan="{{ $spot->kecamatan->nama_kecamatan ?? '-' }}"
+                            data-desa="{{ $spot->desa->nama_desa ?? '-' }}"
+                            data-latitude="{{ $spot->latitude }}"
+                            data-longitude="{{ $spot->longitude }}"
+                            data-prioritas="{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}"
+                            data-status-jaringan="{{ $spot->status_jaringan ?? '-' }}"
+                            data-tahun="{{ $spot->tahun }}"
+                            data-keterangan="{{ $spot->keterangan ?? '-' }}"
+                            data-operator="{{ $spot->creator->nama ?? '-' }}"
+                            data-tanggal="{{ $spot->created_at->format('d M Y, H:i') }} WIB"
+                            data-status-validasi="{{ $spot->status_label }}"
+                            data-catatan-revisi="{{ $spot->catatan_revisi ?? '-' }}"
+                            data-foto="{{ $spot->foto ? asset('storage/' . $spot->foto) : '' }}">
                             <td class="px-4 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
                             <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
@@ -128,13 +144,18 @@
                             <td class="px-4 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
                             <td class="px-4 py-3 text-center">
-                                <div class="flex justify-center items-center">
+                                <div class="flex flex-col justify-center items-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
                                         {{ $spot->status_label }}
                                     </span>
+                                    @if(in_array($spot->status_validasi, ['rejected', 'revisi', 'perlu_revisi']) && $spot->catatan_revisi)
+                                        <div class="text-[11px] text-red-600 font-normal mt-1 italic max-w-[150px] truncate" title="Catatan Admin: {{ $spot->catatan_revisi }}">
+                                            💬 {{ $spot->catatan_revisi }}
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3" onclick="event.stopPropagation()">
                                 <div class="flex justify-center gap-2">
                                     @if($isOwner && $spot->status_validasi != 'approved')
                                     <a href="{{ route('user.blank-spot.edit', $spot->id) }}" 
@@ -152,6 +173,8 @@
                                             </svg>
                                         </button>
                                     </form>
+                                    @else
+                                    <span class="text-gray-400 font-semibold text-xs">-</span>
                                     @endif
                                 </div>
                             </td>
@@ -173,6 +196,62 @@
                 </p>
                 <div>{{ $blankSpots->links() }}</div>
             </div>
+
+            <!-- PANEL KETERANGAN PRIORITAS BLANK SPOT -->
+            <div class="mt-6 p-5 bg-[#D7E3D4]/40 border border-[#234B26]/20 rounded-2xl text-[#234B26]">
+                <h4 class="font-bold text-base mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-[#234B26]">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                    </svg>
+                    Keterangan Prioritas Blank Spot
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2 text-xs font-medium my-2">
+                    @foreach(\App\Models\BlankSpot::PRIORITAS_LABELS as $level => $desc)
+                        <div class="bg-white/80 border border-[#234B26]/10 rounded-lg p-2 flex items-center gap-1.5 shadow-sm">
+                            <span class="px-1.5 py-0.5 bg-[#234B26] text-white font-bold rounded text-[10px]">P{{ $level }}</span>
+                            <span class="text-gray-700 truncate" title="{{ $desc }}">{{ $desc }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="text-xs font-semibold mt-3 text-[#234B26]">
+                    * Operator hanya dapat memilih satu tingkat prioritas (P1–P10) untuk setiap data Blank Spot.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Section -->
+    <div id="detailSection" class="bg-[#F3F3E8] rounded-[2rem] p-6 md:p-8 border border-gray-200/40 shadow-xl hidden mt-8">
+        <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">Detail Data Blankspot</h4>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm h-fit">
+                <table class="w-full text-sm text-left">
+                    <tbody class="divide-y divide-gray-200">
+                        <tr><td class="w-1/3 bg-gray-50 px-4 py-3 font-bold text-[#234B26]">ID Data</td><td id="detail-id" class="px-4 py-3 font-semibold">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kab/Kota</td><td id="detail-kabupaten" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Prioritas</td><td id="detail-prioritas" class="px-4 py-3 font-bold text-amber-800">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Status Jaringan</td><td id="detail-status-jaringan" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tahun</td><td id="detail-tahun" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Diinput Oleh</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
+                        <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Status Validasi</td><td id="detail-status-validasi" class="px-4 py-3 font-bold">-</td></tr>
+                        <tr id="row-catatan-revisi" class="hidden"><td class="bg-gray-50 px-4 py-3 font-bold text-red-600">Catatan Revisi</td><td id="detail-catatan-revisi" class="px-4 py-3 text-red-600 italic">-</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="relative w-full h-[300px] bg-gray-200 rounded-2xl overflow-hidden border border-gray-300 shadow-inner">
+                    <div id="validasiMap" class="w-full h-full"></div>
+                </div>
+                <div id="container-foto" class="hidden bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                    <p class="font-bold text-[#234B26] text-xs mb-2">Foto Blankspot:</p>
+                    <img id="detail-foto" src="" alt="Foto Blankspot" class="w-full max-h-48 object-cover rounded-xl border border-gray-200">
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -180,143 +259,131 @@
 <!-- MODAL TAMBAH DATA (HANYA UNTUK KABUPATEN SENDIRI) -->
 @if($isOwner)
 <div id="blankspotModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 p-4">
 
-    <div class="bg-[#234B26] w-full max-w-md p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
+    <div class="bg-[#234B26] w-full max-w-md max-h-[90vh] flex flex-col p-5 sm:p-6 rounded-3xl shadow-2xl border border-white/10 mx-auto transform scale-95 transition-transform duration-300 relative" id="modalContent">
 
-        <div class="text-center mb-4">
-            <h3 class="text-xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
-            <p class="text-xl italic font-bold text-[#E6EB9C]">Blankspot</p>
+        <!-- HEADER -->
+        <div class="text-center mb-3 pb-2 border-b border-white/10 flex-shrink-0">
+            <h3 class="text-lg font-bold text-[#E6EB9C]">Masukkan Data <span class="italic font-extrabold text-white">Blankspot</span></h3>
         </div>
 
-        <form action="{{ route('user.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+        <!-- FORM CONTENT WITH INTERNAL SCROLL -->
+        <form action="{{ route('user.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 overflow-hidden">
             @csrf
             <input type="hidden" name="kabupaten_id" value="{{ $kabupaten->id }}">
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Kecamatan</label>
-                <select name="kecamatan_id" class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" required
-                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-                    <option value="">-- Pilih Kecamatan --</option>
-                    @foreach($kecamatans ?? [] as $kec)
-                        <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <div class="overflow-y-auto pr-1.5 space-y-3 flex-1">
 
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Nama Desa</label>
-                <input type="text" name="nama_desa" placeholder="Ketik nama desa..." required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
-
-            <!-- KOORDINAT -->
-            <div class="grid grid-cols-2 gap-2.5">
-                <!-- LONGITUDE -->
+                <!-- KECAMATAN -->
                 <div>
-                    <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
-                    <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
-                           class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-                </div>
-
-                <!-- LATITUDE -->
-                <div>
-                    <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
-                    <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
-                           class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-                </div>
-            </div>
-
-            <!-- PRIORITAS & TAHUN -->
-            <div class="grid grid-cols-4 gap-2.5">
-
-                <!-- PRIORITAS P1-P10 -->
-                <div class="col-span-3">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Tingkat Prioritas (P1–P10)
-                    </label>
-
-                    <select name="prioritas"
-                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                    <label class="block text-white font-semibold mb-1 text-xs">Kecamatan <span class="text-red-400">*</span></label>
+                    <select name="kecamatan_id" 
+                            class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 appearance-none font-medium" 
                             required
-                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-
-                        <option value="">-- Pilih Prioritas --</option>
-                        <option value="1">Prioritas 1 (P1)</option>
-                        <option value="2">Prioritas 2 (P2)</option>
-                        <option value="3">Prioritas 3 (P3)</option>
-                        <option value="4">Prioritas 4 (P4)</option>
-                        <option value="5">Prioritas 5 (P5)</option>
-                        <option value="6">Prioritas 6 (P6)</option>
-                        <option value="7">Prioritas 7 (P7)</option>
-                        <option value="8">Prioritas 8 (P8)</option>
-                        <option value="9">Prioritas 9 (P9)</option>
-                        <option value="10">Prioritas 10 (P10)</option>
+                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 32px;">
+                        <option value="">-- Pilih Kecamatan --</option>
+                        @foreach($kecamatans ?? [] as $kec)
+                            <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
+                        @endforeach
                     </select>
-                    <p class="text-xs text-white/70 mt-1">
-                        Maksimal 1 data per prioritas di kabupaten ini.
-                    </p>
                 </div>
 
-                <!-- TAHUN -->
-                <div class="col-span-1">
-                    <label class="block text-white font-bold text-sm mb-1.5">
-                        Tahun <span class="text-red-500">*</span>
-                    </label>
-
-                    <input
-                        type="text"
-                        value="{{ date('Y') }}"
-                        readonly
-                        class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-                    >
-
-                    <input
-                        type="hidden"
-                        name="tahun"
-                        value="{{ date('Y') }}">
+                <!-- NAMA DESA -->
+                <div>
+                    <label class="block text-white font-semibold mb-1 text-xs">Nama Desa <span class="text-red-400">*</span></label>
+                    <input type="text" name="nama_desa" placeholder="Ketik nama desa..." required
+                           class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 font-medium">
                 </div>
 
-                <!-- FOTO -->
-                <div class="col-span-4 mt-1">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Foto Blankspot
-                    </label>
+                <!-- STATUS JARINGAN -->
+                <div>
+                    <label class="block text-white font-semibold mb-1 text-xs">Status Jaringan</label>
+                    <input type="text" name="status_jaringan" placeholder="Contoh: Blank Spot Total, Sinyal Lemah, 4G Tidak Stabil..."
+                           class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 font-medium">
+                </div>
 
+                <!-- KOORDINAT -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-xs">Longitude <span class="text-red-400">*</span></label>
+                        <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+                               class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-xs">Latitude <span class="text-red-400">*</span></label>
+                        <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
+                               class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 font-medium">
+                    </div>
+                </div>
+
+                <!-- PRIORITAS & TAHUN -->
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="col-span-3">
+                        <label class="block text-white font-semibold mb-1 text-xs">Tingkat Prioritas (P1–P10) <span class="text-red-400">*</span></label>
+                        <select name="prioritas"
+                                class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 appearance-none font-medium"
+                                required
+                                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 32px;">
+                            <option value="">-- Pilih Prioritas --</option>
+                            @foreach(\App\Models\BlankSpot::PRIORITAS_LABELS as $level => $desc)
+                                <option value="{{ $level }}">Prioritas {{ $level }} (P{{ $level }})</option>
+                            @endforeach
+                        </select>
+                        <p class="text-[10px] text-white/70 mt-0.5">Maksimal 1 data per prioritas di kabupaten ini.</p>
+                    </div>
+
+                    <div class="col-span-1">
+                        <label class="block text-white font-bold text-xs mb-1">Tahun <span class="text-red-400">*</span></label>
+                        <input type="text" value="{{ date('Y') }}" readonly
+                            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-2 py-2 text-xs text-gray-700 font-bold text-center cursor-not-allowed">
+                        <input type="hidden" name="tahun" value="{{ date('Y') }}">
+                    </div>
+                </div>
+
+                <!-- KETERANGAN -->
+                <div>
+                    <label class="block text-white font-semibold mb-1 text-xs">Keterangan</label>
+                    <textarea name="keterangan" rows="2" placeholder="Deskripsi kondisi blank spot..."
+                              class="w-full bg-white text-[#234B26] px-3 py-2 rounded-xl text-xs outline-none border border-transparent focus:border-white/30 font-medium resize-none"></textarea>
+                </div>
+
+                <!-- UPLOAD FOTO BLANKSPOT -->
+                <div>
+                    <label class="block text-white font-semibold mb-1 text-xs">Foto Blankspot</label>
                     <div class="flex">
-                        <div id="file-name"
-                             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+                        <div id="file-name" class="flex-1 bg-white text-gray-500 px-3 py-2 rounded-l-xl border-r border-gray-300 text-xs flex items-center truncate">
                             Belum ada file dipilih
                         </div>
-
-                        <label for="foto"
-                               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+                        <label for="foto" class="bg-[#E6EB9C] text-[#234B26] px-3 py-2 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-bold text-xs flex items-center whitespace-nowrap">
                             Choose File
                         </label>
                     </div>
-
-                    <input
-                        type="file"
-                        id="foto"
-                        name="foto"
-                        accept="image/*"
-                        class="hidden"
-                        onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
-                    >
-
-                    <p class="text-xs text-white/70 mt-1">
-                        Format: JPG, JPEG, PNG. Maksimal 5 MB.
-                    </p>
+                    <input type="file" id="foto" name="foto" accept="image/*" class="hidden"
+                           onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';">
+                    <p class="text-[10px] text-white/70 mt-0.5">Format: JPG, JPEG, PNG. Maksimal 5 MB.</p>
                 </div>
+
+                <!-- PANDUAN STATUS JARINGAN -->
+                <div class="p-2.5 bg-white/10 rounded-xl text-white/90 text-xs border border-white/10">
+                    <p class="font-bold mb-1 text-[#E6EB9C] text-[11px]">Panduan Pengisian Status Jaringan:</p>
+                    <ul class="list-disc list-inside space-y-0.5 text-[10px] text-white/80">
+                        @foreach(\App\Models\BlankSpot::STATUS_JARINGAN_GUIDE as $key => $guide)
+                            <li><strong>{{ $key }}</strong>: {{ $guide }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+
             </div>
 
-            <div class="flex justify-end gap-3 pt-3">
+            <!-- STICKY FOOTER BUTTONS -->
+            <div class="flex justify-end gap-2.5 pt-3 mt-2 border-t border-white/15 flex-shrink-0">
                 <button type="button" onclick="closeModal()"
-                        class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
-                    Cancel
+                        class="bg-white/90 text-red-700 font-bold px-4 py-2 rounded-xl hover:bg-white text-xs transition">
+                    Batal
                 </button>
                 <button type="submit"
-                        class="bg-white text-[#234B26] font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+                        class="bg-[#E6EB9C] text-[#234B26] font-extrabold px-5 py-2 rounded-xl hover:bg-white text-xs transition shadow-md">
                     Tambahkan
                 </button>
             </div>
@@ -364,6 +431,7 @@ function getRows() {
 }
 
 function renderTable() {
+    resetDetailSection();
     const rows = getRows();
     const totalPages = Math.ceil(rows.length / perPage) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
@@ -391,6 +459,7 @@ function renderTable() {
 function renderPagination(total) {
     const totalPages = Math.ceil(total / perPage) || 1;
     const container = document.getElementById("paginationNumbers");
+    if (!container) return;
     container.innerHTML = "";
 
     for (let i = 1; i <= totalPages; i++) {
@@ -406,8 +475,8 @@ function renderPagination(total) {
         container.appendChild(btn);
     }
 
-    document.getElementById("prevBtn").disabled = currentPage === 1;
-    document.getElementById("nextBtn").disabled = currentPage === totalPages;
+    if (document.getElementById("prevBtn")) document.getElementById("prevBtn").disabled = currentPage === 1;
+    if (document.getElementById("nextBtn")) document.getElementById("nextBtn").disabled = currentPage === totalPages;
 }
 
 function nextPage() {
@@ -455,6 +524,73 @@ document.addEventListener("DOMContentLoaded", function() {
         modal.classList.add('opacity-0');
     }
 });
+
+let map = null;
+let marker = null;
+
+function resetDetailSection() {
+    document.querySelectorAll('#tableBody tr').forEach(function(r) {
+        r.classList.remove('bg-green-100', 'border-l-4', 'border-green-700', 'selected', 'active');
+    });
+    document.getElementById('detailSection')?.classList.add('hidden');
+    ['detail-id', 'detail-kabupaten', 'detail-kecamatan', 'detail-desa', 'detail-koordinat', 'detail-prioritas', 'detail-status-jaringan', 'detail-tahun', 'detail-keterangan', 'detail-operator', 'detail-tanggal', 'detail-status-validasi', 'detail-catatan-revisi'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '-';
+    });
+    document.getElementById('row-catatan-revisi')?.classList.add('hidden');
+    document.getElementById('container-foto')?.classList.add('hidden');
+}
+
+function showDetail(row) {
+    resetDetailSection();
+    row.classList.add('bg-green-100', 'border-l-4', 'border-green-700');
+    const data = row.dataset;
+
+    const lat = parseFloat(data.latitude);
+    const lng = parseFloat(data.longitude);
+
+    document.getElementById('detailSection').classList.remove('hidden');
+
+    document.getElementById('detail-id').textContent = data.id;
+    document.getElementById('detail-kabupaten').textContent = data.kabupaten;
+    document.getElementById('detail-kecamatan').textContent = data.kecamatan;
+    document.getElementById('detail-desa').textContent = data.desa;
+    document.getElementById('detail-koordinat').textContent = lat + ', ' + lng;
+    document.getElementById('detail-prioritas').textContent = data.prioritas || '-';
+    document.getElementById('detail-status-jaringan').textContent = data.statusJaringan || '-';
+    document.getElementById('detail-tahun').textContent = data.tahun || '-';
+    document.getElementById('detail-keterangan').textContent = data.keterangan || '-';
+    document.getElementById('detail-operator').textContent = data.operator || '-';
+    document.getElementById('detail-tanggal').textContent = data.tanggal || '-';
+    document.getElementById('detail-status-validasi').textContent = data.statusValidasi || '-';
+
+    if (data.catatanRevisi && data.catatanRevisi !== '-') {
+        document.getElementById('detail-catatan-revisi').textContent = data.catatanRevisi;
+        document.getElementById('row-catatan-revisi').classList.remove('hidden');
+    }
+
+    if (data.foto) {
+        document.getElementById('detail-foto').src = data.foto;
+        document.getElementById('container-foto').classList.remove('hidden');
+    }
+
+    setTimeout(() => {
+        initMap(lat, lng);
+    }, 200);
+
+    document.getElementById('detailSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function initMap(lat, lng) {
+    if (map) {
+        map.remove();
+    }
+    map = L.map('validasiMap').setView([lat, lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+    marker = L.marker([lat, lng]).addTo(map);
+}
 </script>
 
 @endsection

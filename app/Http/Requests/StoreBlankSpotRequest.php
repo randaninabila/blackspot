@@ -10,7 +10,24 @@ class StoreBlankSpotRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check();
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isOperator()) {
+            $inputKab = $this->input('kabupaten_id') ?? $this->route('kabupaten_id');
+            if ($inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
+                return false; // Triggers 403 Forbidden!
+            }
+            return true;
+        }
+
+        return false;
     }
 
     protected function prepareForValidation(): void
@@ -30,8 +47,8 @@ class StoreBlankSpotRequest extends FormRequest
             }
         }
 
-        // Auto assign kabupaten_id if user is operator
-        if (!$this->filled('kabupaten_id') && $user && $user->isOperator()) {
+        // Paksa kabupaten_id milik Operator sendiri
+        if ($user && $user->isOperator()) {
             $this->merge([
                 'kabupaten_id' => $user->kabupaten_id,
             ]);
@@ -46,8 +63,9 @@ class StoreBlankSpotRequest extends FormRequest
         return [
             'kabupaten_id'    => $user->isOperator() ? 'nullable' : 'required|exists:kabupaten,id',
             'kecamatan_id'    => 'required|exists:kecamatan,id',
-            'desa_id'         => 'nullable|exists:desa,id',
-            'nama_desa'       => 'required_without:desa_id|nullable|string|max:255',
+            'desa_id'         => 'nullable',
+            'nama_desa'       => 'nullable|string|max:255',
+            'desa'            => 'nullable|string|max:255',
             'latitude'        => 'required|numeric|between:-90,90',
             'longitude'       => 'required|numeric|between:-180,180',
             'radius'          => 'nullable|numeric|min:0',
@@ -66,7 +84,9 @@ class StoreBlankSpotRequest extends FormRequest
                     }
                 },
             ],
-            'foto'            => 'nullable|file|image|mimes:jpg,jpeg,png|max:5120',
+            'tahun'           => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'semester'        => 'nullable|integer|between:1,2',
+            'foto'            => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
             'nama_lokasi'     => 'nullable|string|max:255',
             'status_jaringan' => 'nullable|string|max:255',
             'keterangan'      => 'nullable|string|max:1000',

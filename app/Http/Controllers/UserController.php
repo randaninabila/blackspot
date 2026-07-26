@@ -128,19 +128,19 @@ class UserController extends Controller
     public function detailPage($kabupaten_id)
     {
         $user = Auth::user();
+
         $kabupaten = Kabupaten::findOrFail($kabupaten_id);
 
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
-            ->where('kabupaten_id', $kabupaten_id)
-            ->where('status_validasi', 'approved')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
+            ->where('kabupaten_id', $kabupaten_id);
+
+        $blankSpots = $query->orderBy('created_at', 'desc')->paginate(10);
 
         $kecamatans = Kecamatan::where('kabupaten_id', $kabupaten_id)
             ->orderBy('nama_kecamatan')
             ->get();
 
-        $isOwner = ($user->kabupaten_id == $kabupaten_id);
+        $isOwner = !$user->isOperator() || ((int) $user->kabupaten_id === (int) $kabupaten_id);
 
         return view('user.detail', compact('kabupaten', 'blankSpots', 'kecamatans', 'isOwner'));
     }

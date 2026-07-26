@@ -10,6 +10,10 @@ use App\Http\Controllers\GeospasialController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MapController;
 
+Route::get('/guest', function () {
+    return view('guest');
+});
+
 // ============================================================
 // ROOT
 // ============================================================

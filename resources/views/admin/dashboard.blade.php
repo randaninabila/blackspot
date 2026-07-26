@@ -24,7 +24,7 @@
         </h1>
 
         <h2 class="text-2xl font-bold mt-1 text-[#234B26]">
-            Dinas Komunikasi Informatika dan Statistik
+            Dinas Komunikasi dan Informatika 
         </h2>
 
         <p class="max-w-4xl mx-auto mt-6 text-gray-700">
@@ -37,27 +37,38 @@
 
 
     <!-- Statistik -->
-    <div class="grid md:grid-cols-3 gap-6 mt-28">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-28 mx-50">
 
-        <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Total Data</p>
-            <h3 class="text-5xl font-bold my-2">{{ $totalData ?? 0 }}</h3>
-            <p class="font-semibold">Data Keseluruhan</p>
-        </div>
+    <!-- Total Data (1/4) -->
+    <div class="md:col-span-1 bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+        <p class="font-semibold">
+            Total Data
+        </p>
 
-        <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nama Kab/Kota Terbanyak</p>
-            <h3 class="text-5xl font-bold my-2">{{ $nilaiTertinggi ?? 0 }}</h3>
-            <p class="font-semibold">Tahun {{ $tahunTertinggi ?? '-' }}</p>
-        </div>
+        <h3 class="text-5xl font-bold my-2">{{ $totalData ?? 0 }}</h3>
 
-        <div class="bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6">
-            <p class="font-semibold">Nama Kab/Kota Tersedikit</p>
-            <h3 class="text-5xl font-bold my-2">{{ $nilaiTerendah ?? 0 }}</h3>
-            <p class="font-semibold">Tahun {{ $tahunTerendah ?? '-' }}</p>
-        </div>
-
+        <p class="font-semibold">
+            Data Keseluruhan
+        </p>
     </div>
+   
+
+    <!-- Kabupaten/Kota Terbanyak (3/4) -->
+    <div class="md:col-span-2 bg-[#234B26] text-[#E6EB9C] rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
+        <p class="font-semibold">
+            Kab/Kota dengan Area Blankspot Terbanyak
+        </p>
+
+        <h3 class="text-5xl font-bold my-2">
+            Kab Johor
+        </h3>
+
+        <p class="font-semibold">
+            Tahun 2026
+        </p>
+    </div>
+
+</div>
 
     <!-- TOP ACTION -->
     <div class="flex justify-between items-center mt-10">
@@ -106,8 +117,8 @@
                     <span>Download</span>
                 </button>
                 <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden min-w-[160px]">
-                    <a href="{{ route('admin.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">Export PDF</a>
-                    <a href="{{ route('admin.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#D7E3D4] text-sm font-medium">Export Excel</a>
+                    <a href="{{ route('admin.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">Export PDF</a>
+                    <a href="{{ route('admin.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">Export Excel</a>
                 </div>
             </div>
         </div>
@@ -528,7 +539,6 @@
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Foto</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Diinput Oleh</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                             <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -556,6 +566,96 @@
             </button>
         </div>
 
+        <div id="confirmModal"
+    class="fixed inset-0 z-[9999] hidden items-start justify-center mt-3">
+
+    <div class="w-[300px] min-h-[100px]
+                rounded-[15px]
+                bg-[#e8f2fc]
+                px-[20px] py-[20px]
+                shadow-lg">
+
+        <h2 class="mb-[20px] text-[20px] font-bold text-black">
+            blackspot.test says
+        </h2>
+
+        <p class="text-[15px] text-black">
+            <span id="confirmActionText"
+                class="font-bold">
+            </span>
+            data ini ?
+        </p>
+
+        <div class="mt-[20px] flex justify-end gap-2">
+
+           <button id="confirmYes"
+    class="w-[60px] rounded-[11px]
+           px-3 py-2
+           text-[15px] font-bold text-white
+           shadow-md
+           transition hover:brightness-90">
+    Ya
+</button>
+
+<button id="confirmNo"
+    class="w-[60px] rounded-[11px] bg-[#ed0808]
+           px-3 py-2
+           text-[15px] font-bold text-white
+           shadow-md
+           transition hover:brightness-90">
+    Batal
+</button>
+
+        </div>
+
+    </div>
+</div>
+
+<div id="successNotification"
+    class="fixed inset-0 z-[9999] hidden items-start justify-center mt-3">
+
+    <div class="w-[300px] min-h-[100px]
+                rounded-b-[30px]
+                bg-[#eef9f1]
+                px-[20px] py-[20px]
+                shadow-lg">
+
+        <div class="flex items-start justify-between">
+
+            <h2 class="mb-[20px] text-[20px] font-bold text-black">
+                blackspot.test says
+            </h2>
+
+            <button onclick="closeSuccessNotification()"
+                class="text-[30px] leading-none
+                       text-gray-500
+                       transition hover:text-gray-700">
+                ×
+            </button>
+
+        </div>
+
+        <div class="flex items-center gap-3">
+
+            <div class="flex h-[38px] w-[38px]
+                        items-center justify-center
+                        rounded-[11px]
+                        bg-[#45c16b]">
+
+                <span class="text-[25px] font-bold text-white">
+                    ✓
+                </span>
+
+            </div>
+
+            <p id="successMessage"
+                class="text-[15px] text-black">
+            </p>
+
+        </div>
+
+    </div>
+</div>
     </div>
     <!-- ======== END TAB VALIDASI ======== -->
 
@@ -616,7 +716,6 @@ select:focus {
 select::-ms-expand {
     display: none;
 }
-
 </style>
 
 
@@ -1326,12 +1425,13 @@ function getCsrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
 
-function aksiSetujui() {
+async function aksiSetujui() {
     if (!activeSpotId) {
         alert('Pilih data terlebih dahulu dengan mengklik baris pada tabel.');
         return;
     }
-    if (!confirm('Setujui data ini?')) return;
+
+    if (!await customConfirm('Setujui')) return;
 
     fetch('/admin/validasi/' + activeSpotId + '/setujui', {
         method: 'POST',
@@ -1345,22 +1445,30 @@ function aksiSetujui() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Hapus row
             const row = document.getElementById('row-' + activeSpotId);
             if (row) { row.style.display = 'none'; }
-            
-            // Update counter
+
             const menunggu = document.querySelector('[data-counter="menunggu"]');
-            if (menunggu) { menunggu.textContent = Math.max(0, parseInt(menunggu.textContent) - 1); }
+            if (menunggu) {
+                menunggu.textContent = Math.max(
+                    0,
+                    parseInt(menunggu.textContent) - 1
+                );
+            }
+
             const disetujui = document.querySelector('[data-counter="disetujui"]');
-            if (disetujui) { disetujui.textContent = parseInt(disetujui.textContent) + 1; }
-            
+            if (disetujui) {
+                disetujui.textContent =
+                    parseInt(disetujui.textContent) + 1;
+            }
+
             document.getElementById('detailSection')?.classList.add('hidden');
             activeSpotId = null;
-            
-            alert(data.message || 'Data berhasil disetujui!');
-            
-            // Refresh halaman dashboard setelah approve
+
+            showSuccessNotification(
+    'Data Berhasil di <span class="font-bold text-[#008c1a]">Setujui</span>'
+);
+
             setTimeout(function() {
                 window.location.href = '/admin/dashboard';
             }, 1000);
@@ -1368,17 +1476,67 @@ function aksiSetujui() {
             alert('Error: ' + (data.message || 'Silakan coba lagi.'));
         }
     })
-    .catch(error => { alert('Gagal terhubung ke server.'); });
+    .catch(error => {
+        alert('Gagal terhubung ke server.');
+    });
+}
+function customConfirm(action) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const actionText = document.getElementById('confirmActionText');
+        const yesButton = document.getElementById('confirmYes');
+        const noButton = document.getElementById('confirmNo');
+
+        actionText.textContent = action;
+
+        if (action === 'Setujui') {
+            actionText.className = 'font-bold text-[#008c1a]';
+           yesButton.className = `
+    w-[60px]
+    rounded-[11px]
+    bg-[#4b5fd1]
+    px-3 py-2
+    text-[15px] font-bold text-white
+    shadow-md
+    transition hover:brightness-90
+`;
+        } else {
+    actionText.className = 'font-bold text-[#ed0808]';
+
+    yesButton.className = `
+        w-[60px]
+        rounded-[11px]
+        bg-[#4b5fd1]
+        px-3 py-2
+        text-[15px] font-bold text-white
+        shadow-md
+        transition hover:brightness-90
+    `;
 }
 
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
 
-function aksiTolak() {
+        yesButton.onclick = function () {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            resolve(true);
+        };
+
+        noButton.onclick = function () {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            resolve(false);
+        };
+    });
+}
+async function aksiTolak() {
     if (!activeSpotId) {
         alert('Pilih data terlebih dahulu dengan mengklik baris pada tabel.');
         return;
     }
 
-    if (!confirm('Apakah Anda yakin ingin menolak data ini?')) return;
+    if (!await customConfirm('Tolak')) return;
 
     const endpoint = '/admin/validasi/' + activeSpotId + '/tolak';
 
@@ -1391,33 +1549,52 @@ function aksiTolak() {
             'Content-Type': 'application/json'
         }
     })
-    .then(function(response) { return response.json(); })
+    .then(function(response) {
+        return response.json();
+    })
     .then(function(data) {
         if (data.success) {
             const row = document.getElementById('row-' + activeSpotId);
+
             if (row) {
                 row.style.transition = 'opacity 0.3s';
                 row.style.opacity = '0';
-                setTimeout(function() { row.remove(); }, 300);
+
+                setTimeout(function() {
+                    row.remove();
+                }, 300);
             }
 
-            const menunggu = document.querySelector('[data-counter="menunggu"]');
+            const menunggu = document.querySelector(
+                '[data-counter="menunggu"]'
+            );
+
             if (menunggu) {
-                menunggu.textContent = Math.max(0, parseInt(menunggu.textContent) - 1);
+                menunggu.textContent = Math.max(
+                    0,
+                    parseInt(menunggu.textContent) - 1
+                );
             }
-            const ditolak = document.querySelector('[data-counter="ditolak"]');
+
+            const ditolak = document.querySelector(
+                '[data-counter="ditolak"]'
+            );
+
             if (ditolak) {
-                ditolak.textContent = parseInt(ditolak.textContent) + 1;
+                ditolak.textContent =
+                    parseInt(ditolak.textContent) + 1;
             }
 
             document.getElementById('detailSection')?.classList.add('hidden');
             activeSpotId = null;
-            
-            alert(data.message || 'Data berhasil ditolak!');
-            
+
+            showSuccessNotification(
+    'Data Berhasil di <span class="font-bold text-[#ed0808]">Tolak</span>'
+);
             setTimeout(function() {
                 location.reload();
             }, 1500);
+
         } else {
             alert('Error: ' + (data.message || 'Silakan coba lagi.'));
         }
@@ -1428,6 +1605,26 @@ function aksiTolak() {
     });
 }
 
+function showSuccessNotification(message) {
+    const notification =
+        document.getElementById('successNotification');
+
+    const messageElement =
+        document.getElementById('successMessage');
+
+    messageElement.innerHTML = message;
+
+    notification.classList.remove('hidden');
+    notification.classList.add('flex');
+}
+
+function closeSuccessNotification() {
+    const notification =
+        document.getElementById('successNotification');
+
+    notification.classList.add('hidden');
+    notification.classList.remove('flex');
+}
 /* =========================
    EDIT & HAPUS DATA
 ========================= */

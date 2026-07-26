@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto py-10">
 
     <div class="flex items-center gap-2 mb-8">
     {{-- Tombol Home --}}
@@ -110,7 +110,9 @@
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                             <th class="px-4 py-3 text-center font-bold">Status</th>
                             <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -127,6 +129,9 @@
                             <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
                             <td class="px-4 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
                             <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-4 py-3">{{ $spot->tahun }}</td>
+                            
                             <td class="px-4 py-3 text-center">
                                 <div class="flex justify-center items-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
@@ -228,88 +233,164 @@
             </div>
 
             <!-- PRIORITAS & TAHUN -->
-            <div class="grid grid-cols-4 gap-2.5">
+           <!-- PRIORITAS & KONDISI GEOGRAFIS -->
+<div class="grid grid-cols-2 gap-2.5">
 
-                <!-- PRIORITAS P1-P10 -->
-                <div class="col-span-3">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Tingkat Prioritas (P1–P10)
-                    </label>
+    <!-- TINGKAT PRIORITAS -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+         Prioritas
+        </label>
 
-                    <select name="prioritas"
-                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                            required
-                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+        <select name="prioritas"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-                        <option value="">-- Pilih Prioritas --</option>
-                        <option value="1">Prioritas 1 (P1)</option>
-                        <option value="2">Prioritas 2 (P2)</option>
-                        <option value="3">Prioritas 3 (P3)</option>
-                        <option value="4">Prioritas 4 (P4)</option>
-                        <option value="5">Prioritas 5 (P5)</option>
-                        <option value="6">Prioritas 6 (P6)</option>
-                        <option value="7">Prioritas 7 (P7)</option>
-                        <option value="8">Prioritas 8 (P8)</option>
-                        <option value="9">Prioritas 9 (P9)</option>
-                        <option value="10">Prioritas 10 (P10)</option>
-                    </select>
-                    <p class="text-xs text-white/70 mt-1">
-                        Maksimal 1 data per prioritas di kabupaten ini.
-                    </p>
-                </div>
+            <option value="">-- Pilih Prioritas --</option>
+            <option value="1">Zero Blankspot</option>
+            <option value="2">Sinyal Sangat Lemah</option>
+            <option value="3">Sinyal Lemah</option>
+            <option value="4">2G</option>
+            <option value="5">3G</option>
+            <option value="6">4G Tidak Stabil</option>
+        </select>
+    </div>
 
-                <!-- TAHUN -->
-                <div class="col-span-1">
-                    <label class="block text-white font-bold text-sm mb-1.5">
-                        Tahun <span class="text-red-500">*</span>
-                    </label>
+    <!-- KONDISI GEOGRAFIS -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Kondisi Geografis
+        </label>
 
-                    <input
-                        type="text"
-                        value="{{ date('Y') }}"
-                        readonly
-                        class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-                    >
+        <select name="kondisi_geografis"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
 
-                    <input
-                        type="hidden"
-                        name="tahun"
-                        value="{{ date('Y') }}">
-                </div>
+            <option value="">-- Pilih Kondisi --</option>
+            <option value="Pegunungan">Pegunungan</option>
+            <option value="Daerah Pantai">Daerah Pantai</option>
+            <option value="Daerah Sungai">Daerah Sungai</option>
+            <option value="Dataran Rendah">Dataran Rendah</option>
+            <option value="Perkebunan">Perkebunan</option>
+            <option value="Danau">Danau</option>
+            <option value="Perbukitan">Perbukitan</option>
+            <option value="Hutan">Hutan</option>
+            <option value="Pesisir">Pesisir</option>
+            <option value="Lainnya">Lainnya</option>
+        </select>
+    </div>
 
-                <!-- FOTO -->
-                <div class="col-span-4 mt-1">
-                    <label class="block text-white font-semibold mb-1.5 text-sm">
-                        Foto Blankspot
-                    </label>
+</div>
 
-                    <div class="flex">
-                        <div id="file-name"
-                             class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
-                            Belum ada file dipilih
-                        </div>
 
-                        <label for="foto"
-                               class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
-                            Choose File
-                        </label>
-                    </div>
+<!-- JUMLAH PENDUDUK & JARAK -->
+<div class="grid grid-cols-2 gap-2.5">
 
-                    <input
-                        type="file"
-                        id="foto"
-                        name="foto"
-                        accept="image/*"
-                        class="hidden"
-                        onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
-                    >
+    <!-- JUMLAH PENDUDUK -->
+    <div>
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Jumlah Penduduk
+        </label>
 
-                    <p class="text-xs text-white/70 mt-1">
-                        Format: JPG, JPEG, PNG. Maksimal 5 MB.
-                    </p>
-                </div>
+        <select name="jumlah_penduduk"
+                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                required
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+
+            <option value="">-- Pilih Jumlah Penduduk --</option>
+            <option value="1-10">1–10 orang</option>
+            <option value="11-50">11–50 orang</option>
+            <option value="51-100">51–100 orang</option>
+            <option value="101-200">101–200 orang</option>
+            <option value="201-500">201–500 orang</option>
+            <option value="501-1000">501–1.000 orang</option>
+            <option value="1001-5000">1.001–5.000 orang</option>
+            <option value="5001-10000">5.001–10.000 orang</option>
+            <option value="10001-50000">10.001–50.000 orang</option>
+            <option value="50000+">50.000 orang</option>
+        </select>
+    </div>
+
+
+    <!-- JARAK DARI IBU KOTA -->
+  
+<div>
+    <label class="block text-white font-semibold mb-1.5 text-sm">
+        Jarak ke Ibu Kota (Km)
+    </label>
+
+    <input
+        type="number"
+        name="jarak_ibukota"
+        placeholder="Contoh: 25"
+        min="0"
+        step="10"
+        required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+</div>
+
+
+<!-- FOTO & TAHUN -->
+<div class="grid grid-cols-4 gap-2.5">
+
+    <!-- FOTO BLANKSPOT -->
+    <div class="col-span-3 mt-1">
+        <label class="block text-white font-semibold mb-1.5 text-sm">
+            Foto Blankspot
+        </label>
+
+        <div class="flex">
+            <div id="file-name"
+                 class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
+                Belum ada file dipilih
             </div>
 
+            <label for="foto"
+                   class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
+                Choose File
+            </label>
+        </div>
+
+        <input
+            type="file"
+            id="foto"
+            name="foto"
+            accept="image/*"
+            class="hidden"
+            onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
+        >
+
+        <p class="text-xs text-white/70 mt-1">
+            Format: JPG, JPEG, PNG. Maksimal 5 MB.
+        </p>
+    </div>
+
+
+    <!-- TAHUN -->
+    <div class="col-span-1 mt-1">
+        <label class="block text-white font-bold text-sm mb-1.5">
+            Tahun <span class="text-red-500">*</span>
+        </label>
+
+        <input
+            type="text"
+            value="{{ date('Y') }}"
+            readonly
+            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
+        >
+
+        <input
+            type="hidden"
+            name="tahun"
+            value="{{ date('Y') }}">
+    </div>
+
+</div>
+<!-- BUTTON -->
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" onclick="closeModal()"
                         class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">

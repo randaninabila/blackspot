@@ -2,7 +2,7 @@
 
 @section('content')
 
-<section class="max-w-7xl mx-auto py-16">
+<section class="max-w-7xl mx-auto py-16 px-8">
 
     <!-- Hero -->
     <div class="text-center mt-14">
@@ -19,7 +19,7 @@
         </p>
     </div>
 
-    <!-- Statistik -->
+    <!-- STATISTIK -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-28 mx-50">
 
     <!-- Total Data (1/4) -->
@@ -28,7 +28,9 @@
             Total Data
         </p>
 
-        <h3 class="text-5xl font-bold my-2">{{ $totalData ?? 0 }}</h3>
+        <h3 class="text-5xl font-bold my-2">
+            120
+        </h3>
 
         <p class="font-semibold">
             Data Keseluruhan
@@ -53,34 +55,49 @@
 
 </div>
 
-
     <!-- TOP ACTION -->
     <div class="flex justify-between items-center mt-10">
         <div class="flex border border-[#234B26] rounded-2xl overflow-hidden">
             <button onclick="switchTab('table')" id="btn-table" class="tab-btn active-tab px-14 py-3 font-semibold border-r border-[#234B26]">Tabel</button>
-            <button onclick="switchTab('grafik')" id="btn-grafik" class="tab-btn inactive-tab px-14 py-3 font-semibold border-r border-[#234B26]">Grafik</button>
             <button onclick="switchTab('geo')" id="btn-geo" class="tab-btn inactive-tab px-14 py-3 font-semibold border-r border-[#234B26]">Geopasial</button>
-        </div>
-        <div class="flex items-center gap-2">
-           <a href="{{ route('user.add') }}" class="bg-[#008001] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90">+ Tambah Data</a>
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" class="bg-[#0F2AF4] text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4m-9 8h10" />
-                    </svg>
-                    <span>Download</span>
-                </button>
-                <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden min-w-[160px]">
-                    <a href="{{ route('user.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">Export PDF</a>
-                    <a href="{{ route('user.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium"> Export Excel</a>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- CONTENT TABLE -->
     <div id="content-table" class="tab-content mt-10">
-        <div class="bg-[#F3F3E8] rounded-3xl shadow-2xl p-8">
+
+    <!-- GRAFIK DASHBOARD -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
+
+    <!-- BAR CHART -->
+    <div class="lg:col-span-2 bg-[#F3F3E8] rounded-3xl shadow-2xl p-8">
+
+        <h2 class="text-2xl font-bold text-[#234B26] mb-6">
+            Data Blankspot Sumatra Utara
+        </h2>
+
+        <div class="relative h-[360px]">
+            <canvas id="blankspotBarChart"></canvas>
+        </div>
+
+    </div>
+
+    <!-- PIE CHART -->
+    <div class="bg-[#234B26] rounded-3xl shadow-2xl p-8">
+
+        <h2 class="text-2xl font-bold text-[#E6EB9C] mb-6">
+            Persentase
+        </h2>
+
+        <div class="relative h-[280px] flex items-center justify-center">
+            <canvas id="blankspotPieChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+        <div class="bg-[#F3F3E8] rounded-3xl shadow-2xl mt-10 p-8">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <span class="text-[#234B26] font-bold text-2xl">Tampilkan</span>
@@ -112,41 +129,64 @@
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
                             <th class="px-4 py-3 text-center font-bold">No</th>
+                            <th class="px-4 py-3 font-bold">Nama Kab/Kota</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
-                            <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
-                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
-                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
                             <th class="px-4 py-3 font-bold">Tahun</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        @forelse($blankSpots as $i => $spot)
-                        <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
-                            <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
-                            <td class="px-4 py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $spot->longitude }}</td>
-                            <td class="px-4 py-3">{{ $spot->latitude }}</td>
-                            <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
-                            <td class="px-4 py-3">
-                                @if($spot->foto)
-                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
-                        </tr>
-                        @empty
                         <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
-                        </tr>
-                        @endforelse
+    <td class="px-4 py-3 text-center">1</td>
+    <td class="px-4 py-3">Medan</td>
+    <td class="px-4 py-3">Medan Tuntungan</td>
+    <td class="px-4 py-3">Lau Cih</td>
+    <td class="px-4 py-3">98.6523</td>
+    <td class="px-4 py-3">3.5214</td>
+    <td class="px-4 py-3 text-center">2024</td>
+</tr>
+
+<tr>
+    <td class="px-4 py-3 text-center">2</td>
+    <td class="px-4 py-3">Deli Serdang</td>
+    <td class="px-4 py-3">Lubuk Pakam</td>
+    <td class="px-4 py-3">Pagar Jati</td>
+    <td class="px-4 py-3">98.8731</td>
+    <td class="px-4 py-3">3.5598</td>
+    <td class="px-4 py-3 text-center">2024</td>
+</tr>
+
+<tr>
+    <td class="px-4 py-3 text-center">3</td>
+    <td class="px-4 py-3">Langkat</td>
+    <td class="px-4 py-3">Stabat</td>
+    <td class="px-4 py-3">Kwala Begumit</td>
+    <td class="px-4 py-3">98.4321</td>
+    <td class="px-4 py-3">3.7312</td>
+    <td class="px-4 py-3 text-center">2023</td>
+</tr>
+
+<tr>
+    <td class="px-4 py-3 text-center">4</td>
+    <td class="px-4 py-3">Binjai</td>
+    <td class="px-4 py-3">Binjai Timur</td>
+    <td class="px-4 py-3">Timbang Langkat</td>
+    <td class="px-4 py-3">98.5123</td>
+    <td class="px-4 py-3">3.6002</td>
+    <td class="px-4 py-3 text-center">2022</td>
+</tr>
+
+<tr>
+    <td class="px-4 py-3 text-center">5</td>
+    <td class="px-4 py-3">Simalungun</td>
+    <td class="px-4 py-3">Raya</td>
+    <td class="px-4 py-3">Sondi Raya</td>
+    <td class="px-4 py-3">98.9812</td>
+    <td class="px-4 py-3">2.9542</td>
+    <td class="px-4 py-3 text-center">2024</td>
+</tr>
                     </tbody>
                 </table>
             </div>
@@ -165,28 +205,6 @@
         </div>
     </div>
 
-    <!-- TAB GRAFIK -->
-    <div id="content-grafik" class="tab-content hidden mt-10">
-        <div class="flex flex-col lg:flex-row gap-6">
-            <div class="w-full lg:w-1/4 bg-[#F3F3E8] rounded-3xl p-6 shadow-2xl border border-[#234B26]/10 h-fit">
-                <label for="chartType" class="block text-[#234B26] font-bold text-xl mb-3.5">Jenis Grafik</label>
-                <div class="relative">
-                    <select id="chartType" onchange="updateChartType()" class="w-full bg-[#234B26] text-white px-5 py-3 rounded-2xl outline-none text-base font-semibold cursor-pointer appearance-none pr-10 shadow-lg">
-                        <option value="bar">Bar Chart</option>
-                        <option value="line">Line Chart</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white font-bold">▼</div>
-                </div>
-            </div>
-            <div class="w-full lg:w-3/4 bg-[#F3F3E8] rounded-3xl p-6 md:p-8 shadow-2xl border border-[#234B26]/10">
-                <h3 class="text-[#234B26] font-bold text-2xl text-center mb-6">Data Blankspot Sumatra Utara</h3>
-                <div class="relative w-full h-[450px]">
-                    <canvas id="blankspotChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- TAB GEOSPASIAL -->
     <div id="content-geo" class="tab-content hidden mt-10">
         <div class="flex flex-col lg:flex-row-reverse gap-6">
@@ -196,9 +214,11 @@
                     <div class="relative">
                         <select id="geoRegion" class="w-full bg-[#234B26] text-white px-4 py-3 rounded-xl outline-none text-base font-semibold cursor-pointer appearance-none pr-10">
                             <option value="all">Semua Kabupaten/Kota</option>
-                            @foreach($kabupatens ?? [] as $kab)
-                                <option value="{{ $kab->id }}">{{ $kab->nama_kabupaten }}</option>
-                            @endforeach
+                            <option value="1">Medan</option>
+<option value="2">Deli Serdang</option>
+<option value="3">Binjai</option>
+<option value="4">Langkat</option>
+<option value="5">Simalungun</option>
                         </select>
                         <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white text-xs">▼</div>
                     </div>
@@ -208,9 +228,10 @@
                     <div class="relative">
                         <select id="geoYear" class="w-full bg-[#234B26] text-white px-4 py-3 rounded-xl outline-none text-base font-semibold cursor-pointer appearance-none pr-10">
                             <option value="">Pilih Tahun</option>
-                            @foreach($tahuns ?? [] as $tahun)
-                                <option value="{{ $tahun }}">{{ $tahun }}</option>
-                            @endforeach
+                            <option>2021</option>
+<option>2022</option>
+<option>2023</option>
+<option>2024</option>
                         </select>
                         <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-white text-xs">▼</div>
                     </div>
@@ -234,6 +255,7 @@
 </style>
 
 <script>
+
 function switchTab(tab){
     document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('.tab-btn').forEach(el => {
@@ -310,47 +332,236 @@ function prevPage(){
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("#tableBody tr").forEach(row => { row.dataset.filtered = "show"; });
-    renderTable();
-});
 
-let myChart = null;
-const chartData = {
-    labels: @json($grafikLabels ?? []),
-    datasets: [{
-        label: 'Jumlah Blank Spot',
-        data: @json($grafikData ?? []),
-        backgroundColor: '#86EFAC',
-        borderColor: '#86EFAC',
-        borderWidth: 1,
-        borderRadius: 8
-    }]
-};
-
-function initChart(type = 'bar') {
-    const ctx = document.getElementById('blankspotChart').getContext('2d');
-    if (myChart) { myChart.destroy(); }
-    myChart = new Chart(ctx, {
-        type: type,
-        data: chartData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top', labels: { color: '#234B26', font: { weight: 'bold', size: 14 }, boxWidth: 20, padding: 20 } },
-                tooltip: { padding: 12, cornerRadius: 12 }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { color: '#234B26', font: { weight: 'bold', size: 14 } } },
-                y: { min: 0, max: 30, ticks: { stepSize: 5, color: '#234B26', font: { size: 12 } }, grid: { color: 'rgba(35, 75, 38, 0.1)' } }
-            }
-        }
+    document.querySelectorAll("#tableBody tr").forEach(row => {
+        row.dataset.filtered = "show";
     });
-}
 
-function updateChartType() {
-    const selectedType = document.getElementById('chartType').value;
-    initChart(selectedType);
+    renderTable();
+
+    initDashboardCharts();
+
+});
+let barChart = null;
+let pieChart = null;
+const chartLabels = [
+    "Medan",
+    "Binjai",
+    "Tebing Tinggi",
+    "Pematangsiantar",
+    "Tanjungbalai",
+    "Sibolga",
+    "Padangsidimpuan",
+    "Gunungsitoli",
+    "Deli Serdang",
+    "Langkat",
+    "Karo",
+    "Simalungun",
+    "Asahan",
+    "Labuhanbatu",
+    "Labuhanbatu Utara",
+    "Labuhanbatu Selatan",
+    "Batubara",
+    "Serdang Bedagai",
+    "Samosir",
+    "Toba",
+    "Tapanuli Utara",
+    "Tapanuli Tengah",
+    "Tapanuli Selatan",
+    "Mandailing Natal",
+    "Padang Lawas",
+    "Padang Lawas Utara",
+    "Nias",
+    "Nias Selatan",
+    "Nias Utara",
+    "Nias Barat",
+    "Pakpak Bharat",
+    "Humbang Hasundutan",
+    "Dairi"
+];
+
+const chartValues = [
+    45, // Medan
+    18, // Binjai
+    12, // Tebing Tinggi
+    21, // Pematangsiantar
+    16, // Tanjungbalai
+    10, // Sibolga
+    24, // Padangsidimpuan
+    13, // Gunungsitoli
+    39, // Deli Serdang
+    31, // Langkat
+    22, // Karo
+    28, // Simalungun
+    25, // Asahan
+    20, // Labuhanbatu
+    15, // Labuhanbatu Utara
+    14, // Labuhanbatu Selatan
+    17, // Batubara
+    26, // Serdang Bedagai
+    11, // Samosir
+    19, // Toba
+    23, // Tapanuli Utara
+    27, // Tapanuli Tengah
+    18, // Tapanuli Selatan
+    30, // Mandailing Natal
+    12, // Padang Lawas
+    14, // Padang Lawas Utara
+    9,  // Nias
+    16, // Nias Selatan
+    8,  // Nias Utara
+    7,  // Nias Barat
+    6,  // Pakpak Bharat
+    13, // Humbang Hasundutan
+    15  // Dairi
+];
+function initDashboardCharts() {
+
+    // =========================
+    // HORIZONTAL BAR CHART
+    // =========================
+
+    const barCanvas = document.getElementById('blankspotBarChart');
+
+    if (barCanvas) {
+
+        // Tambahkan di sini
+        barCanvas.parentElement.style.height = (chartLabels.length * 24) + "px";
+
+        if (barChart) {
+            barChart.destroy();
+        }
+
+        barChart = new Chart(barCanvas, {
+            type: 'bar',
+
+            data: {
+                labels: chartLabels,
+
+                datasets: [{
+                    label: 'Jumlah Blankspot',
+                    data: chartValues,
+                    backgroundColor: '#234B26',
+                    borderRadius: 4,
+                    barThickness: 12
+                }]
+            },
+
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        padding: 12,
+                        cornerRadius: 10
+                    }
+                },
+
+                scales: {
+
+                    x: {
+                        beginAtZero: true,
+
+                        grid: {
+                            color: 'rgba(35, 75, 38, 0.1)'
+                        },
+
+                        ticks: {
+                            color: '#234B26',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    },
+
+                    y: {
+
+                        grid: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: '#234B26',
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    // =========================
+    // PIE / DOUGHNUT CHART
+    // =========================
+
+    const pieCanvas = document.getElementById('blankspotPieChart');
+
+    if (pieCanvas) {
+
+        if (pieChart) {
+            pieChart.destroy();
+        }
+
+        pieChart = new Chart(pieCanvas, {
+
+            type: 'doughnut',
+
+            data: {
+                labels: chartLabels,
+
+                datasets: [{
+                    data: chartValues,
+
+                    backgroundColor: [
+                        '#234B26',
+                        '#5B8C5A',
+                        '#86A789',
+                        '#B2C8BA',
+                        '#E6EB9C',
+                        '#D7E3D4',
+                        '#A8C3A0',
+                        '#6F9670'
+                    ],
+
+                    borderWidth: 2,
+                    borderColor: '#234B26'
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+                maintainAspectRatio: false,
+
+                cutout: '60%',
+
+                plugins: {
+
+                    legend: {
+                        position: 'bottom',
+
+                        labels: {
+                            color: '#E6EB9C',
+                            padding: 12,
+                            font: {
+                                size: 11,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 const originalSwitchTab = switchTab;
@@ -370,7 +581,56 @@ switchTab = function(tab) {
 
 let map = null;
 let markersLayer = L.layerGroup();
-const spotsData = @json($spotsPeta ?? []);
+const spotsData = [
+    {
+        latitude: 3.5952,
+        longitude: 98.6722,
+        tahun: 2024,
+        kabupaten_id: 1,
+        kecamatan: {
+            nama_kecamatan: "Medan Kota"
+        },
+        desa: {
+            nama_desa: "Teladan"
+        }
+    },
+    {
+        latitude: 3.5600,
+        longitude: 98.8800,
+        tahun: 2024,
+        kabupaten_id: 2,
+        kecamatan: {
+            nama_kecamatan: "Lubuk Pakam"
+        },
+        desa: {
+            nama_desa: "Pagar Jati"
+        }
+    },
+    {
+        latitude: 3.7300,
+        longitude: 98.4300,
+        tahun: 2023,
+        kabupaten_id: 3,
+        kecamatan: {
+            nama_kecamatan: "Stabat"
+        },
+        desa: {
+            nama_desa: "Kwala Begumit"
+        }
+    },
+    {
+        latitude: 2.954,
+        longitude: 98.981,
+        tahun: 2022,
+        kabupaten_id: 4,
+        kecamatan: {
+            nama_kecamatan: "Raya"
+        },
+        desa: {
+            nama_desa: "Sondi Raya"
+        }
+    }
+];
 const blankspotLocations = spotsData.map(function(s) {
     return {
         name: (s.kecamatan ? s.kecamatan.nama_kecamatan : '-') + ', ' + (s.desa ? s.desa.nama_desa : '-'),
@@ -400,57 +660,30 @@ function renderMarkers(locations) {
 }
 
 function filterGeospatial() {
-    const region = document.getElementById("geoRegion").value;
-    const year = document.getElementById("geoYear").value;
 
     if (!map) {
-        alert('Peta belum siap. Silakan tunggu sebentar');
+        alert("Peta belum siap");
         return;
     }
 
-    // Tampilkan loading
-    const btn = document.querySelector('button[onclick="filterGeospatial()"]');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'Memuat...';
-    btn.disabled = true;
+    const region = document.getElementById("geoRegion").value;
+    const year = document.getElementById("geoYear").value;
 
-    // Panggil API user filter
-    fetch(`/user/api/filter-geospasial?kabupaten_id=${region}&tahun=${year}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const filteredLocations = data.data.map(function(s) {
-                    return {
-                        name: (s.kecamatan ? s.kecamatan : '-') + ', ' + (s.desa ? s.desa : '-'),
-                        lat: s.lat,
-                        lng: s.lng,
-                        year: s.tahun,
-                        status: s.keterangan || 'Blank Spot',
-                        kab: s.kabupaten_id
-                    };
-                });
-                renderMarkers(filteredLocations);
+    let filtered = blankspotLocations.filter(loc => {
+        return (
+            (region === "all" || loc.kab == region) &&
+            (year === "" || loc.year == year)
+        );
+    });
 
-                if (filteredLocations.length > 0) {
-                    var bounds = filteredLocations.map(function(loc) {
-                        return [loc.lat, loc.lng];
-                    });
-                    map.fitBounds(bounds, { padding: [50, 50] });
-                } else {
-                    alert('Tidak ada data untuk filter yang dipilih');
-                }
-            } else {
-                alert('Gagal memuat data untuk filter ini');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat memfilter data');
-        })
-        .finally(() => {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
+    renderMarkers(filtered);
+
+    if (filtered.length > 0) {
+        const bounds = filtered.map(l => [l.lat, l.lng]);
+        map.fitBounds(bounds, { padding: [40, 40] });
+    } else {
+        alert("Tidak ada data.");
+    }
 }
 </script>
 

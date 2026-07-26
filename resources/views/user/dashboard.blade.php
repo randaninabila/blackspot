@@ -11,6 +11,7 @@
         </h1>
         <h2 class="text-2xl font-bold mt-1 text-[#234B26]">
             Dinas Komunikasi dan Informatika 
+
         </h2>
         <p class="max-w-4xl mx-auto mt-6 text-gray-700">
             Blank spot merupakan wilayah yang berada di luar 

@@ -7,7 +7,7 @@
     <div class="flex items-center gap-5 mb-6">
 
         <!-- BACK BUTTON -->
-        <button onclick="history.back()"
+        <a href="{{ session('blank_spot_return_url', route('admin.validasi.index')) }}"
             class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
 
             <svg xmlns="http://www.w3.org/2000/svg"
@@ -20,7 +20,7 @@
                     stroke-linejoin="round"
                     d="M15 19l-7-7 7-7" />
             </svg>
-        </button>
+        </a>
 
         <!-- TITLE -->
         <h2 class="text-3xl font-bold text-[#234B26]">
@@ -81,28 +81,37 @@
 
                 <!-- Desa -->
                 <div>
-                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Desa</label>
-                    <select name="desa_id" id="desa_id"
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Nama Desa <span class="text-red-500">*</span></label>
+                    <input type="text" name="nama_desa" id="nama_desa"
+                        value="{{ $blankSpot->desa->nama_desa ?? old('nama_desa') }}"
+                        placeholder="Ketik nama desa..." required
+                        class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
+                </div>
+
+                <!-- Prioritas P1-P10 -->
+                <div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tingkat Prioritas (P1–P10) <span class="text-red-500">*</span></label>
+                    <select name="prioritas" required
                         class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
-                        <option value="">Pilih Desa</option>
-                        @foreach($desas as $desa)
-                            <option value="{{ $desa->id }}" {{ $blankSpot->desa_id == $desa->id ? 'selected' : '' }}>
-                                {{ $desa->nama_desa }}
+                        <option value="">-- Pilih Prioritas --</option>
+                        @foreach(\App\Models\BlankSpot::PRIORITAS_LABELS as $level => $desc)
+                            <option value="{{ $level }}" {{ (old('prioritas', $blankSpot->prioritas) == $level) ? 'selected' : '' }}>
+                                Prioritas {{ $level }} (P{{ $level }}) - {{ $desc }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-               <!-- Tahun -->
-<div>
-    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun</label>
-    <select name="tahun"
-        class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
-        <option value="">-- Pilih Tahun --</option>
-        <option value="2025" {{ $blankSpot->tahun == 2025 ? 'selected' : '' }}>2025</option>
-        <option value="2026" {{ $blankSpot->tahun == 2026 ? 'selected' : '' }}>2026</option>
-    </select>
-</div>
+                <!-- Tahun -->
+                <div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun</label>
+                    <select name="tahun"
+                        class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
+                        <option value="">-- Pilih Tahun --</option>
+                        <option value="2025" {{ $blankSpot->tahun == 2025 ? 'selected' : '' }}>2025</option>
+                        <option value="2026" {{ $blankSpot->tahun == 2026 ? 'selected' : '' }}>2026</option>
+                    </select>
+                </div>
 
                 <!-- Longitude -->
                 <div>
@@ -120,6 +129,15 @@
                         class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
                 </div>
 
+            </div>
+
+            <!-- Status Jaringan (Free Textbox Input) -->
+            <div>
+                <label class="block text-[#234B26] font-bold text-sm mb-1.5">Status Jaringan</label>
+                <input type="text" name="status_jaringan"
+                    value="{{ old('status_jaringan', $blankSpot->status_jaringan) }}"
+                    placeholder="Contoh: Blank Spot Total, Sinyal Lemah, 4G Tidak Stabil..."
+                    class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
             </div>
 
             <!-- Status Validasi -->
@@ -147,7 +165,7 @@
                     Simpan Perubahan
                 </button>
 
-                <a href="{{ route('admin.validasi.index') }}"
+                <a href="{{ session('blank_spot_return_url', route('admin.validasi.index')) }}"
                     class="border border-[#234B26] text-[#234B26] px-6 py-2.5 rounded-xl font-semibold hover:bg-[#D7E3D4] transition">
                     Batal
                 </a>

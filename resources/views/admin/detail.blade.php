@@ -1,7 +1,7 @@
 @extends('app')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
     <div class="flex items-center gap-2 mb-8">
         <a href="{{ route('admin.dashboard') }}"
@@ -133,8 +133,6 @@
                             <td class="px-3 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
                             <td class="px-3 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
                             <td class="px-3 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-3 py-3">{{ $spot->tahun }}</td>
-                            <td class="px-3 py-3">{{ $spot->tahun }}</td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex justify-center items-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
@@ -201,7 +199,10 @@
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kondisi Geografis</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jumlah Penduduk</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jarak ke Ibukota</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
@@ -268,7 +269,7 @@
                 </div>
             </div>
 
-            <!-- PRIORITAS & KONDISI GEOGRAFIS -->
+             <!-- PRIORITAS & KONDISI GEOGRAFIS -->
 <div class="grid grid-cols-2 gap-2.5">
 
     <!-- TINGKAT PRIORITAS -->
@@ -425,7 +426,6 @@
     </div>
 
 </div>
-
             <!-- BUTTON -->
             <div class="flex justify-end gap-3 pt-3">
                 <button type="button" onclick="closeModal()"

@@ -66,6 +66,8 @@ class GeospasialController extends Controller
             ];
         });
 
+        $daftarDesa = $spots->pluck('desa.nama_desa')->filter()->unique()->values()->toArray();
+
         return response()->json([
             'success'          => true,
             'nama_kabupaten'   => $kabupaten->nama_kabupaten,
@@ -73,6 +75,7 @@ class GeospasialController extends Controller
             'total_desa'       => $totalDesa,
             'network_stats'    => $networkStats,
             'priority_stats'   => $priorityStats,
+            'daftar_desa'      => $daftarDesa,
             'daftar_titik'     => $daftarTitik,
         ]);
     }

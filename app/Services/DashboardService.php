@@ -15,11 +15,12 @@ class DashboardService
      */
     public function getAdminStats(): array
     {
-        $totalData       = BlankSpot::where('status_validasi', 'approved')->count();
-        $pendingCount    = BlankSpot::where('status_validasi', 'pending')->count();
-        $approvedCount   = BlankSpot::where('status_validasi', 'approved')->count();
-        $rejectedCount   = BlankSpot::where('status_validasi', 'rejected')->count();
-        $revisiCount     = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
+        $totalData            = BlankSpot::where('status_validasi', 'approved')->count();
+        $pendingCount         = BlankSpot::where('status_validasi', 'pending')->count();
+        $diverifikasiCount    = BlankSpot::where('status_validasi', 'sedang_diverifikasi')->count();
+        $approvedCount        = BlankSpot::where('status_validasi', 'approved')->count();
+        $rejectedCount        = BlankSpot::where('status_validasi', 'rejected')->count();
+        $revisiCount          = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
         // Total Kabupaten Reporting
         $totalKabupatenReporting = BlankSpot::where('status_validasi', 'approved')
@@ -46,9 +47,10 @@ class DashboardService
             ->pluck('total', 'status_jaringan')
             ->toArray();
 
-        // Priority Statistics
+        // Priority Statistics (P1-P10)
         $priorityStats = BlankSpot::where('status_validasi', 'approved')
             ->select('prioritas', DB::raw('count(*) as total'))
+            ->whereNotNull('prioritas')
             ->groupBy('prioritas')
             ->orderBy('prioritas')
             ->pluck('total', 'prioritas')
@@ -61,6 +63,15 @@ class DashboardService
             ->orderBy('tahun', 'asc')
             ->get();
 
+        // Semester Statistics
+        $semesterStats = BlankSpot::where('status_validasi', 'approved')
+            ->select('semester', DB::raw('count(*) as total'))
+            ->whereNotNull('semester')
+            ->groupBy('semester')
+            ->orderBy('semester', 'asc')
+            ->pluck('total', 'semester')
+            ->toArray();
+
         // Recent Submissions
         $recentSubmissions = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
             ->orderBy('created_at', 'desc')
@@ -70,6 +81,7 @@ class DashboardService
         return [
             'totalData'               => $totalData,
             'pendingCount'            => $pendingCount,
+            'diverifikasiCount'       => $diverifikasiCount,
             'approvedCount'           => $approvedCount,
             'rejectedCount'           => $rejectedCount,
             'revisiCount'             => $revisiCount,
@@ -80,6 +92,7 @@ class DashboardService
             'networkStats'            => $networkStats,
             'priorityStats'           => $priorityStats,
             'yearStats'               => $yearStats,
+            'semesterStats'           => $semesterStats,
             'recentSubmissions'       => $recentSubmissions,
         ];
     }
@@ -91,11 +104,12 @@ class DashboardService
     {
         $kabupatenId = $user->kabupaten_id;
 
-        $totalData     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
-        $pendingCount  = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'pending')->count();
-        $approvedCount = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
-        $rejectedCount = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'rejected')->count();
-        $revisiCount   = BlankSpot::where('kabupaten_id', $kabupatenId)->whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
+        $totalData         = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
+        $pendingCount      = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'pending')->count();
+        $diverifikasiCount = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'sedang_diverifikasi')->count();
+        $approvedCount     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
+        $rejectedCount     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'rejected')->count();
+        $revisiCount       = BlankSpot::where('kabupaten_id', $kabupatenId)->whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
         // Recent Submissions for Operator
         $recentSubmissions = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
@@ -107,6 +121,7 @@ class DashboardService
         return [
             'totalData'         => $totalData,
             'pendingCount'      => $pendingCount,
+            'diverifikasiCount' => $diverifikasiCount,
             'approvedCount'     => $approvedCount,
             'rejectedCount'     => $rejectedCount,
             'revisiCount'       => $revisiCount,

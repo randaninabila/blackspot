@@ -10,6 +10,39 @@ use InvalidArgumentException;
 class ValidationService
 {
     /**
+     * Verifikasi lapangan oleh Verifikator Kabupaten
+     */
+    public function verifyField(BlankSpot $blankSpot, User $verifikator, array $data): BlankSpot
+    {
+        if ($blankSpot->status_validasi === 'approved') {
+            throw new InvalidArgumentException('Data yang sudah Disetujui (Approved) terkunci (LOCK) dan tidak dapat diverifikasi ulang.');
+        }
+
+        return DB::transaction(function () use ($blankSpot, $verifikator, $data) {
+            $updateData = [
+                'status_validasi'    => 'sedang_diverifikasi',
+                'verifikator_id'     => $verifikator->id,
+                'tanggal_verifikasi' => now(),
+                'hasil_verifikasi'   => $data['hasil_verifikasi'] ?? 'Diverifikasi Lapangan',
+                'catatan_verifikasi' => $data['catatan_verifikasi'] ?? null,
+            ];
+
+            if (!empty($data['latitude'])) {
+                $updateData['latitude'] = $data['latitude'];
+            }
+            if (!empty($data['longitude'])) {
+                $updateData['longitude'] = $data['longitude'];
+            }
+
+            $blankSpot->update($updateData);
+
+            AuditLogService::log("Melakukan Verifikasi Lapangan pada Blank Spot ID: {$blankSpot->id} oleh Verifikator {$verifikator->nama}", request(), $verifikator->id);
+
+            return $blankSpot;
+        });
+    }
+
+    /**
      * Approve a Blank Spot entry
      */
     public function approve(BlankSpot $blankSpot, User $admin): BlankSpot
@@ -20,15 +53,14 @@ class ValidationService
         }
 
         return DB::transaction(function () use ($blankSpot, $admin) {
-            $blankSpot->update([
-                'status_validasi' => 'approved',
-                'validated_by'    => $admin->id,
-                'validated_at'    => now(),
-            ]);
+            $blankSpot->status_validasi = 'approved';
+            $blankSpot->validated_by    = $admin->id;
+            $blankSpot->validated_at    = now();
+            $blankSpot->save();
 
             AuditLogService::log("Menyetujui (Approve) data Blank Spot ID: {$blankSpot->id}", request(), $admin->id);
 
-            return $blankSpot;
+            return $blankSpot->fresh();
         });
     }
 
@@ -38,16 +70,17 @@ class ValidationService
     public function reject(BlankSpot $blankSpot, User $admin, ?string $reason = null): BlankSpot
     {
         return DB::transaction(function () use ($blankSpot, $admin, $reason) {
-            $blankSpot->update([
-                'status_validasi' => 'rejected',
-                'catatan_revisi'  => $reason ?? $blankSpot->catatan_revisi,
-                'validated_by'    => $admin->id,
-                'validated_at'    => now(),
-            ]);
+            $blankSpot->status_validasi = 'rejected';
+            if ($reason !== null) {
+                $blankSpot->catatan_revisi = $reason;
+            }
+            $blankSpot->validated_by = $admin->id;
+            $blankSpot->validated_at = now();
+            $blankSpot->save();
 
             AuditLogService::log("Menolak (Reject) data Blank Spot ID: {$blankSpot->id}", request(), $admin->id);
 
-            return $blankSpot;
+            return $blankSpot->fresh();
         });
     }
 
@@ -61,16 +94,15 @@ class ValidationService
         }
 
         return DB::transaction(function () use ($blankSpot, $admin, $revisionNote) {
-            $blankSpot->update([
-                'status_validasi' => 'revisi',
-                'catatan_revisi'  => trim($revisionNote),
-                'validated_by'    => $admin->id,
-                'validated_at'    => now(),
-            ]);
+            $blankSpot->status_validasi = 'revisi';
+            $blankSpot->catatan_revisi  = trim($revisionNote);
+            $blankSpot->validated_by    = $admin->id;
+            $blankSpot->validated_at    = now();
+            $blankSpot->save();
 
             AuditLogService::log("Mengembalikan data Blank Spot ID: {$blankSpot->id} untuk Revisi. Catatan: {$revisionNote}", request(), $admin->id);
 
-            return $blankSpot;
+            return $blankSpot->fresh();
         });
     }
 

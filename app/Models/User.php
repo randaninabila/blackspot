@@ -45,7 +45,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Relasi ke Kabupaten (untuk operator)
+     * Check if user is verifikator kabupaten
+     */
+    public function isVerifikator(): bool
+    {
+        return $this->role === 'verifikator_kabupaten' || $this->role === 'verifikator';
+    }
+
+    /**
+     * Relasi ke Kabupaten (untuk operator / verifikator)
      */
     public function kabupaten()
     {
@@ -66,5 +74,29 @@ class User extends Authenticatable
     public function validatedBlankSpots()
     {
         return $this->hasMany(BlankSpot::class, 'validated_by');
+    }
+
+    /**
+     * Data blank spot yang diverifikasi oleh user ini (Verifikator)
+     */
+    public function verifikasiBlankSpots()
+    {
+        return $this->hasMany(BlankSpot::class, 'verifikator_id');
+    }
+
+    /**
+     * Foto yang diunggah oleh user
+     */
+    public function photos()
+    {
+        return $this->hasMany(BlankSpotPhoto::class, 'uploaded_by');
+    }
+
+    /**
+     * Riwayat perubahan oleh user
+     */
+    public function histories()
+    {
+        return $this->hasMany(BlankSpotHistory::class, 'user_id');
     }
 }

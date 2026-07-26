@@ -77,16 +77,39 @@ class AdminController extends Controller
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
-        // Data validasi menunggu
+        // Data validasi
         $totalMenunggu  = $pendingCount;
         $totalDisetujui = $approvedCount;
         $totalDitolak   = $rejectedCount;
 
-        $status = $request->status ?? 'pending';
+        // Dynamic query untuk data validasi
+        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
 
-        $validasiMenunggu = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        if ($request->filled('kabupaten_id')) {
+            $vmQuery->where('kabupaten_id', $request->kabupaten_id);
+        }
+
+        if ($request->filled('status_validasi')) {
+            $vmQuery->where('status_validasi', $request->status_validasi);
+        } elseif ($request->filled('status') && $request->status !== 'all') {
+            $vmQuery->where('status_validasi', $request->status);
+        }
+
+        if ($request->filled('tahun')) {
+            $vmQuery->where('tahun', $request->tahun);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $vmQuery->where(function ($q) use ($search) {
+                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'LIKE', "%{$search}%"))
+                  ->orWhere('nama_lokasi', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $validasiMenunggu = $vmQuery->orderBy('created_at', 'desc')->get();
 
         // Statistik card
         $tahunStats = BlankSpot::where('status_validasi', 'approved')

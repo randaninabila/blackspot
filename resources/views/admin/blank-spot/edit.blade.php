@@ -4,7 +4,7 @@
 <div class="max-w-3xl mx-auto px-4 py-10">
 
     <div class="flex items-center gap-4 mb-8">
-        <a href="{{ route('admin.blank-spot.index') }}"
+        <a href="{{ session('blank_spot_return_url', route('admin.blank-spot.index')) }}"
             class="flex items-center justify-center w-10 h-10 rounded-xl bg-[#234B26] text-white hover:bg-[#1a381c] transition shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -70,30 +70,39 @@
 
                 <!-- Desa -->
                 <div>
-                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Desa <span class="text-red-500">*</span></label>
-                    <select name="desa_id" id="desa_id" required
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Nama Desa <span class="text-red-500">*</span></label>
+                    <input type="text" name="nama_desa" id="nama_desa" required
+                        value="{{ $blankSpot->desa->nama_desa ?? old('nama_desa') }}"
+                        placeholder="Ketik nama desa..."
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
+                </div>
+
+                <!-- Prioritas P1-P10 -->
+                <div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tingkat Prioritas (P1–P10) <span class="text-red-500">*</span></label>
+                    <select name="prioritas" required
                         class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none"
                         style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-                        <option value="">-- Pilih Desa --</option>
-                        @foreach($desas as $desa)
-                            <option value="{{ $desa->id }}" {{ $blankSpot->desa_id == $desa->id ? 'selected' : '' }}>
-                                {{ $desa->nama_desa }}
+                        <option value="">-- Pilih Prioritas --</option>
+                        @foreach(\App\Models\BlankSpot::PRIORITAS_LABELS as $level => $desc)
+                            <option value="{{ $level }}" {{ (old('prioritas', $blankSpot->prioritas) == $level) ? 'selected' : '' }}>
+                                Prioritas {{ $level }} (P{{ $level }}) - {{ $desc }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-               <!-- Tahun -->
-<div>
-    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun <span class="text-red-500">*</span></label>
-    <select name="tahun" required
-        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none"
-        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-        <option value="">-- Pilih Tahun --</option>
-        <option value="2025" {{ $blankSpot->tahun == 2025 ? 'selected' : '' }}>2025</option>
-        <option value="2026" {{ $blankSpot->tahun == 2026 ? 'selected' : '' }}>2026</option>
-    </select>
-</div>
+                <!-- Tahun -->
+                <div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun <span class="text-red-500">*</span></label>
+                    <select name="tahun" required
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none"
+                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                        <option value="">-- Pilih Tahun --</option>
+                        <option value="2025" {{ $blankSpot->tahun == 2025 ? 'selected' : '' }}>2025</option>
+                        <option value="2026" {{ $blankSpot->tahun == 2026 ? 'selected' : '' }}>2026</option>
+                    </select>
+                </div>
 
                 <!-- Latitude -->
                 <div>
@@ -112,6 +121,15 @@
                         placeholder="Contoh: 98.672273"
                         class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
                 </div>
+            </div>
+
+            <!-- Status Jaringan (Free Textbox Input) -->
+            <div>
+                <label class="block text-[#234B26] font-bold text-sm mb-1.5">Status Jaringan</label>
+                <input type="text" name="status_jaringan"
+                    value="{{ old('status_jaringan', $blankSpot->status_jaringan) }}"
+                    placeholder="Contoh: Blank Spot Total, Sinyal Lemah, 4G Tidak Stabil..."
+                    class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
             </div>
 
             <!-- Status Validasi -->
@@ -140,7 +158,7 @@
                     class="bg-[#234B26] text-white px-8 py-3 rounded-xl font-semibold hover:bg-[#1a381c] transition shadow-md">
                     Simpan Perubahan
                 </button>
-                <a href="{{ route('admin.blank-spot.index') }}"
+                <a href="{{ session('blank_spot_return_url', route('admin.blank-spot.index')) }}"
                     class="border border-[#234B26] text-[#234B26] px-8 py-3 rounded-xl font-semibold hover:bg-[#D7E3D4] transition">
                     Batal
                 </a>

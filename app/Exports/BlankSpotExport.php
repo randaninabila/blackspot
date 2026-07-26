@@ -21,17 +21,26 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
 
     public function query()
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
-            ->where('status_validasi', 'approved');
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
 
-        if ($this->kabupatenId) {
-            $query->where('kabupaten_id', $this->kabupatenId);
-        } elseif (!empty($this->filters['kabupaten_id'])) {
-            $query->where('kabupaten_id', $this->filters['kabupaten_id']);
+        $status = $this->filters['status'] ?? ($this->filters['status_validasi'] ?? null);
+        if ($status && $status !== 'all') {
+            $query->where('status_validasi', $status);
+        } elseif (!$status) {
+            $query->where('status_validasi', 'approved');
+        }
+
+        $kabId = $this->kabupatenId ?? ($this->filters['kabupaten_id'] ?? null);
+        if ($kabId && $kabId !== 'all') {
+            $query->where('kabupaten_id', $kabId);
         }
 
         if (!empty($this->filters['tahun'])) {
             $query->where('tahun', $this->filters['tahun']);
+        }
+
+        if (!empty($this->filters['semester'])) {
+            $query->where('semester', $this->filters['semester']);
         }
 
         if (!empty($this->filters['prioritas'])) {
@@ -40,6 +49,16 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
 
         if (!empty($this->filters['status_jaringan'])) {
             $query->where('status_jaringan', $this->filters['status_jaringan']);
+        }
+
+        if (!empty($this->filters['search'])) {
+            $s = $this->filters['search'];
+            $query->where(function ($q) use ($s) {
+                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'like', "%{$s}%"))
+                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%{$s}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%{$s}%"))
+                  ->orWhere('nama_lokasi', 'like', "%{$s}%");
+            });
         }
 
         return $query->orderBy('kabupaten_id')->orderBy('kecamatan_id');
@@ -59,6 +78,7 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             'Status Jaringan',
             'Prioritas',
             'Tahun',
+            'Semester',
             'Keterangan',
             'Status Validasi',
             'Petugas Input',
@@ -82,6 +102,7 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             $blankSpot->status_jaringan ?? '-',
             $blankSpot->prioritas ? 'Prioritas ' . $blankSpot->prioritas : '-',
             $blankSpot->tahun,
+            $blankSpot->semester ? 'Semester ' . $blankSpot->semester : '-',
             $blankSpot->keterangan ?? '-',
             $blankSpot->status_label,
             $blankSpot->creator->nama ?? '-',

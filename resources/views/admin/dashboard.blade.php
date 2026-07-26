@@ -411,7 +411,8 @@
                     <label class="block text-[#234B26] text-xs font-bold mb-1.5 pl-1">Status Validasi</label>
                     <select id="filterStatus" 
                             class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all appearance-none">
-                        <option value="pending" selected>Menunggu Validasi</option>
+                        <option value="">Semua Status</option>
+                        <option value="pending">Menunggu Validasi</option>
                         <option value="approved">Disetujui</option>
                         <option value="rejected">Ditolak</option>
                     </select>
@@ -470,13 +471,17 @@
                         data-desa="{{ $spot->desa->nama_desa ?? '-' }}"
                         data-lat="{{ $spot->latitude }}"
                         data-lng="{{ $spot->longitude }}"
-                        data-status="{{ $spot->keterangan ?? 'Blank Spot' }}"
+                        data-prioritas="{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}"
+                        data-status-jaringan="{{ $spot->status_jaringan ?? '-' }}"
+                        data-tahun="{{ $spot->tahun }}"
+                        data-keterangan="{{ $spot->keterangan ?? '-' }}"
                         data-operator="{{ $spot->creator->nama ?? '-' }}"
                         data-tanggal="{{ $spot->created_at->format('d M Y, H:i') }} WIB"
-                        data-keterangan="{{ $spot->keterangan ?? '-' }}"
-                        data-status-validasi="{{ $spot->status_validasi }}"
+                        data-status-validasi="{{ $spot->status_label }}"
+                        data-status-code="{{ $spot->status_validasi }}"
+                        data-catatan-revisi="{{ $spot->catatan_revisi ?? '-' }}"
+                        data-foto="{{ $spot->foto ? asset('storage/' . $spot->foto) : '' }}"
                         data-kabupaten-id="{{ $spot->kabupaten_id }}"
-                        data-tahun="{{ $spot->tahun }}"
                         onclick="pilihRow(this)">
 
                         <td class="px-4 py-3.5 text-center font-medium">{{ $loop->iteration }}</td>
@@ -537,14 +542,20 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="relative w-full h-[320px] lg:h-full min-h-[300px] bg-gray-200 rounded-2xl overflow-hidden border border-gray-300 shadow-inner">
-                    <div id="validasiMap" class="w-full h-full z-10"></div>
+                <div class="flex flex-col gap-4">
+                    <div class="relative w-full h-[300px] bg-gray-200 rounded-2xl overflow-hidden border border-gray-300 shadow-inner">
+                        <div id="validasiMap" class="w-full h-full z-10"></div>
+                    </div>
+                    <div id="container-foto" class="hidden bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+                        <p class="font-bold text-[#234B26] text-xs mb-2">Foto Blankspot:</p>
+                        <img id="detail-foto" src="" alt="Foto Blankspot" class="w-full max-h-48 object-cover rounded-xl border border-gray-200">
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Tombol Setujui & Tolak -->
-        <div id="aksiValidasi" class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60">
+        <div id="aksiValidasi" class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60 hidden">
             <button type="button" onclick="aksiTolak()"
                 class="flex items-center gap-2 bg-[#E30304] hover:bg-red-800 text-white px-8 py-3.5 rounded-xl font-bold shadow-md transition-transform transform active:scale-95 text-base">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -720,6 +731,7 @@ select::-ms-expand {
    FILTER VALIDASI TABLE
 ============================================================ */
 function filterValidasiTable() {
+    resetDetailSection();
     const kabupaten = document.getElementById('filterKabupaten')?.value || '';
     const status = document.getElementById('filterStatus')?.value || '';
     const tahun = document.getElementById('filterTahun')?.value || '';
@@ -727,13 +739,14 @@ function filterValidasiTable() {
 
     // Ganti judul
     const judul = document.getElementById('judulValidasi');
-
-    if (status === 'approved') {
-        judul.innerText = 'Daftar Data Disetujui';
-    } else if (status === 'rejected') {
-        judul.innerText = 'Daftar Data Ditolak';
-    } else {
-        judul.innerText = 'Daftar Data Menunggu Validasi';
+    if (judul) {
+        if (status === 'approved') {
+            judul.innerText = 'Daftar Data Disetujui';
+        } else if (status === 'rejected') {
+            judul.innerText = 'Daftar Data Ditolak';
+        } else {
+            judul.innerText = 'Daftar Data Menunggu Validasi';
+        }
     }
 
     document.querySelectorAll('#validasiTableBody tr.data-row').forEach(function(row) {
@@ -750,25 +763,16 @@ function filterValidasiTable() {
 }
 
 function resetFilterValidasi() {
-    document.getElementById('filterKabupaten').value = '';
-    document.getElementById('filterStatus').value = 'pending';
-    document.getElementById('filterTahun').value = '';
-    document.getElementById('filterCari').value = '';
+    if (document.getElementById('filterKabupaten')) document.getElementById('filterKabupaten').value = '';
+    if (document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
+    if (document.getElementById('filterTahun')) document.getElementById('filterTahun').value = '';
+    if (document.getElementById('filterCari')) document.getElementById('filterCari').value = '';
+    if (window.history.pushState) {
+        window.history.pushState({}, '', window.location.pathname + window.location.hash);
+    }
+    resetDetailSection();
     filterValidasiTable();
 }
-
-// Event listener untuk filter otomatis
-document.addEventListener('DOMContentLoaded', function() {
-    const filterKab = document.getElementById('filterKabupaten');
-    const filterStatus = document.getElementById('filterStatus');
-    const filterTahun = document.getElementById('filterTahun');
-    const filterCari = document.getElementById('filterCari');
-
-    if (filterKab) filterKab.addEventListener('change', filterValidasiTable);
-    if (filterStatus) filterStatus.addEventListener('change', filterValidasiTable);
-    if (filterTahun) filterTahun.addEventListener('change', filterValidasiTable);
-    if (filterCari) filterCari.addEventListener('keyup', filterValidasiTable);
-});
 
 
 /* TAB SWITCH */
@@ -979,7 +983,7 @@ function prevPage(){
 ========================= */
 
 function searchTable(){
-
+    resetDetailSection();
     const keyword =
         document.getElementById(
             "searchInput"
@@ -1334,81 +1338,149 @@ switchTab = function(tab) {
 }
 
 /* =========================
-   VALIDASI - FILTER TABLE
+   VALIDASI - PILIH ROW & DETAIL
+========================= */
+/* =========================
+   FILTER VALIDASI TABLE
 ========================= */
 function filterValidasiTable() {
-    const kabupaten = document.getElementById('filterKabupaten')?.value || '';
+    resetDetailSection();
+
+    const kabId = document.getElementById('filterKabupaten')?.value || '';
     const status = document.getElementById('filterStatus')?.value || '';
     const tahun = document.getElementById('filterTahun')?.value || '';
-    const cari = document.getElementById('filterCari')?.value?.toLowerCase() || '';
+    const cari = (document.getElementById('filterCari')?.value || '').trim().toLowerCase();
 
-const aksi = document.getElementById('aksiValidasi');
+    const rows = document.querySelectorAll('#validasiTableBody tr.data-row');
+    let count = 0;
 
-if (status === 'pending') {
-    aksi.classList.remove('hidden');
-} else {
-    aksi.classList.add('hidden');
-}
+    rows.forEach(function(row) {
+        const rKabId = String(row.dataset.kabupatenId || '');
+        const rStatusCode = (row.dataset.statusCode || row.dataset.statusValidasi || '').toLowerCase();
+        const rStatusLabel = (row.dataset.statusValidasi || '').toLowerCase();
+        const rTahun = String(row.dataset.tahun || '');
+        const rKabName = (row.dataset.kabupaten || '').toLowerCase();
+        const rKecName = (row.dataset.kecamatan || '').toLowerCase();
+        const rDesaName = (row.dataset.desa || '').toLowerCase();
 
-    document.querySelectorAll('#validasiTableBody tr.data-row').forEach(function(row) {
-        const matchKab = !kabupaten || row.dataset.kabupatenId === kabupaten;
-        const matchStatus = !status || status === 'all' || row.dataset.statusValidasi === status;
-        const matchTahun = !tahun || row.dataset.tahun === tahun;
+        // 1. Kabupaten filter
+        const matchKab = !kabId || rKabId === kabId;
+
+        // 2. Status filter
+        let matchStatus = true;
+        if (status && status !== 'all') {
+            const stLower = status.toLowerCase();
+            matchStatus = (rStatusCode === stLower) || 
+                          (rStatusLabel.includes(stLower)) ||
+                          (stLower === 'revisi' && (rStatusCode === 'revisi' || rStatusCode === 'perlu_revisi')) ||
+                          (stLower === 'pending' && (rStatusCode === 'pending' || rStatusLabel.includes('menunggu')));
+        }
+
+        // 3. Tahun filter
+        const matchTahun = !tahun || rTahun === tahun;
+
+        // 4. Search filter (target name kabupaten, kecamatan, desa)
         const matchCari = !cari || 
-            row.dataset.kabupaten?.toLowerCase().includes(cari) ||
-            row.dataset.kecamatan?.toLowerCase().includes(cari) ||
-            row.dataset.desa?.toLowerCase().includes(cari);
+            rKabName.includes(cari) || 
+            rKecName.includes(cari) || 
+            rDesaName.includes(cari);
 
-        row.style.display = (matchKab && matchStatus && matchTahun && matchCari) ? '' : 'none';
+        // Strict AND logic
+        const isMatch = matchKab && matchStatus && matchTahun && matchCari;
+
+        if (isMatch) {
+            row.style.display = '';
+            count++;
+        } else {
+            row.style.display = 'none';
+        }
     });
+
+    let emptyMsgRow = document.getElementById('emptyValidasiRow');
+    if (count === 0) {
+        if (!emptyMsgRow) {
+            emptyMsgRow = document.createElement('tr');
+            emptyMsgRow.id = 'emptyValidasiRow';
+            emptyMsgRow.innerHTML = '<td colspan="9" class="text-center py-8 text-gray-400 font-medium">Tidak ada data yang sesuai dengan filter.</td>';
+            document.getElementById('validasiTableBody').appendChild(emptyMsgRow);
+        }
+        emptyMsgRow.style.display = '';
+    } else if (emptyMsgRow) {
+        emptyMsgRow.style.display = 'none';
+    }
 }
 
 function resetFilterValidasi() {
-    document.getElementById('filterKabupaten').value = '';
-    document.getElementById('filterStatus').value = 'pending';
-    document.getElementById('filterTahun').value = '';
-    document.getElementById('filterCari').value = '';
-    filterValidasiTable();
+    if (document.getElementById('filterKabupaten')) document.getElementById('filterKabupaten').value = '';
+    if (document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
+    if (document.getElementById('filterTahun')) document.getElementById('filterTahun').value = '';
+    if (document.getElementById('filterCari')) document.getElementById('filterCari').value = '';
+
+    if (window.history && window.history.pushState) {
+        window.history.pushState({}, '', window.location.pathname + window.location.hash);
+    }
+
+    resetDetailSection();
+
+    const emptyMsgRow = document.getElementById('emptyValidasiRow');
+    if (emptyMsgRow) emptyMsgRow.style.display = 'none';
+
+    document.querySelectorAll('#validasiTableBody tr.data-row').forEach(function(row) {
+        row.style.display = '';
+    });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const filterKab = document.getElementById('filterKabupaten');
-    const filterStatus = document.getElementById('filterStatus');
-    const filterTahun = document.getElementById('filterTahun');
-    const filterCari = document.getElementById('filterCari');
-
-    if (filterKab) filterKab.addEventListener('change', filterValidasiTable);
-    if (filterStatus) filterStatus.addEventListener('change', filterValidasiTable);
-    if (filterTahun) filterTahun.addEventListener('change', filterValidasiTable);
-    if (filterCari) filterCari.addEventListener('keyup', filterValidasiTable);
-});
-
-/* =========================
-   VALIDASI - PILIH ROW & DETAIL
-========================= */
 let activeSpotId = null;
 
-function pilihRow(row) {
-    document.querySelectorAll('.data-row').forEach(function(r) {
-        r.classList.remove('bg-green-100', 'border-l-4', 'border-green-700');
+function resetDetailSection() {
+    activeSpotId = null;
+    document.querySelectorAll('.data-row, #validasiTableBody tr, #tableBody tr').forEach(function(r) {
+        r.classList.remove('bg-green-100', 'border-l-4', 'border-green-700', 'selected', 'active');
     });
+    document.getElementById('detailSection')?.classList.add('hidden');
+    document.getElementById('aksiValidasi')?.classList.add('hidden');
+    ['detail-id', 'detail-kabupaten', 'detail-kecamatan', 'detail-desa', 'detail-koordinat', 'detail-prioritas', 'detail-status-jaringan', 'detail-tahun', 'detail-keterangan', 'detail-operator', 'detail-tanggal', 'detail-status-validasi', 'detail-catatan-revisi'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '-';
+    });
+    document.getElementById('row-catatan-revisi')?.classList.add('hidden');
+    document.getElementById('container-foto')?.classList.add('hidden');
+}
+
+function pilihRow(row) {
+    resetDetailSection();
     row.classList.add('bg-green-100', 'border-l-4', 'border-green-700');
     
     activeSpotId = row.dataset.id;
+    const data = row.dataset;
 
     document.getElementById('detailSection')?.classList.remove('hidden');
-    document.getElementById('detail-id').textContent = row.dataset.id;
-    document.getElementById('detail-kabupaten').textContent = row.dataset.kabupaten;
-    document.getElementById('detail-kecamatan').textContent = row.dataset.kecamatan;
-    document.getElementById('detail-desa').textContent = row.dataset.desa;
-    document.getElementById('detail-koordinat').textContent = row.dataset.lat + ', ' + row.dataset.lng;
-    document.getElementById('detail-status').innerHTML = '<span class="px-2 py-1 text-xs font-bold bg-red-100 text-red-600 rounded">' + row.dataset.status + '</span>';
-    document.getElementById('detail-operator').textContent = row.dataset.operator;
-    document.getElementById('detail-tanggal').textContent = row.dataset.tanggal;
-    document.getElementById('detail-keterangan').textContent = row.dataset.keterangan;
+    document.getElementById('aksiValidasi')?.classList.remove('hidden');
 
-    updateValidasiMap(row.dataset.lat, row.dataset.lng, row.dataset.id, row.dataset.status);
-    
+    document.getElementById('detail-id').textContent = data.id;
+    document.getElementById('detail-kabupaten').textContent = data.kabupaten;
+    document.getElementById('detail-kecamatan').textContent = data.kecamatan;
+    document.getElementById('detail-desa').textContent = data.desa;
+    document.getElementById('detail-koordinat').textContent = data.lat + ', ' + data.lng;
+    document.getElementById('detail-prioritas').textContent = data.prioritas || '-';
+    document.getElementById('detail-status-jaringan').textContent = data.statusJaringan || '-';
+    document.getElementById('detail-tahun').textContent = data.tahun || '-';
+    document.getElementById('detail-keterangan').textContent = data.keterangan || '-';
+    document.getElementById('detail-operator').textContent = data.operator || '-';
+    document.getElementById('detail-tanggal').textContent = data.tanggal || '-';
+    document.getElementById('detail-status-validasi').textContent = data.statusValidasi || '-';
+
+    if (data.catatanRevisi && data.catatanRevisi !== '-') {
+        document.getElementById('detail-catatan-revisi').textContent = data.catatanRevisi;
+        document.getElementById('row-catatan-revisi')?.classList.remove('hidden');
+    }
+
+    if (data.foto) {
+        document.getElementById('detail-foto').src = data.foto;
+        document.getElementById('container-foto')?.classList.remove('hidden');
+    }
+
+    updateValidasiMap(data.lat, data.lng, data.id, data.statusValidasi);
     document.getElementById('detailSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 

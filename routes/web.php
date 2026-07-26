@@ -9,6 +9,10 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\GeospasialController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\PublicApiController;
+use App\Http\Controllers\VerifikasiController;
+use App\Http\Controllers\UsulanController;
+use App\Http\Controllers\BackupController;
 
 Route::get('/guest', function () {
     return view('guest');
@@ -39,6 +43,19 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/foto/{filename}', [BlankSpotController::class, 'servePhoto'])->name('foto.serve');
 
 // ============================================================
+// PUBLIC API ENDPOINTS (TANPA LOGIN)
+// ============================================================
+Route::prefix('api/public')->name('api.public.')->group(function () {
+    Route::get('/stats', [PublicApiController::class, 'stats'])->name('stats');
+    Route::get('/blank-spots', [PublicApiController::class, 'blankSpots'])->name('blank-spots');
+    Route::get('/peta', [PublicApiController::class, 'peta'])->name('peta');
+    Route::get('/dashboard', [PublicApiController::class, 'dashboard'])->name('dashboard');
+});
+
+// Usulan Bottom-Up Public
+Route::post('/api/usulan', [UsulanController::class, 'store'])->name('usulan.store');
+
+// ============================================================
 // DEPENDENT DROPDOWN API (PUBLIC / ADMIN / USER)
 // ============================================================
 Route::get('/admin/api/kecamatan/{kabupaten_id}', [BlankSpotController::class, 'getKecamatan'])->name('admin.api.kecamatan');
@@ -49,6 +66,7 @@ Route::get('/admin/api/desa/{kecamatan_id}', [BlankSpotController::class, 'getDe
 // ============================================================
 Route::get('/geospasial', [GeospasialController::class, 'index'])->name('geospasial.index');
 Route::get('/api/all-spots', [GeospasialController::class, 'getAllSpots'])->name('api.all.spots');
+Route::get('/api/geospasial/kabupaten/{id}', [GeospasialController::class, 'getKabupatenData'])->name('api.geospasial.kabupaten');
 Route::get('/map-v2', [MapController::class, 'index'])->name('map.index');
 
 // ============================================================
@@ -82,6 +100,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/validasi/massal/setujui', [ValidationController::class, 'massalSetujui'])->name('validasi.massal.setujui');
     Route::post('/validasi/massal/tolak', [ValidationController::class, 'massalTolak'])->name('validasi.massal.tolak');
 
+    // Usulan Bottom-Up Management Admin
+    Route::post('/usulan/{id}/approve', [UsulanController::class, 'approve'])->name('usulan.approve');
+    Route::post('/usulan/{id}/reject', [UsulanController::class, 'reject'])->name('usulan.reject');
+
+    // Backup & Restore System Admin
+    Route::get('/backup/database', [BackupController::class, 'backupDb'])->name('backup.database');
+    Route::get('/backup/photos', [BackupController::class, 'backupPhotos'])->name('backup.photos');
+
     // Geospasial Admin
     Route::get('/geospasial', [GeospasialController::class, 'index'])->name('geospasial.index');
     Route::get('/api/all-spots', [GeospasialController::class, 'getAllSpots'])->name('api.all.spots');
@@ -90,9 +116,19 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/api/kecamatan/{kabupaten_id}', [BlankSpotController::class, 'getKecamatan'])->name('api.kecamatan');
     Route::get('/api/desa/{kecamatan_id}', [BlankSpotController::class, 'getDesa'])->name('api.desa');
 
-    // Export Reports
+    // Export Reports & Berita Acara
     Route::get('/export/pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
+    Route::get('/export/csv', [ExportController::class, 'exportCsv'])->name('export.csv');
+    Route::get('/export/berita-acara/{id}', [ExportController::class, 'beritaAcaraPdf'])->name('export.berita-acara');
+});
+
+// ============================================================
+// VERIFIKATOR KABUPATEN/KOTA ROUTES
+// ============================================================
+Route::middleware(['auth'])->prefix('verifikator')->name('verifikator.')->group(function () {
+    Route::get('/validasi', [VerifikasiController::class, 'index'])->name('index');
+    Route::post('/validasi/{id}/verify', [VerifikasiController::class, 'verify'])->name('verify');
 });
 
 // ============================================================
@@ -120,6 +156,8 @@ Route::middleware(['auth', 'operator'])->prefix('user')->name('user.')->group(fu
     // Export Reports Operator
     Route::get('/export/pdf', [ExportController::class, 'exportPdfUser'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcelUser'])->name('export.excel');
+    Route::get('/export/csv', [ExportController::class, 'exportCsvUser'])->name('export.csv');
+    Route::get('/export/berita-acara/{id}', [ExportController::class, 'beritaAcaraPdf'])->name('export.berita-acara');
 
     // API Filter Geospasial User
     Route::get('/api/filter-geospasial', [UserController::class, 'filterGeospasial'])->name('api.filter.geospasial');

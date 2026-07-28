@@ -15,16 +15,19 @@ class BlankSpot extends Model
         'latitude',
         'longitude',
         'radius',
-        'foto',
         'prioritas',
         'nama_lokasi',
         'status_jaringan',
+        'kondisi_geografis',
+        'jumlah_penduduk',
+        'jarak_ibukota',
         'tahun',
         'semester',
-        'keterangan',
         'status_validasi',
         'catatan_revisi',
+        'alasan_penolakan',
         'created_by',
+        'updated_by',
         'validated_by',
         'validated_at',
         'verifikator_id',
@@ -33,17 +36,45 @@ class BlankSpot extends Model
         'catatan_verifikasi',
     ];
 
+    public const STATUS_JARINGAN_TO_PRIORITAS = [
+        'Zero Blankspot'      => 1,
+        'Blank Spot Total'    => 1,
+        'Sinyal Sangat Lemah' => 2,
+        'Sinyal Lemah'        => 3,
+        '2G'                  => 4,
+        '3G'                  => 5,
+        '4G Tidak Stabil'     => 6,
+        '5G Belum Tersedia'   => 7,
+    ];
+
+    public static function getPrioritasFromStatusJaringan(?string $status): int
+    {
+        if (!$status) return 1;
+        $trimmed = trim($status);
+
+        if (preg_match('/^P([1-9]|10)$/i', $trimmed, $matches)) {
+            return (int) $matches[1];
+        }
+
+        if (isset(self::STATUS_JARINGAN_TO_PRIORITAS[$trimmed])) {
+            return self::STATUS_JARINGAN_TO_PRIORITAS[$trimmed];
+        }
+        foreach (self::STATUS_JARINGAN_TO_PRIORITAS as $key => $val) {
+            if (strcasecmp($key, $trimmed) === 0) {
+                return $val;
+            }
+        }
+        return 6;
+    }
+
     public const PRIORITAS_LABELS = [
-        1  => 'Prioritas paling tinggi (sangat mendesak)',
-        2  => 'Sangat tinggi',
-        3  => 'Tinggi',
-        4  => 'Cukup tinggi',
-        5  => 'Sedang',
-        6  => 'Menengah',
-        7  => 'Rendah',
-        8  => 'Rendah',
-        9  => 'Sangat rendah',
-        10 => 'Prioritas paling rendah',
+        1  => 'Prioritas P1 (Sangat Mendesak)',
+        2  => 'Prioritas P2 (Sangat Tinggi)',
+        3  => 'Prioritas P3 (Tinggi)',
+        4  => 'Prioritas P4 (Cukup Tinggi)',
+        5  => 'Prioritas P5 (Sedang)',
+        6  => 'Prioritas P6 (Menengah)',
+        7  => 'Prioritas P7 (Rendah)',
     ];
 
     public const STATUS_JARINGAN_GUIDE = [
@@ -122,6 +153,24 @@ public function photos()
     return $this->hasMany(BlankSpotPhoto::class, 'blank_spot_id');
 }
 
+public function getFotoUrlAttribute(): ?string
+{
+    $firstPhoto = $this->photos->first();
+    if ($firstPhoto) {
+        return $firstPhoto->url;
+    }
+    return null;
+}
+
+public function getFotoAttribute(): ?string
+{
+    $firstPhoto = $this->photos->first();
+    if ($firstPhoto) {
+        return $firstPhoto->path;
+    }
+    return null;
+}
+
 /**
  * History riwayat perubahan data
  */
@@ -171,5 +220,14 @@ public function histories()
             return $query->where('kabupaten_id', $kabupatenId);
         }
         return $query;
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($blankSpot) {
+            foreach ($blankSpot->photos as $photo) {
+                $photo->delete();
+            }
+        });
     }
 }

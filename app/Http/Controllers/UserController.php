@@ -26,7 +26,7 @@ class UserController extends Controller
         $user = Auth::user();
 
         // Data tabel - HANYA data milik kabupaten user
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved')
             ->orderBy('created_at', 'desc')
@@ -49,7 +49,7 @@ class UserController extends Controller
         $grafikData   = $tahunData->pluck('total')->toArray();
 
         // Peta - HANYA data milik kabupaten user yang sudah approved
-        $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved')
             ->get();
@@ -95,8 +95,10 @@ class UserController extends Controller
         // Kabupaten untuk filter
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
 
+        $stats = $this->dashboardService->getOperatorStats($user);
+
         return view('user.dashboard', compact(
-            'blankSpots', 'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
+            'stats', 'blankSpots', 'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
             'grafikLabels', 'grafikData', 'spotsPeta', 'kabupaten',
             'tahuns', 'nilaiRataRata', 'nilaiTertinggi', 'tahunTertinggi',
             'nilaiTerendah', 'tahunTerendah', 'kabupatens'
@@ -131,7 +133,7 @@ class UserController extends Controller
 
         $kabupaten = Kabupaten::findOrFail($kabupaten_id);
 
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $kabupaten_id);
 
         $blankSpots = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -152,7 +154,7 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id)
             ->where('status_validasi', 'approved');
 

@@ -186,10 +186,10 @@
                         <td class="px-4 py-3.5">{{ $spot->desa->nama_desa ?? '-' }}</td>
                         <td class="px-4 py-3.5">
                             <span class="px-2.5 py-1 text-xs font-bold rounded-full
-                                @if(str_contains(strtolower($spot->keterangan ?? ''), 'lemah')) bg-yellow-100 text-yellow-700
-                                @elseif(str_contains(strtolower($spot->keterangan ?? ''), 'stabil')) bg-blue-100 text-blue-700
+                                @if(str_contains(strtolower($spot->status_jaringan ?? ''), 'lemah')) bg-yellow-100 text-yellow-700
+                                @elseif(str_contains(strtolower($spot->status_jaringan ?? ''), 'stabil')) bg-blue-100 text-blue-700
                                 @else bg-red-100 text-red-600 @endif">
-                                {{ $spot->keterangan ?? 'Tidak Ada Sinyal' }}
+                                {{ $spot->status_jaringan ?? 'Tidak Ada Sinyal' }}
                             </span>
                         </td>
                         <td class="px-4 py-3.5 text-center">{{ $spot->tahun }}</td>

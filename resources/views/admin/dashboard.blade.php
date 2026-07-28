@@ -195,15 +195,17 @@
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
                             <th class="px-4 py-3 text-center font-bold">No</th>
+                            <th class="px-4 py-3 font-bold">Kabupaten/Kota</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
-                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
-                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
-                            <th class="px-4 py-3 font-bold">Tahun</th>
+                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                            <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
+                            <th class="px-4 py-3 font-bold text-center">Tahun</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -216,18 +218,15 @@
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
                             <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
-                            <td class="px-4 py-3">
-                                @if($spot->foto)
-                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
+                            <td class="px-4 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
                             <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                            <td colspan="12" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -473,6 +472,9 @@
                         data-lng="{{ $spot->longitude }}"
                         data-prioritas="{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}"
                         data-status-jaringan="{{ $spot->status_jaringan ?? '-' }}"
+                        data-kondisi-geografis="{{ $spot->kondisi_geografis ?? '-' }}"
+                        data-jumlah-penduduk="{{ $spot->jumlah_penduduk ?? '-' }}"
+                        data-jarak-ibukota="{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}"
                         data-tahun="{{ $spot->tahun }}"
                         data-keterangan="{{ $spot->keterangan ?? '-' }}"
                         data-operator="{{ $spot->creator->nama ?? '-' }}"
@@ -481,6 +483,7 @@
                         data-status-code="{{ $spot->status_validasi }}"
                         data-catatan-revisi="{{ $spot->catatan_revisi ?? '-' }}"
                         data-foto="{{ $spot->foto ? asset('storage/' . $spot->foto) : '' }}"
+                        data-photos='@json($spot->photos->map(fn($p) => ["id" => $p->id, "url" => $p->url, "jenis" => $p->jenis_foto]))'
                         data-kabupaten-id="{{ $spot->kabupaten_id }}"
                         onclick="pilihRow(this)">
 
@@ -521,38 +524,7 @@
         </div>
 
         <!-- Detail Section -->
-        <div id="detailSection" class="bg-[#F3F3E8] rounded-[2rem] p-6 md:p-8 border border-gray-200/40 shadow-xl hidden mt-6">
-            <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">Detail Data Blankspot</h4>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm h-fit">
-                    <table class="w-full text-sm text-left border-collapse">
-                        <tbody class="divide-y divide-gray-200">
-                            <tr><td class="w-1/3 bg-gray-50 px-4 py-3 font-bold text-[#234B26]">ID Data</td><td id="detail-id" class="px-4 py-3 font-semibold">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kab/Kota</td><td id="detail-kabupaten" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kondisi Geografis</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jumlah Penduduk</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jarak ke Ibu Kota</td><td id="detail-status" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Foto</td><td id="detail-status" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Diinput Oleh</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
-                            <tr><td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex flex-col gap-4">
-                    <div class="relative w-full h-[300px] bg-gray-200 rounded-2xl overflow-hidden border border-gray-300 shadow-inner">
-                        <div id="validasiMap" class="w-full h-full z-10"></div>
-                    </div>
-                    <div id="container-foto" class="hidden bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-                        <p class="font-bold text-[#234B26] text-xs mb-2">Foto Blankspot:</p>
-                        <img id="detail-foto" src="" alt="Foto Blankspot" class="w-full max-h-48 object-cover rounded-xl border border-gray-200">
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('partials.blank-spot-detail-card')
 
         <!-- Tombol Setujui & Tolak -->
         <div id="aksiValidasi" class="flex flex-wrap items-center justify-center gap-4 mt-8 pt-6 border-t border-gray-300/60 hidden">
@@ -1439,12 +1411,15 @@ function resetDetailSection() {
     });
     document.getElementById('detailSection')?.classList.add('hidden');
     document.getElementById('aksiValidasi')?.classList.add('hidden');
-    ['detail-id', 'detail-kabupaten', 'detail-kecamatan', 'detail-desa', 'detail-koordinat', 'detail-prioritas', 'detail-status-jaringan', 'detail-tahun', 'detail-keterangan', 'detail-operator', 'detail-tanggal', 'detail-status-validasi', 'detail-catatan-revisi'].forEach(id => {
+    ['detail-id', 'detail-kabupaten', 'detail-kecamatan', 'detail-desa', 'detail-koordinat', 'detail-operator', 'detail-tanggal', 'detail-status', 'detail-status-validasi', 'detail-keterangan', 'detail-catatan-revisi'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.textContent = '-';
     });
     document.getElementById('row-catatan-revisi')?.classList.add('hidden');
-    document.getElementById('container-foto')?.classList.add('hidden');
+    const photosContainer = document.getElementById('admin-detail-photos-container') || document.getElementById('dashboard-detail-photos-container');
+    if (photosContainer) photosContainer.innerHTML = '';
+    const photosEmptyText = document.getElementById('admin-detail-photos-empty') || document.getElementById('dashboard-detail-photos-empty');
+    if (photosEmptyText) photosEmptyText.classList.add('hidden');
 }
 
 function pilihRow(row) {
@@ -1454,34 +1429,79 @@ function pilihRow(row) {
     activeSpotId = row.dataset.id;
     const data = row.dataset;
 
-    document.getElementById('detailSection')?.classList.remove('hidden');
-    document.getElementById('aksiValidasi')?.classList.remove('hidden');
+    const detailSec = document.getElementById('detailSection');
+    if (detailSec) detailSec.classList.remove('hidden');
 
-    document.getElementById('detail-id').textContent = data.id;
-    document.getElementById('detail-kabupaten').textContent = data.kabupaten;
-    document.getElementById('detail-kecamatan').textContent = data.kecamatan;
-    document.getElementById('detail-desa').textContent = data.desa;
-    document.getElementById('detail-koordinat').textContent = data.lat + ', ' + data.lng;
-    document.getElementById('detail-prioritas').textContent = data.prioritas || '-';
-    document.getElementById('detail-status-jaringan').textContent = data.statusJaringan || '-';
-    document.getElementById('detail-tahun').textContent = data.tahun || '-';
-    document.getElementById('detail-keterangan').textContent = data.keterangan || '-';
-    document.getElementById('detail-operator').textContent = data.operator || '-';
-    document.getElementById('detail-tanggal').textContent = data.tanggal || '-';
-    document.getElementById('detail-status-validasi').textContent = data.statusValidasi || '-';
+    const aksiVal = document.getElementById('aksiValidasi');
+    if (aksiVal) aksiVal.classList.remove('hidden');
+
+    if (document.getElementById('detail-id')) document.getElementById('detail-id').textContent = data.id || '-';
+    if (document.getElementById('detail-kabupaten')) document.getElementById('detail-kabupaten').textContent = data.kabupaten || '-';
+    if (document.getElementById('detail-kecamatan')) document.getElementById('detail-kecamatan').textContent = data.kecamatan || '-';
+    if (document.getElementById('detail-desa')) document.getElementById('detail-desa').textContent = data.desa || '-';
+    if (document.getElementById('detail-koordinat')) document.getElementById('detail-koordinat').textContent = (data.lat && data.lng) ? (data.lat + ', ' + data.lng) : '-';
+    if (document.getElementById('detail-operator')) document.getElementById('detail-operator').textContent = data.operator || '-';
+    if (document.getElementById('detail-tanggal')) document.getElementById('detail-tanggal').textContent = data.tanggal || '-';
+    
+    const statusEl = document.getElementById('detail-status') || document.getElementById('detail-status-validasi');
+    if (statusEl) statusEl.textContent = data.statusValidasi || data.status || '-';
+    
+    if (document.getElementById('detail-keterangan')) document.getElementById('detail-keterangan').textContent = data.keterangan || '-';
 
     if (data.catatanRevisi && data.catatanRevisi !== '-') {
-        document.getElementById('detail-catatan-revisi').textContent = data.catatanRevisi;
-        document.getElementById('row-catatan-revisi')?.classList.remove('hidden');
+        if (document.getElementById('detail-catatan-revisi')) document.getElementById('detail-catatan-revisi').textContent = data.catatanRevisi;
+        if (document.getElementById('row-catatan-revisi')) document.getElementById('row-catatan-revisi').classList.remove('hidden');
     }
 
-    if (data.foto) {
-        document.getElementById('detail-foto').src = data.foto;
-        document.getElementById('container-foto')?.classList.remove('hidden');
+    // Render Dynamic Photo Gallery on Row Click
+    const containerFoto = document.getElementById('container-foto');
+    if (containerFoto) containerFoto.classList.remove('hidden');
+
+    const photosContainer = document.getElementById('admin-detail-photos-container') || document.getElementById('dashboard-detail-photos-container');
+    const photosEmptyText = document.getElementById('admin-detail-photos-empty') || document.getElementById('dashboard-detail-photos-empty');
+
+    if (photosContainer) {
+        photosContainer.innerHTML = '';
+        let photos = [];
+        try {
+            photos = JSON.parse(data.photos || '[]');
+        } catch (e) {
+            photos = [];
+        }
+
+        if (photos && photos.length > 0) {
+            if (photosEmptyText) photosEmptyText.classList.add('hidden');
+            photos.forEach(photo => {
+                const imgCard = document.createElement('div');
+                imgCard.className = 'relative group cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm aspect-square bg-gray-100';
+                imgCard.onclick = () => openLightbox(photo.url);
+                imgCard.innerHTML = `
+                    <img src="${photo.url}" alt="Foto Blankspot" class="w-full h-full object-cover rounded-xl group-hover:scale-105 transition duration-300">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                        🔍 Perbesar
+                    </div>
+                `;
+                photosContainer.appendChild(imgCard);
+            });
+        } else if (data.foto) {
+            if (photosEmptyText) photosEmptyText.classList.add('hidden');
+            const imgCard = document.createElement('div');
+            imgCard.className = 'relative group cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm aspect-square bg-gray-100';
+            imgCard.onclick = () => openLightbox(data.foto);
+            imgCard.innerHTML = `
+                <img src="${data.foto}" alt="Foto Blankspot" class="w-full h-full object-cover rounded-xl group-hover:scale-105 transition duration-300">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                    🔍 Perbesar
+                </div>
+            `;
+            photosContainer.appendChild(imgCard);
+        } else {
+            if (photosEmptyText) photosEmptyText.classList.remove('hidden');
+        }
     }
 
     updateValidasiMap(data.lat, data.lng, data.id, data.statusValidasi);
-    document.getElementById('detailSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (detailSec) detailSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* =========================

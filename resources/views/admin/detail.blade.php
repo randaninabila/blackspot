@@ -103,10 +103,11 @@
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
-                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
-                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
-                            <th class="px-4 py-3 font-bold">Tahun</th>
+                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                            <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
+                            <th class="px-4 py-3 font-bold text-center">Tahun</th>
                             <th class="px-4 py-3 text-center font-bold">Status</th>
                             <th class="px-4 py-3 text-center font-bold">Aksi</th>
                         </tr>
@@ -124,15 +125,19 @@
                             data-status="{{ $spot->status_validasi }}"
                             data-operator="{{ $spot->creator->nama ?? '-' }}"
                             data-tanggal="{{ $spot->created_at->format('d-m-Y') }}"
-                            data-keterangan="{{ $spot->keterangan ?? '-' }}">
+                            data-keterangan="{{ $spot->status_jaringan ?? '-' }}"
+                            data-photos='@json($spot->photos->map(fn($p) => ["id" => $p->id, "url" => $p->url, "jenis" => $p->jenis_foto]))'>
                             <td class="px-3 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
                             <td class="px-3 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                             <td class="px-3 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
                             <td class="px-3 py-3">{{ $spot->longitude }}</td>
                             <td class="px-3 py-3">{{ $spot->latitude }}</td>
                             <td class="px-3 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
-                            <td class="px-3 py-3">{{ $spot->status_jaringan ?? ($spot->keterangan ?? '-') }}</td>
-                            <td class="px-3 py-3">{{ $spot->tahun }}</td>
+                            <td class="px-3 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                            <td class="px-3 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                            <td class="px-3 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                            <td class="px-3 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
+                            <td class="px-3 py-3 text-center">{{ $spot->tahun }}</td>
                             <td class="px-3 py-3 text-center">
                                 <div class="flex justify-center items-center">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
@@ -141,7 +146,7 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="flex justify-center gap-2">
+                                <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
                                     @if($spot->status_validasi != 'approved')
                                     <a href="{{ route('admin.blank-spot.edit', $spot->id) }}" 
                                         class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition" title="Edit">
@@ -164,7 +169,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="10" class="text-center py-8 text-gray-400">Belum ada data untuk kabupaten ini.</td>
+                            <td colspan="13" class="text-center py-8 text-gray-400">Belum ada data untuk kabupaten ini.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -182,258 +187,186 @@
 
         </div>
     </div>
-    <div id="detailSection"
-     class="bg-[#F3F3E8] rounded-[2rem] p-6 md:p-8 border border-gray-200/40 shadow-xl hidden mt-8">
-
-    <h4 class="text-[#234B26] font-bold text-2xl mb-6 border-b border-gray-300/60 pb-3">
-        Detail Data Blankspot
-    </h4>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm h-fit">
-            <table class="w-full text-sm text-left">
-                <tbody class="divide-y divide-gray-200">
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">ID</td><td id="detail-id" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kabupaten</td><td id="detail-kabupaten" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Prioritas</td><td id="detail-status" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kondisi Geografis</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jumlah Penduduk</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jarak ke Ibukota</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="w-full h-[320px] rounded-2xl overflow-hidden border shadow-inner">
-            <div id="validasiMap" class="w-full h-full"></div>
-        </div>
-
-    </div>
-</div>
+    @include('partials.blank-spot-detail-card')
 </div>
 
 <!-- MODAL TAMBAH DATA -->
 <div id="blankspotModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
 
-    <div class="bg-[#234B26] w-full max-w-md p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
+    <div class="bg-[#234B26] w-full max-w-[560px] max-h-[90vh] flex flex-col p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
 
-        <div class="text-center mb-4">
+        <div class="text-center mb-3 shrink-0">
             <h3 class="text-xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
             <p class="text-xl italic font-bold text-[#E6EB9C]">Blankspot</p>
         </div>
 
-        <form action="{{ route('admin.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+        <form action="{{ route('admin.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
             @csrf
             <input type="hidden" name="kabupaten_id" value="{{ $kabupaten->id }}">
 
-            <!-- KECAMATAN -->
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Kecamatan</label>
-                <select name="kecamatan_id" 
-                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" 
-                        required
-                        style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-                    <option value="">-- Pilih Kecamatan --</option>
-                    @foreach($kecamatans ?? [] as $kec)
-                        <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <!-- SCROLLABLE FORM BODY -->
+            <div class="overflow-y-auto pr-1 space-y-3 flex-1 custom-scrollbar" style="max-height: calc(90vh - 150px);">
 
-            <!-- DESA -->
-            <div>
-                <label class="block text-white font-semibold mb-1.5 text-sm">Nama Desa</label>
-                <input type="text" name="nama_desa" placeholder="Ketik nama desa..." required
-                       class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-            </div>
-
-            <!-- KOORDINAT -->
-            <div class="grid grid-cols-2 gap-2.5">
+                <!-- KECAMATAN -->
                 <div>
-                    <label class="block text-white font-semibold mb-1.5 text-sm">Longitude</label>
-                    <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+                    <label class="block text-white font-semibold mb-1 text-sm">Kecamatan <span class="text-red-400">*</span></label>
+                    <select name="kecamatan_id" 
+                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none" 
+                            required
+                            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                        <option value="">-- Pilih Kecamatan --</option>
+                        @foreach($kecamatans ?? [] as $kec)
+                            <option value="{{ $kec->id }}">{{ $kec->nama_kecamatan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- DESA -->
+                <div>
+                    <label class="block text-white font-semibold mb-1 text-sm">Nama Desa <span class="text-red-400">*</span></label>
+                    <input type="text" name="nama_desa" placeholder="Ketik nama desa..." required
                            class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
                 </div>
 
-                <div>
-                    <label class="block text-white font-semibold mb-1.5 text-sm">Latitude</label>
-                    <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
-                           class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                <!-- KOORDINAT -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Longitude <span class="text-red-400">*</span></label>
+                        <input type="text" name="longitude" placeholder="Contoh: 98.6722" required
+                               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                    </div>
+
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Latitude <span class="text-red-400">*</span></label>
+                        <input type="text" name="latitude" placeholder="Contoh: 3.5952" required
+                               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                    </div>
                 </div>
+
+                <!-- PRIORITAS & KONDISI GEOGRAFIS -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Prioritas <span class="text-red-400">*</span></label>
+                        <select name="prioritas"
+                                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                                required
+                                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                            <option value="">-- Pilih Prioritas --</option>
+                            <option value="1">Zero Blankspot</option>
+                            <option value="2">Sinyal Sangat Lemah</option>
+                            <option value="3">Sinyal Lemah</option>
+                            <option value="4">2G</option>
+                            <option value="5">3G</option>
+                            <option value="6">4G Tidak Stabil</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Kondisi Geografis <span class="text-red-400">*</span></label>
+                        <select name="kondisi_geografis"
+                                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                                required
+                                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                            <option value="">-- Pilih Kondisi --</option>
+                            <option value="Pegunungan">Pegunungan</option>
+                            <option value="Daerah Pantai">Daerah Pantai</option>
+                            <option value="Daerah Sungai">Daerah Sungai</option>
+                            <option value="Dataran Rendah">Dataran Rendah</option>
+                            <option value="Perkebunan">Perkebunan</option>
+                            <option value="Danau">Danau</option>
+                            <option value="Perbukitan">Perbukitan</option>
+                            <option value="Hutan">Hutan</option>
+                            <option value="Pesisir">Pesisir</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- JUMLAH PENDUDUK & JARAK -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Jumlah Penduduk <span class="text-red-400">*</span></label>
+                        <select name="jumlah_penduduk"
+                                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
+                                required
+                                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
+                            <option value="">-- Pilih Jumlah Penduduk --</option>
+                            <option value="1-10">1–10 orang</option>
+                            <option value="11-50">11–50 orang</option>
+                            <option value="51-100">51–100 orang</option>
+                            <option value="101-200">101–200 orang</option>
+                            <option value="201-500">201–500 orang</option>
+                            <option value="501-1000">501–1.000 orang</option>
+                            <option value="1001-5000">1.001–5.000 orang</option>
+                            <option value="5001-10000">5.001–10.000 orang</option>
+                            <option value="10001-50000">10.001–50.000 orang</option>
+                            <option value="50000+">50.000+ orang</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">Jarak ke Ibu Kota (Km) <span class="text-red-400">*</span></label>
+                        <input type="number" name="jarak_ibukota" placeholder="Contoh: 25" min="0" required
+                               class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+                    </div>
+                </div>
+
+                <!-- FOTO BLANKSPOT SECTION -->
+                <div class="space-y-3 p-3 bg-white/5 rounded-2xl border border-white/10">
+                    <div class="flex justify-between items-center pb-1 border-b border-white/10">
+                        <label class="text-white font-bold text-sm">Foto Dokumentasi Blankspot</label>
+                        <span class="text-[11px] text-[#E6EB9C] font-medium">Min 1, Maks 10 foto (Max 5MB/foto)</span>
+                    </div>
+
+                    <!-- FOTO BLANKSPOT 1 (Wajib) -->
+                    <div class="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/10">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-white font-semibold text-xs">Foto Blankspot 1 <span class="text-red-400">*</span></label>
+                            <span class="text-[10px] text-white/60">Format: JPG, JPEG, PNG, WEBP</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <img id="preview-1" class="w-10 h-10 object-cover rounded-lg hidden border border-white/20 shrink-0" alt="Preview">
+                            <div id="file-name-1" class="flex-1 bg-white text-gray-600 px-3 py-2 rounded-lg text-xs truncate">
+                                Belum ada file dipilih
+                            </div>
+                            <label for="foto-input-1" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-2 rounded-lg cursor-pointer hover:bg-white font-bold text-xs shrink-0 transition">
+                                Choose File
+                            </label>
+                        </div>
+                        <input type="file" id="foto-input-1" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden" required onchange="handlePhotoPreview(this, 'file-name-1', 'preview-1');">
+                    </div>
+
+                    <!-- CONTAINER UNTUK DYNAMIC FOTO 2 S.D 10 -->
+                    <div id="admin-dynamic-photos-container" class="space-y-2.5"></div>
+
+                    <!-- TOMBOL TAMBAH FOTO -->
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="addAdminPhotoField()" id="admin-btn-add-photo" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-1.5 rounded-xl font-bold text-xs hover:bg-white transition flex items-center gap-1 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            + Tambah Foto
+                        </button>
+                        <span id="admin-photo-count-badge" class="text-[11px] text-white/80 font-medium">(1/10 foto)</span>
+                    </div>
+                </div>
+
+                <!-- TAHUN -->
+                <div>
+                    <label class="block text-white font-bold text-sm mb-1">Tahun <span class="text-red-400">*</span></label>
+                    <input type="text" value="{{ date('Y') }}" readonly class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed">
+                    <input type="hidden" name="tahun" value="{{ date('Y') }}">
+                </div>
+
             </div>
 
-             <!-- PRIORITAS & KONDISI GEOGRAFIS -->
-<div class="grid grid-cols-2 gap-2.5">
-
-    <!-- TINGKAT PRIORITAS -->
-    <div>
-        <label class="block text-white font-semibold mb-1.5 text-sm">
-         Prioritas
-        </label>
-
-        <select name="prioritas"
-                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                required
-                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-
-            <option value="">-- Pilih Prioritas --</option>
-            <option value="1">Zero Blankspot</option>
-            <option value="2">Sinyal Sangat Lemah</option>
-            <option value="3">Sinyal Lemah</option>
-            <option value="4">2G</option>
-            <option value="5">3G</option>
-            <option value="6">4G Tidak Stabil</option>
-        </select>
-    </div>
-
-    <!-- KONDISI GEOGRAFIS -->
-    <div>
-        <label class="block text-white font-semibold mb-1.5 text-sm">
-            Kondisi Geografis
-        </label>
-
-        <select name="kondisi_geografis"
-                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                required
-                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-
-            <option value="">-- Pilih Kondisi --</option>
-            <option value="Pegunungan">Pegunungan</option>
-            <option value="Daerah Pantai">Daerah Pantai</option>
-            <option value="Daerah Sungai">Daerah Sungai</option>
-            <option value="Dataran Rendah">Dataran Rendah</option>
-            <option value="Perkebunan">Perkebunan</option>
-            <option value="Danau">Danau</option>
-            <option value="Perbukitan">Perbukitan</option>
-            <option value="Hutan">Hutan</option>
-            <option value="Pesisir">Pesisir</option>
-            <option value="Lainnya">Lainnya</option>
-        </select>
-    </div>
-
-</div>
-
-
-<!-- JUMLAH PENDUDUK & JARAK -->
-<div class="grid grid-cols-2 gap-2.5">
-
-    <!-- JUMLAH PENDUDUK -->
-    <div>
-        <label class="block text-white font-semibold mb-1.5 text-sm">
-            Jumlah Penduduk
-        </label>
-
-        <select name="jumlah_penduduk"
-                class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30 appearance-none"
-                required
-                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 12px center; background-size: 12px; padding-right: 36px;">
-
-            <option value="">-- Pilih Jumlah Penduduk --</option>
-            <option value="1-10">1–10 orang</option>
-            <option value="11-50">11–50 orang</option>
-            <option value="51-100">51–100 orang</option>
-            <option value="101-200">101–200 orang</option>
-            <option value="201-500">201–500 orang</option>
-            <option value="501-1000">501–1.000 orang</option>
-            <option value="1001-5000">1.001–5.000 orang</option>
-            <option value="5001-10000">5.001–10.000 orang</option>
-            <option value="10001-50000">10.001–50.000 orang</option>
-            <option value="50000+">50.000 orang</option>
-        </select>
-    </div>
-
-
-    <!-- JARAK DARI IBU KOTA -->
-  
-<div>
-    <label class="block text-white font-semibold mb-1.5 text-sm">
-        Jarak ke Ibu Kota (Km)
-    </label>
-
-    <input
-        type="number"
-        name="jarak_ibukota"
-        placeholder="Contoh: 25"
-        min="0"
-        step="10"
-        required
-        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-</div>
-
-</div>
-
-
-<!-- FOTO & TAHUN -->
-<div class="grid grid-cols-4 gap-2.5">
-
-    <!-- FOTO BLANKSPOT -->
-    <div class="col-span-3 mt-1">
-        <label class="block text-white font-semibold mb-1.5 text-sm">
-            Foto Blankspot
-        </label>
-
-        <div class="flex">
-            <div id="file-name"
-                 class="flex-1 bg-white text-gray-500 px-4 py-2.5 rounded-l-xl border-r border-gray-300 text-sm flex items-center">
-                Belum ada file dipilih
-            </div>
-
-            <label for="foto"
-                   class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-r-xl cursor-pointer hover:bg-[#F3F3E8] font-semibold text-sm flex items-center">
-                Choose File
-            </label>
-        </div>
-
-        <input
-            type="file"
-            id="foto"
-            name="foto"
-            accept="image/*"
-            class="hidden"
-            onchange="document.getElementById('file-name').textContent = this.files.length ? this.files[0].name : 'Belum ada file dipilih';"
-        >
-
-        <p class="text-xs text-white/70 mt-1">
-            Format: JPG, JPEG, PNG. Maksimal 5 MB.
-        </p>
-    </div>
-
-
-    <!-- TAHUN -->
-    <div class="col-span-1 mt-1">
-        <label class="block text-white font-bold text-sm mb-1.5">
-            Tahun <span class="text-red-500">*</span>
-        </label>
-
-        <input
-            type="text"
-            value="{{ date('Y') }}"
-            readonly
-            class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
-        >
-
-        <input
-            type="hidden"
-            name="tahun"
-            value="{{ date('Y') }}">
-    </div>
-
-</div>
-            <!-- BUTTON -->
-            <div class="flex justify-end gap-3 pt-3">
-                <button type="button" onclick="closeModal()"
-                        class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+            <!-- BUTTON ACTIONS (FIXED AT BOTTOM OF MODAL) -->
+            <div class="flex justify-end gap-3 pt-3 shrink-0 border-t border-white/10 mt-2">
+                <button type="button" onclick="closeModal()" class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm transition">
                     Cancel
                 </button>
-                <button type="submit"
-                        class="bg-white text-[#234B26] font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm">
+                <button type="submit" class="bg-white text-[#234B26] font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm transition">
                     Tambahkan
                 </button>
             </div>
@@ -590,6 +523,38 @@ function showDetail(row) {
     document.getElementById('detail-tanggal').innerText = data.tanggal;
     document.getElementById('detail-keterangan').innerText = data.keterangan;
 
+    // Render Galeri Foto
+    const photosContainer = document.getElementById('admin-detail-photos-container');
+    const emptyText = document.getElementById('admin-detail-photos-empty');
+
+    if (photosContainer) {
+        photosContainer.innerHTML = '';
+        let photos = [];
+        try {
+            photos = JSON.parse(data.photos || '[]');
+        } catch (e) {
+            photos = [];
+        }
+
+        if (photos && photos.length > 0) {
+            if (emptyText) emptyText.classList.add('hidden');
+            photos.forEach(photo => {
+                const imgCard = document.createElement('div');
+                imgCard.className = 'relative group cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm aspect-square bg-gray-100';
+                imgCard.onclick = () => openLightbox(photo.url);
+                imgCard.innerHTML = `
+                    <img src="${photo.url}" alt="Foto Blank Spot" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                        🔍 Perbesar
+                    </div>
+                `;
+                photosContainer.appendChild(imgCard);
+            });
+        } else {
+            if (emptyText) emptyText.classList.remove('hidden');
+        }
+    }
+
     setTimeout(() => {
         initMap(lat, lng);
     }, 200);
@@ -615,6 +580,77 @@ function initMap(lat, lng) {
     marker = L.marker([lat, lng]).addTo(map);
 }
 
+function handlePhotoPreview(input, labelId, previewId) {
+    const file = input.files && input.files[0];
+    const labelEl = document.getElementById(labelId);
+    const previewEl = document.getElementById(previewId);
+
+    if (file) {
+        if (labelEl) labelEl.textContent = file.name;
+        if (previewEl && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewEl.src = e.target.result;
+                previewEl.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    } else {
+        if (labelEl) labelEl.textContent = 'Belum ada file dipilih';
+        if (previewEl) {
+            previewEl.classList.add('hidden');
+            previewEl.src = '';
+        }
+    }
+}
+
+let adminPhotoCount = 1;
+function addAdminPhotoField() {
+    if (adminPhotoCount >= 10) {
+        alert('Maksimal 10 foto yang dapat diunggah.');
+        return;
+    }
+    adminPhotoCount++;
+    const container = document.getElementById('admin-dynamic-photos-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = 'space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/10';
+    div.id = `admin-photo-group-${adminPhotoCount}`;
+    div.innerHTML = `
+        <div class="flex justify-between items-center">
+            <label class="block text-white font-semibold text-xs">Foto Blankspot ${adminPhotoCount}</label>
+            <button type="button" onclick="document.getElementById('admin-photo-group-${adminPhotoCount}').remove(); adminPhotoCount--; updateAdminPhotoBtnState();" class="text-red-300 hover:text-red-100 text-xs font-medium">Hapus</button>
+        </div>
+        <div class="flex items-center gap-2">
+            <img id="preview-${adminPhotoCount}" class="w-10 h-10 object-cover rounded-lg hidden border border-white/20 shrink-0" alt="Preview">
+            <div id="file-name-${adminPhotoCount}" class="flex-1 bg-white text-gray-600 px-3 py-2 rounded-lg text-xs truncate">
+                Belum ada file dipilih
+            </div>
+            <label for="foto-input-${adminPhotoCount}" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-2 rounded-lg cursor-pointer hover:bg-white font-bold text-xs shrink-0 transition">
+                Choose File
+            </label>
+        </div>
+        <input type="file" id="foto-input-${adminPhotoCount}" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden" onchange="handlePhotoPreview(this, 'file-name-${adminPhotoCount}', 'preview-${adminPhotoCount}');">
+    `;
+    container.appendChild(div);
+    updateAdminPhotoBtnState();
+}
+
+function updateAdminPhotoBtnState() {
+    const btn = document.getElementById('admin-btn-add-photo');
+    const badge = document.getElementById('admin-photo-count-badge');
+    if (badge) badge.textContent = `(${adminPhotoCount}/10 foto)`;
+    if (btn) {
+        if (adminPhotoCount >= 10) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+}
 </script>
 
 @endsection

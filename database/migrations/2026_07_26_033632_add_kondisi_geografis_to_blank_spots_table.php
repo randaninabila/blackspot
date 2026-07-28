@@ -9,20 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('blank_spots', function (Blueprint $table) {
-
-            $table->enum('kondisi_geografis', [
-                'Pegunungan',
-                'Daerah Pantai',
-                'Daerah Sungai',
-                'Dataran Rendah',
-                'Perkebunan',
-                'Danau',
-                'Perbukitan',
-                'Hutan',
-                'Pesisir',
-                'Lainnya'
-            ])->after('status_jaringan');
-
+            if (!Schema::hasColumn('blank_spots', 'kondisi_geografis')) {
+                $table->string('kondisi_geografis')->nullable()->after('status_jaringan');
+            }
         });
     }
 

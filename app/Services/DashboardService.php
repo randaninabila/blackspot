@@ -40,12 +40,36 @@ class DashboardService
         $highestKabupaten = $kabupatenStats->sortByDesc('blank_spots_count')->first();
         $lowestKabupaten  = $kabupatenStats->where('blank_spots_count', '>', 0)->sortBy('blank_spots_count')->first();
 
-        // Network Status Statistics
+        // Kabupaten Bar Chart Data (Only approved)
+        $kabupatenBarStats = $kabupatenStats->map(function ($k) {
+            return [
+                'nama' => $k->nama_kabupaten,
+                'total' => $k->blank_spots_count,
+            ];
+        })->toArray();
+
+        // Pie Chart: Network Status Statistics (Only approved)
         $networkStats = BlankSpot::where('status_validasi', 'approved')
             ->select('status_jaringan', DB::raw('count(*) as total'))
             ->groupBy('status_jaringan')
             ->pluck('total', 'status_jaringan')
             ->toArray();
+
+        // Bar Chart: Kondisi Geografis Statistics (Only approved)
+        $geografisStats = BlankSpot::where('status_validasi', 'approved')
+            ->whereNotNull('kondisi_geografis')
+            ->select('kondisi_geografis', DB::raw('count(*) as total'))
+            ->groupBy('kondisi_geografis')
+            ->pluck('total', 'kondisi_geografis')
+            ->toArray();
+
+        // Bar Chart: Status Validasi Statistics
+        $statusValidasiStats = [
+            'Pending'      => $pendingCount,
+            'Disetujui'    => $approvedCount,
+            'Ditolak'      => $rejectedCount,
+            'Perlu Revisi' => $revisiCount,
+        ];
 
         // Priority Statistics (P1-P10)
         $priorityStats = BlankSpot::where('status_validasi', 'approved')
@@ -90,6 +114,9 @@ class DashboardService
             'highestKabupaten'        => $highestKabupaten ? $highestKabupaten->nama_kabupaten . " ({$highestKabupaten->blank_spots_count})" : '-',
             'lowestKabupaten'         => $lowestKabupaten ? $lowestKabupaten->nama_kabupaten . " ({$lowestKabupaten->blank_spots_count})" : '-',
             'networkStats'            => $networkStats,
+            'geografisStats'          => $geografisStats,
+            'statusValidasiStats'     => $statusValidasiStats,
+            'kabupatenBarStats'       => $kabupatenBarStats,
             'priorityStats'           => $priorityStats,
             'yearStats'               => $yearStats,
             'semesterStats'           => $semesterStats,
@@ -111,6 +138,28 @@ class DashboardService
         $rejectedCount     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'rejected')->count();
         $revisiCount       = BlankSpot::where('kabupaten_id', $kabupatenId)->whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
+        $networkStats = BlankSpot::where('kabupaten_id', $kabupatenId)
+            ->where('status_validasi', 'approved')
+            ->select('status_jaringan', DB::raw('count(*) as total'))
+            ->groupBy('status_jaringan')
+            ->pluck('total', 'status_jaringan')
+            ->toArray();
+
+        $geografisStats = BlankSpot::where('kabupaten_id', $kabupatenId)
+            ->where('status_validasi', 'approved')
+            ->whereNotNull('kondisi_geografis')
+            ->select('kondisi_geografis', DB::raw('count(*) as total'))
+            ->groupBy('kondisi_geografis')
+            ->pluck('total', 'kondisi_geografis')
+            ->toArray();
+
+        $statusValidasiStats = [
+            'Pending'      => $pendingCount,
+            'Disetujui'    => $approvedCount,
+            'Ditolak'      => $rejectedCount,
+            'Perlu Revisi' => $revisiCount,
+        ];
+
         // Recent Submissions for Operator
         $recentSubmissions = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
             ->where('kabupaten_id', $kabupatenId)
@@ -119,13 +168,16 @@ class DashboardService
             ->get();
 
         return [
-            'totalData'         => $totalData,
-            'pendingCount'      => $pendingCount,
-            'diverifikasiCount' => $diverifikasiCount,
-            'approvedCount'     => $approvedCount,
-            'rejectedCount'     => $rejectedCount,
-            'revisiCount'       => $revisiCount,
-            'recentSubmissions' => $recentSubmissions,
+            'totalData'           => $totalData,
+            'pendingCount'        => $pendingCount,
+            'diverifikasiCount'   => $diverifikasiCount,
+            'approvedCount'       => $approvedCount,
+            'rejectedCount'       => $rejectedCount,
+            'revisiCount'         => $revisiCount,
+            'networkStats'        => $networkStats,
+            'geografisStats'      => $geografisStats,
+            'statusValidasiStats' => $statusValidasiStats,
+            'recentSubmissions'   => $recentSubmissions,
         ];
     }
 }

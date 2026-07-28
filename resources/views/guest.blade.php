@@ -129,43 +129,42 @@
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
                             <th class="px-4 py-3 text-center font-bold">No</th>
+                            <th class="px-4 py-3 font-bold">Kabupaten/Kota</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
-                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
-                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
-                            <th class="px-4 py-3 font-bold">Tahun</th>
+                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                            <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
+                            <th class="px-4 py-3 text-center font-bold">Tahun</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr>
-    <td class="px-4 py-3 text-center">1</td>
-    <td class="px-4 py-3">Medan</td>
-    <td class="px-4 py-3">Medan Tuntungan</td>
-    <td class="px-4 py-3">Lau Cih</td>
-    <td class="px-4 py-3">98.6523</td>
-    <td class="px-4 py-3">3.5214</td>
-    <td class="px-4 py-3 text-center">p1</td>
-    <td class="px-4 py-3">Medan</td>
-    <td class="px-4 py-3">Medan Tuntungan</td>
-    <td class="px-4 py-3">Lau Cih</td>
-</tr>
-
-<tr>
-    <td class="px-4 py-3 text-center">2</td>
-    <td class="px-4 py-3">Binjai</td>
-    <td class="px-4 py-3">Binjai Timur</td>
-    <td class="px-4 py-3">Timbang Langkat</td>
-    <td class="px-4 py-3">98.5123</td>
-    <td class="px-4 py-3">3.6002</td>
-    <td class="px-4 py-3 text-center">2022</td>
-    <td class="px-4 py-3">Binjai Timur</td>
-    <td class="px-4 py-3">Timbang Langkat</td>
-    <td class="px-4 py-3">98.5123</td>
-</tr>
+                        @if(isset($blankSpots) && count($blankSpots) > 0)
+                            @foreach($blankSpots as $i => $spot)
+                            <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition">
+                                <td class="px-4 py-3 text-center">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->longitude }}</td>
+                                <td class="px-4 py-3">{{ $spot->latitude }}</td>
+                                <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                                <td class="px-4 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
+                                <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
+                            </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="12" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>

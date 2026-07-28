@@ -37,9 +37,13 @@
                     <th class="px-4 py-3 text-center font-bold">No</th>
                     <th class="px-4 py-3 font-bold">Kecamatan</th>
                     <th class="px-4 py-3 font-bold">Desa</th>
-                    <th class="px-4 py-3 font-bold">Latitude</th>
                     <th class="px-4 py-3 font-bold">Longitude</th>
-                    <th class="px-4 py-3 font-bold">Prioritas</th>
+                    <th class="px-4 py-3 font-bold">Latitude</th>
+                    <th class="px-3 py-3 font-bold">Prioritas</th>
+                    <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                    <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                    <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                    <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
                     <th class="px-4 py-3 text-center font-bold">Tahun</th>
                     <th class="px-4 py-3 text-center font-bold">Status</th>
                     <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -59,13 +63,18 @@
                     data-status="{{ $spot->status_validasi }}"
                     data-operator="{{ $spot->creator->nama ?? '-' }}"
                     data-tanggal="{{ $spot->created_at }}"
-                    data-keterangan="{{ $spot->keterangan ?? '-' }}">
+                    data-keterangan="{{ $spot->status_jaringan ?? '-' }}"
+                    data-photos='@json($spot->photos->map(fn($p) => ["id" => $p->id, "url" => $p->url, "jenis" => $p->jenis_foto]))'>
                     <td class="px-4 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
                     <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                     <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-                    <td class="px-4 py-3">{{ $spot->latitude }}</td>
                     <td class="px-4 py-3">{{ $spot->longitude }}</td>
+                    <td class="px-4 py-3">{{ $spot->latitude }}</td>
                     <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
                     <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                     <td class="px-4 py-3 text-center">
                         <div class="flex justify-center items-center">
@@ -75,7 +84,7 @@
                         </div>
                     </td>
                     <td class="px-4 py-3">
-                        <div class="flex justify-center gap-2">
+                        <div class="flex justify-center gap-2" onclick="event.stopPropagation()">
                             @if($spot->status_validasi != 'approved')
                             <!-- Edit -->
                             <a href="{{ route('user.blank-spot.edit', $spot->id) }}"
@@ -101,8 +110,8 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="text-center py-8 text-gray-400">
-                        Belum ada data. Klik Tambah Data untuk mulai
+                    <td colspan="13" class="text-center py-8 text-gray-400">
+                        Tidak ada data yang ditemukan
                     </td>
                 </tr>
                 @endforelse
@@ -140,7 +149,7 @@
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status</td><td id="detail-status" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Keterangan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status Jaringan</td><td id="detail-keterangan" class="px-4 py-3">-</td></tr>
                 </tbody>
             </table>
         </div>
@@ -150,6 +159,15 @@
             <div id="validasiMap" class="w-full h-full"></div>
         </div>
 
+    </div>
+
+    <!-- GALERI FOTO DOKUMENTASI -->
+    <div class="mt-6 border-t border-gray-300/60 pt-4">
+        <h5 class="text-[#234B26] font-bold text-base mb-3 flex items-center gap-2">
+            📷 Galeri Foto Dokumentasi
+        </h5>
+        <div id="user-detail-photos-container" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3"></div>
+        <p id="user-detail-photos-empty" class="text-gray-500 text-sm italic hidden">Belum ada foto dokumentasi yang diunggah.</p>
     </div>
 </div>
 </div>
@@ -189,6 +207,38 @@ function showDetail(row) {
     document.getElementById('detail-operator').innerText = data.operator;
     document.getElementById('detail-tanggal').innerText = data.tanggal;
     document.getElementById('detail-keterangan').innerText = data.keterangan;
+
+    // Render Galeri Foto
+    const photosContainer = document.getElementById('user-detail-photos-container');
+    const emptyText = document.getElementById('user-detail-photos-empty');
+
+    if (photosContainer) {
+        photosContainer.innerHTML = '';
+        let photos = [];
+        try {
+            photos = JSON.parse(data.photos || '[]');
+        } catch (e) {
+            photos = [];
+        }
+
+        if (photos && photos.length > 0) {
+            if (emptyText) emptyText.classList.add('hidden');
+            photos.forEach(photo => {
+                const imgCard = document.createElement('div');
+                imgCard.className = 'relative group cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm aspect-square bg-gray-100';
+                imgCard.onclick = () => openLightbox(photo.url);
+                imgCard.innerHTML = `
+                    <img src="${photo.url}" alt="Foto Blank Spot" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                        🔍 Perbesar
+                    </div>
+                `;
+                photosContainer.appendChild(imgCard);
+            });
+        } else {
+            if (emptyText) emptyText.classList.remove('hidden');
+        }
+    }
 
     setTimeout(() => {
         initMap(lat, lng);

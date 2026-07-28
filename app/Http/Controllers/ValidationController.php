@@ -27,7 +27,7 @@ class ValidationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         if ($request->filled('kabupaten_id')) {
             $query->where('kabupaten_id', $request->kabupaten_id);
@@ -63,7 +63,7 @@ class ValidationController extends Controller
         $totalDitolak   = BlankSpot::where('status_validasi', 'rejected')->count();
         $totalRevisi    = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
-        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         if ($request->filled('kabupaten_id')) {
             $vmQuery->where('kabupaten_id', $request->kabupaten_id);
@@ -128,7 +128,7 @@ class ValidationController extends Controller
      */
     public function show($id)
     {
-        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator'])
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->findOrFail($id);
 
         return view('admin.validasi.show', compact('blankSpot'));
@@ -139,7 +139,7 @@ class ValidationController extends Controller
      */
     public function edit($id)
     {
-        $blankSpot  = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])->findOrFail($id);
+        $blankSpot  = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])->findOrFail($id);
 
         if (!str_contains(url()->previous(), '/edit')) {
             session(['blank_spot_return_url' => url()->previous()]);
@@ -160,18 +160,22 @@ class ValidationController extends Controller
         $blankSpot = BlankSpot::findOrFail($id);
 
         $validated = $request->validate([
-            'kabupaten_id'    => 'required|exists:kabupaten,id',
-            'kecamatan_id'    => 'required|exists:kecamatan,id',
-            'desa_id'         => 'nullable',
-            'nama_desa'       => 'nullable|string|max:255',
-            'desa'            => 'nullable|string|max:255',
-            'prioritas'       => 'required|integer|between:1,10',
-            'latitude'        => 'required|numeric|between:-90,90',
-            'longitude'       => 'required|numeric|between:-180,180',
-            'tahun'           => 'required|integer|min:2000|max:' . (date('Y') + 1),
-            'status_validasi' => 'required|in:pending,approved,rejected,revisi,perlu_revisi',
-            'catatan_revisi'  => 'nullable|string|max:1000',
-            'keterangan'      => 'nullable|string',
+            'kabupaten_id'      => 'required|exists:kabupaten,id',
+            'kecamatan_id'      => 'required|exists:kecamatan,id',
+            'desa_id'           => 'nullable',
+            'nama_desa'         => 'nullable|string|max:255',
+            'desa'              => 'nullable|string|max:255',
+            'prioritas'         => 'nullable|integer|between:1,10',
+            'status_jaringan'   => 'nullable|string|max:255',
+            'kondisi_geografis' => 'required|string|max:255',
+            'jumlah_penduduk'   => 'required|string|max:255',
+            'jarak_ibukota'     => 'required|numeric|min:0',
+            'latitude'          => 'required|numeric|between:-90,90',
+            'longitude'         => 'required|numeric|between:-180,180',
+            'tahun'             => 'required|integer|min:2000|max:' . (date('Y') + 1),
+            'status_validasi'   => 'required|in:pending,approved,rejected,revisi,perlu_revisi',
+            'catatan_revisi'    => 'nullable|string|max:1000',
+            'keterangan'        => 'nullable|string',
         ]);
 
         $namaDesaInput = $validated['nama_desa'] ?? $validated['desa'] ?? null;
@@ -188,7 +192,12 @@ class ValidationController extends Controller
             ]);
             $validated['desa_id'] = $desa->id;
         }
-        unset($validated['nama_desa'], $validated['desa']);
+
+        if (!empty($validated['status_jaringan'])) {
+            $validated['prioritas'] = BlankSpot::getPrioritasFromStatusJaringan($validated['status_jaringan']);
+        }
+
+        unset($validated['nama_desa'], $validated['desa'], $validated['keterangan']);
 
         $blankSpot->update($validated);
 

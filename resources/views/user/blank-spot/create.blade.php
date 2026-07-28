@@ -27,7 +27,7 @@
             </div>
         @endif
 
-        <form action="{{ route('user.blank-spot.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('user.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
             <!-- Kabupaten (readonly, otomatis dari user) -->
@@ -62,15 +62,14 @@
                 </div>
 
                 <!-- Tahun -->
-                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun<span class="text-red-500">*</span></label>
-
+                <div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-1.5">Tahun <span class="text-red-500">*</span></label>
                     <input
                         type="text"
                         value="{{ date('Y') }}"
                         readonly
                         class="w-full bg-[#F3F3E8] border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 cursor-not-allowed"
                     >
-
                     <input
                         type="hidden"
                         name="tahun"
@@ -119,6 +118,36 @@
                 </select>
             </div>
 
+            <!-- FOTO BLANKSPOT SECTION -->
+            <div class="space-y-4 pt-2">
+                <h3 class="text-base font-bold text-[#234B26] border-b border-[#234B26]/20 pb-1">Upload Foto Dokumentasi</h3>
+                
+                <!-- Foto 1 -->
+                <div>
+                    <label class="block text-[#234B26] font-semibold text-sm mb-1">Foto Blankspot 1 <span class="text-red-500">*</span></label>
+                    <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" required
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+                </div>
+
+                <!-- Foto 2 -->
+                <div>
+                    <label class="block text-[#234B26] font-semibold text-sm mb-1">Foto Blankspot 2</label>
+                    <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp"
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+                </div>
+
+                <div id="user-dynamic-photos-form-container" class="space-y-4"></div>
+
+                <div>
+                    <button type="button" onclick="addUserPagePhotoField()" id="btn-add-user-page-photo" class="bg-[#234B26] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#1a381c] transition inline-flex items-center gap-1 shadow-sm">
+                        + Tambah Foto
+                    </button>
+                    <span class="text-xs text-gray-500 ml-2">Maksimal 10 foto.</span>
+                </div>
+            </div>
+
             <!-- Keterangan -->
             <div>
                 <label class="block text-[#234B26] font-bold text-sm mb-1.5">Keterangan</label>
@@ -158,12 +187,43 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const kecSelect = document.getElementById('kecamatan_id');
-    // Tidak perlu fetch karena kecamatan sudah dikirim dari controller
-});
+let userPagePhotoCount = 2;
+function addUserPagePhotoField() {
+    if (userPagePhotoCount >= 10) {
+        alert('Maksimal 10 foto yang dapat diunggah.');
+        return;
+    }
+    userPagePhotoCount++;
+    const container = document.getElementById('user-dynamic-photos-form-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.id = `user-page-photo-group-${userPagePhotoCount}`;
+    div.innerHTML = `
+        <div class="flex justify-between items-center mb-1">
+            <label class="block text-[#234B26] font-semibold text-sm">Foto Blankspot ${userPagePhotoCount}</label>
+            <button type="button" onclick="document.getElementById('user-page-photo-group-${userPagePhotoCount}').remove(); userPagePhotoCount--; updateUserPagePhotoBtnState();" class="text-red-500 hover:text-red-700 text-xs font-semibold">Hapus</button>
+        </div>
+        <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp"
+            class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+        <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+    `;
+    container.appendChild(div);
+    updateUserPagePhotoBtnState();
+}
+
+function updateUserPagePhotoBtnState() {
+    const btn = document.getElementById('btn-add-user-page-photo');
+    if (btn) {
+        if (userPagePhotoCount >= 10) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+}
 </script>
 
 <style>

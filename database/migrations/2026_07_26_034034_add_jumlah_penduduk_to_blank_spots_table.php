@@ -9,20 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('blank_spots', function (Blueprint $table) {
-
-            $table->enum('jumlah_penduduk', [
-                '1-10',
-                '11-50',
-                '51-100',
-                '101-200',
-                '201-500',
-                '501-1000',
-                '1001-5000',
-                '5001-10000',
-                '10001-50000',
-                '>50000'
-            ])->after('kondisi_geografis');
-
+            if (!Schema::hasColumn('blank_spots', 'jumlah_penduduk')) {
+                $table->string('jumlah_penduduk')->nullable()->after('kondisi_geografis');
+            }
         });
     }
 

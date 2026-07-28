@@ -75,6 +75,18 @@
             <td class="val">{{ $blankSpot->prioritas ? 'P' . $blankSpot->prioritas : '-' }}</td>
         </tr>
         <tr>
+            <td class="label">Kondisi Geografis</td>
+            <td class="val">{{ $blankSpot->kondisi_geografis ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Jumlah Penduduk</td>
+            <td class="val">{{ $blankSpot->jumlah_penduduk ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Jarak ke Ibu Kota</td>
+            <td class="val">{{ $blankSpot->jarak_ibukota ? $blankSpot->jarak_ibukota . ' Km' : '-' }}</td>
+        </tr>
+        <tr>
             <td class="label">Tahun / Semester</td>
             <td class="val">{{ $blankSpot->tahun }} / Semester {{ $blankSpot->semester ?? 1 }}</td>
         </tr>
@@ -85,6 +97,10 @@
         <tr>
             <td class="label">Petugas Verifikator</td>
             <td class="val">{{ $blankSpot->verifikator->nama ?? ($blankSpot->validator->nama ?? 'Tim Verifikasi Diskominfo') }}</td>
+        </tr>
+        <tr>
+            <td class="label">Dokumentasi Foto</td>
+            <td class="val">{{ $blankSpot->photos->count() }} Foto Lampiran Terdaftar</td>
         </tr>
         <tr>
             <td class="label">Hasil & Catatan Verifikasi</td>

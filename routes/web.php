@@ -13,22 +13,13 @@ use App\Http\Controllers\PublicApiController;
 use App\Http\Controllers\VerifikasiController;
 use App\Http\Controllers\UsulanController;
 use App\Http\Controllers\BackupController;
-
-Route::get('/guest', function () {
-    return view('guest');
-});
+use App\Http\Controllers\GuestController;
 
 // ============================================================
-// ROOT
+// PUBLIC GUEST LANDING PAGE & ROOT
 // ============================================================
-Route::get('/', function () {
-    if (auth()->check()) {
-        return auth()->user()->role === 'admin'
-            ? redirect()->route('admin.dashboard')
-            : redirect()->route('user.dashboard');
-    }
-    return redirect()->route('login');
-});
+Route::get('/', [GuestController::class, 'index'])->name('home');
+Route::get('/guest', [GuestController::class, 'index'])->name('guest');
 
 // ============================================================
 // AUTHENTICATION

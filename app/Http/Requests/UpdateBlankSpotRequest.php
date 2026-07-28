@@ -24,13 +24,13 @@ class UpdateBlankSpotRequest extends FormRequest
             if ($id) {
                 $blankSpot = BlankSpot::find($id);
                 if ($blankSpot && (int) $blankSpot->kabupaten_id !== (int) $user->kabupaten_id) {
-                    return false; // 403 Forbidden
+                    return false;
                 }
             }
 
             $inputKab = $this->input('kabupaten_id');
             if ($inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
-                return false; // 403 Forbidden
+                return false;
             }
 
             return true;
@@ -43,86 +43,150 @@ class UpdateBlankSpotRequest extends FormRequest
     {
         $user = Auth::user();
 
-        // Extract prioritas integer from keterangan if keterangan holds "Priority X" or "Prioritas X"
-        if (!$this->filled('prioritas') && $this->filled('keterangan')) {
-            if (preg_match('/(?:Priority|Prioritas)\s*(\d+)/i', $this->keterangan, $matches)) {
-                $this->merge([
-                    'prioritas' => (int) $matches[1],
-                ]);
-            } elseif (is_numeric($this->keterangan)) {
-                $this->merge([
-                    'prioritas' => (int) $this->keterangan,
-                ]);
+        $statusJaringan = $this->input('status_jaringan');
+        $rawPrioritas   = $this->input('prioritas');
+
+        $priorityToStatusMap = [
+            1 => 'Zero Blankspot',
+            2 => 'Sinyal Sangat Lemah',
+            3 => 'Sinyal Lemah',
+            4 => '2G',
+            5 => '3G',
+            6 => '4G Tidak Stabil',
+        ];
+
+        if (empty($statusJaringan)) {
+            if (!empty($rawPrioritas) && is_numeric($rawPrioritas) && isset($priorityToStatusMap[(int)$rawPrioritas])) {
+                $statusJaringan = $priorityToStatusMap[(int)$rawPrioritas];
             }
         }
 
-        // Paksa kabupaten_id milik Operator sendiri
+        $toMerge = [];
+
+        // ALWAYS calculate priority automatically from status_jaringan
+        if (!empty($statusJaringan)) {
+            $toMerge['status_jaringan'] = $statusJaringan;
+            $toMerge['prioritas']       = BlankSpot::getPrioritasFromStatusJaringan($statusJaringan);
+        } elseif (!empty($rawPrioritas) && is_numeric($rawPrioritas)) {
+            $toMerge['prioritas'] = (int) $rawPrioritas;
+        }
+
         if ($user && $user->isOperator()) {
-            $this->merge([
-                'kabupaten_id' => $user->kabupaten_id,
-            ]);
+            $toMerge['kabupaten_id'] = $user->kabupaten_id;
+        }
+
+        if (!empty($toMerge)) {
+            $this->merge($toMerge);
         }
     }
 
     public function rules(): array
     {
         $user = Auth::user();
-        $id = $this->route('id') ?? $this->route('blank_spot');
-        $blankSpot = BlankSpot::find($id);
-
-        $kabupatenId = $user->isOperator() 
-            ? $user->kabupaten_id 
-            : ($this->input('kabupaten_id') ?? $blankSpot?->kabupaten_id);
+        $fotoRule = is_array($this->file('foto')) ? 'nullable|array|max:10' : 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120';
 
         return [
-            'kabupaten_id'    => $user->isOperator() ? 'nullable' : 'required|exists:kabupaten,id',
-            'kecamatan_id'    => 'required|exists:kecamatan,id',
-            'desa_id'         => 'nullable',
-            'nama_desa'       => 'nullable|string|max:255',
-            'desa'            => 'nullable|string|max:255',
-            'latitude'        => 'required|numeric|between:-90,90',
-            'longitude'       => 'required|numeric|between:-180,180',
-            'radius'          => 'nullable|numeric|min:0',
-            'prioritas'       => [
-                'required',
-                'integer',
-                'between:1,10',
-                function ($attribute, $value, $fail) use ($kabupatenId, $id) {
-                    if ($value && $kabupatenId) {
-                        $exists = BlankSpot::where('kabupaten_id', $kabupatenId)
-                            ->where('prioritas', $value)
-                            ->where('id', '!=', $id)
-                            ->exists();
-                        if ($exists) {
-                            $fail("Prioritas P{$value} sudah digunakan pada Kabupaten/Kota ini. Setiap Kabupaten/Kota hanya diperbolehkan memiliki 1 data per tingkat prioritas (P1–P10).");
-                        }
-                    }
-                },
-            ],
-            'tahun'           => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
-            'semester'        => 'nullable|integer|between:1,2',
-            'foto'            => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'nama_lokasi'     => 'nullable|string|max:255',
-            'status_jaringan' => 'nullable|string|max:255',
-            'keterangan'      => 'nullable|string|max:1000',
-            'status_validasi' => $user->isAdmin() ? 'nullable|in:pending,approved,rejected,revisi,perlu_revisi' : 'nullable',
+            'kabupaten_id'      => $user && $user->isOperator() ? 'nullable' : 'required|exists:kabupaten,id',
+            'kecamatan_id'      => 'required|exists:kecamatan,id',
+            'desa_id'           => 'nullable',
+            'nama_desa'         => 'nullable|string|max:255',
+            'desa'              => 'nullable|string|max:255',
+            'latitude'          => 'required|numeric|between:-90,90',
+            'longitude'         => 'required|numeric|between:-180,180',
+            'radius'            => 'nullable|numeric|min:0',
+            'prioritas'         => 'nullable|integer|between:1,10',
+            'status_jaringan'   => 'required|string|max:255',
+            'kondisi_geografis' => 'required|string|max:255',
+            'jumlah_penduduk'   => 'required|string|max:255',
+            'jarak_ibukota'     => 'required|numeric|min:0',
+            'tahun'             => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'semester'          => 'nullable|integer|between:1,2',
+            'foto'              => $fotoRule,
+            'foto.*'            => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'photos'            => 'nullable|array|max:10',
+            'photos.*'          => 'nullable|file|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'nama_lokasi'       => 'nullable|string|max:255',
+            'keterangan'        => 'nullable|string|max:1000',
+            'status_validasi'   => $user && $user->isAdmin() ? 'nullable|in:pending,approved,rejected,revisi,perlu_revisi' : 'nullable',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $user = Auth::user();
+            $id = $this->route('id') ?? $this->route('blank_spot');
+            $blankSpot = $id ? BlankSpot::withCount('photos')->find($id) : null;
+            $existingPhotoCount = $blankSpot ? $blankSpot->photos_count : 0;
+
+            $kabupatenId = $this->input('kabupaten_id') ?? ($blankSpot ? $blankSpot->kabupaten_id : ($user && $user->isOperator() ? $user->kabupaten_id : null));
+            $kecamatanId = $this->input('kecamatan_id');
+            $desaId      = $this->input('desa_id');
+
+            if ($kabupatenId && $kecamatanId) {
+                $kecamatan = \App\Models\Kecamatan::find($kecamatanId);
+                if ($kecamatan && (int) $kecamatan->kabupaten_id !== (int) $kabupatenId) {
+                    $validator->errors()->add('kecamatan_id', 'Kecamatan yang dipilih tidak sesuai dengan Kabupaten/Kota terpilih.');
+                }
+            }
+
+            if ($kecamatanId && $desaId && is_numeric($desaId)) {
+                $desa = \App\Models\Desa::find($desaId);
+                if ($desa && (int) $desa->kecamatan_id !== (int) $kecamatanId) {
+                    $validator->errors()->add('desa_id', 'Desa yang dipilih tidak sesuai dengan Kecamatan terpilih.');
+                }
+            }
+
+            $fotoFiles   = $this->file('foto');
+            $photosFiles = $this->file('photos');
+
+            $countFoto   = is_array($fotoFiles) ? count($fotoFiles) : ($fotoFiles ? 1 : 0);
+            $countPhotos = is_array($photosFiles) ? count($photosFiles) : ($photosFiles ? 1 : 0);
+            $totalNewUploaded = $countFoto + $countPhotos;
+
+            if ($existingPhotoCount === 0 && $totalNewUploaded === 0) {
+                $validator->errors()->add('photos', 'Minimal terdapat 1 foto yang diunggah.');
+            }
+
+            if ($totalNewUploaded > 10) {
+                $validator->errors()->add('photos', 'Jumlah foto baru yang diunggah tidak boleh lebih dari 10 file.');
+            }
+        });
     }
 
     public function messages(): array
     {
         return [
-            'kecamatan_id.required' => 'Kecamatan wajib dipilih.',
-            'latitude.required' => 'Koordinat Latitude wajib diisi.',
-            'latitude.between' => 'Latitude harus berada dalam rentang -90 hingga 90 derajat.',
-            'longitude.required' => 'Koordinat Longitude wajib diisi.',
-            'longitude.between' => 'Longitude harus berada dalam rentang -180 hingga 180 derajat.',
-            'radius.numeric' => 'Radius harus berupa angka (meter).',
-            'prioritas.integer' => 'Tingkat Prioritas harus berupa angka bulat antara 1 sampai 10.',
-            'prioritas.between' => 'Tingkat Prioritas harus bernilai antara P1 sampai P10.',
-            'foto.image' => 'File foto harus berupa gambar.',
-            'foto.mimes' => 'Format foto yang diizinkan hanya JPG, JPEG, atau PNG.',
-            'foto.max' => 'Ukuran file foto tidak boleh melebihi 5 MB.',
+            'kabupaten_id.required'      => 'Kabupaten/Kota wajib dipilih.',
+            'kabupaten_id.exists'        => 'Kabupaten/Kota tidak valid.',
+            'kecamatan_id.required'      => 'Kecamatan wajib dipilih.',
+            'kecamatan_id.exists'        => 'Kecamatan tidak valid.',
+            'status_jaringan.required'   => 'Status jaringan wajib dipilih.',
+            'kondisi_geografis.required' => 'Kondisi geografis wajib dipilih.',
+            'jumlah_penduduk.required'   => 'Jumlah penduduk wajib dipilih.',
+            'jarak_ibukota.required'     => 'Jarak ke ibu kota wajib diisi.',
+            'jarak_ibukota.numeric'      => 'Jarak ke ibu kota harus berupa angka numerik.',
+            'jarak_ibukota.min'          => 'Jarak ke ibu kota tidak boleh bernilai negatif.',
+            'latitude.required'          => 'Koordinat Latitude wajib diisi.',
+            'latitude.numeric'           => 'Latitude harus berupa angka.',
+            'latitude.between'           => 'Latitude harus berada dalam rentang -90 hingga 90 derajat.',
+            'longitude.required'         => 'Koordinat Longitude wajib diisi.',
+            'longitude.numeric'          => 'Longitude harus berupa angka.',
+            'longitude.between'          => 'Longitude harus berada dalam rentang -180 hingga 180 derajat.',
+            'radius.numeric'             => 'Radius harus berupa angka (meter).',
+            'tahun.integer'              => 'Tahun harus berupa angka tahun.',
+            'tahun.min'                  => 'Tahun minimal adalah 2000.',
+            'tahun.max'                  => 'Tahun tidak boleh melebihi tahun depan.',
+            'foto.image'                 => 'File foto harus berupa gambar.',
+            'foto.mimes'                 => 'Format foto yang diizinkan hanya JPG, JPEG, PNG, atau WEBP.',
+            'foto.max'                   => 'Ukuran file foto tidak boleh melebihi 5 MB per file.',
+            'foto.*.image'               => 'Setiap file foto harus berupa gambar.',
+            'foto.*.mimes'               => 'Format foto yang diizinkan hanya JPG, JPEG, PNG, atau WEBP.',
+            'foto.*.max'                 => 'Ukuran masing-masing foto tidak boleh melebihi 5 MB.',
+            'photos.max'                 => 'Jumlah foto tidak boleh melebihi 10 file.',
+            'photos.*.image'             => 'Setiap file foto harus berupa gambar.',
+            'photos.*.mimes'             => 'Format foto yang diizinkan hanya JPG, JPEG, PNG, atau WEBP.',
+            'photos.*.max'               => 'Ukuran masing-masing foto tidak boleh melebihi 5 MB.',
         ];
     }
 }

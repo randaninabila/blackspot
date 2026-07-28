@@ -12,16 +12,18 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
 {
     protected array $filters;
     protected ?int $kabupatenId;
+    private static int $rowNumber = 0;
 
     public function __construct(array $filters = [], ?int $kabupatenId = null)
     {
         $this->filters = $filters;
         $this->kabupatenId = $kabupatenId;
+        self::$rowNumber = 0;
     }
 
     public function query()
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         $status = $this->filters['status'] ?? ($this->filters['status_validasi'] ?? null);
         if ($status && $status !== 'all') {
@@ -77,19 +79,23 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             'Radius (m)',
             'Status Jaringan',
             'Prioritas',
+            'Kondisi Geografis',
+            'Jumlah Penduduk',
+            'Jarak ke Ibu Kota (km)',
             'Tahun',
             'Semester',
-            'Keterangan',
             'Status Validasi',
+            'Jumlah Foto',
+            'URL Galeri Foto',
             'Petugas Input',
         ];
     }
 
-    private static int $rowNumber = 0;
-
     public function map($blankSpot): array
     {
         self::$rowNumber++;
+        $photoUrls = $blankSpot->photos->map(fn($p) => $p->url)->filter()->implode(', ');
+
         return [
             self::$rowNumber,
             $blankSpot->kabupaten->nama_kabupaten ?? '-',
@@ -101,10 +107,14 @@ class BlankSpotExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             $blankSpot->radius ?? '-',
             $blankSpot->status_jaringan ?? '-',
             $blankSpot->prioritas ? 'Prioritas ' . $blankSpot->prioritas : '-',
+            $blankSpot->kondisi_geografis ?? '-',
+            $blankSpot->jumlah_penduduk ?? '-',
+            $blankSpot->jarak_ibukota ?? '-',
             $blankSpot->tahun,
             $blankSpot->semester ? 'Semester ' . $blankSpot->semester : '-',
-            $blankSpot->keterangan ?? '-',
             $blankSpot->status_label,
+            $blankSpot->photos->count(),
+            $photoUrls ?: '-',
             $blankSpot->creator->nama ?? '-',
         ];
     }

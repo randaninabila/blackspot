@@ -34,7 +34,7 @@ class PublicApiController extends Controller
      */
     public function blankSpots(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'approved');
 
         if ($request->filled('kabupaten_id')) {
@@ -63,7 +63,7 @@ class PublicApiController extends Controller
      */
     public function peta(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'approved');
 
         if ($request->filled('kabupaten_id')) {
@@ -71,22 +71,28 @@ class PublicApiController extends Controller
         }
 
         $spots = $query->get()->map(function ($spot) {
+            $firstPhoto = $spot->photos->first();
             return [
-                'id'              => $spot->id,
-                'latitude'        => (float) $spot->latitude,
-                'longitude'       => (float) $spot->longitude,
-                'lat'             => (float) $spot->latitude,
-                'lng'             => (float) $spot->longitude,
-                'radius'          => (float) ($spot->radius ?? 0),
-                'nama_lokasi'     => $spot->nama_lokasi ?? ($spot->desa->nama_desa ?? '-'),
-                'kabupaten'       => $spot->kabupaten->nama_kabupaten ?? '-',
-                'kecamatan'       => $spot->kecamatan->nama_kecamatan ?? '-',
-                'desa'            => $spot->desa->nama_desa ?? '-',
-                'prioritas'       => $spot->prioritas ? 'P' . $spot->prioritas : '-',
-                'status_jaringan' => $spot->status_jaringan ?? 'Blank Spot',
-                'tahun'           => $spot->tahun,
-                'semester'        => $spot->semester ?? 1,
-                'marker_color'    => $this->getMarkerColor($spot->prioritas, $spot->status_jaringan),
+                'id'                => $spot->id,
+                'latitude'          => (float) $spot->latitude,
+                'longitude'         => (float) $spot->longitude,
+                'lat'               => (float) $spot->latitude,
+                'lng'               => (float) $spot->longitude,
+                'radius'            => (float) ($spot->radius ?? 0),
+                'nama_lokasi'       => $spot->nama_lokasi ?? ($spot->desa->nama_desa ?? '-'),
+                'kabupaten'         => $spot->kabupaten->nama_kabupaten ?? '-',
+                'kecamatan'         => $spot->kecamatan->nama_kecamatan ?? '-',
+                'desa'              => $spot->desa->nama_desa ?? '-',
+                'prioritas'         => $spot->prioritas ? 'P' . $spot->prioritas : '-',
+                'status_jaringan'   => $spot->status_jaringan ?? 'Blank Spot',
+                'kondisi_geografis' => $spot->kondisi_geografis ?? '-',
+                'jumlah_penduduk'   => $spot->jumlah_penduduk ?? '-',
+                'jarak_ibukota'     => $spot->jarak_ibukota ?? 0,
+                'tahun'             => $spot->tahun,
+                'semester'          => $spot->semester ?? 1,
+                'marker_color'      => $this->getMarkerColor($spot->prioritas, $spot->status_jaringan),
+                'foto_url'          => $firstPhoto ? $firstPhoto->url : null,
+                'photos'            => $spot->photos->map(fn($p) => ['id' => $p->id, 'url' => $p->url, 'jenis' => $p->jenis_foto]),
             ];
         });
 
@@ -113,17 +119,23 @@ class PublicApiController extends Controller
                 'terbanyak'        => $stats['highestKabupaten'],
                 'tersedikit'       => $stats['lowestKabupaten'],
             ],
+            'charts'  => [
+                'pie_network'     => $stats['networkStats'],
+                'bar_geografis'   => $stats['geografisStats'],
+                'bar_kabupaten'   => $stats['kabupatenBarStats'],
+                'status_validasi' => $stats['statusValidasiStats'],
+            ]
         ]);
     }
 
     private function getMarkerColor(?int $prioritas, ?string $statusJaringan): string
     {
         if ($prioritas >= 1 && $prioritas <= 3) {
-            return '#dc2626'; // Merah pekat
+            return '#dc2626';
         } elseif ($prioritas >= 4 && $prioritas <= 6) {
-            return '#f97316'; // Oranye
+            return '#f97316';
         } elseif ($prioritas >= 7 && $prioritas <= 10) {
-            return '#eab308'; // Kuning
+            return '#eab308';
         }
 
         if ($statusJaringan) {

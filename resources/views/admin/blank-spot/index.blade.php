@@ -96,9 +96,13 @@
                     <th class="px-4 py-3 font-bold">Kabupaten/Kota</th>
                     <th class="px-4 py-3 font-bold">Kecamatan</th>
                     <th class="px-4 py-3 font-bold">Desa</th>
-                    <th class="px-4 py-3 font-bold">Latitude</th>
                     <th class="px-4 py-3 font-bold">Longitude</th>
-                    <th class="px-4 py-3 font-bold">Prioritas</th>
+                    <th class="px-4 py-3 font-bold">Latitude</th>
+                    <th class="px-3 py-3 font-bold">Prioritas</th>
+                    <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                    <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                    <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                    <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
                     <th class="px-4 py-3 text-center font-bold">Tahun</th>
                     <th class="px-4 py-3 text-center font-bold">Status</th>
                     <th class="px-4 py-3 text-center font-bold">Aksi</th>
@@ -111,9 +115,13 @@
                     <td class="px-4 py-3">{{ $spot->kabupaten->nama_kabupaten ?? '-' }}</td>
                     <td class="px-4 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
                     <td class="px-4 py-3">{{ $spot->desa->nama_desa ?? '-' }}</td>
-                    <td class="px-4 py-3">{{ $spot->latitude }}</td>
                     <td class="px-4 py-3">{{ $spot->longitude }}</td>
+                    <td class="px-4 py-3">{{ $spot->latitude }}</td>
                     <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
                     <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                     <td class="px-4 py-3 text-center">
                         <span class="px-3 py-1 rounded-full text-xs font-bold {{ $spot->status_badge }}">
@@ -143,7 +151,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="10" class="text-center py-8 text-gray-400">
+                    <td colspan="14" class="text-center py-8 text-gray-400">
                         Tidak ada data yang ditemukan
                     </td>
                 </tr>

@@ -16,7 +16,7 @@ class ReportService
      */
     public function generatePdf(array $filters, User $user, ?int $kabupatenId = null)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'verifikator']);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         $status = $filters['status'] ?? ($filters['status_validasi'] ?? null);
         if ($status && $status !== 'all') {

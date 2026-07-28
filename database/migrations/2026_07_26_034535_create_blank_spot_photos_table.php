@@ -8,19 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('blank_spot_photos', function (Blueprint $table) {
-
-            $table->id();
-
-            $table->foreignId('blank_spot_id')
-                  ->constrained('blank_spots')
-                  ->cascadeOnDelete();
-
-            $table->string('foto');
-
-            $table->timestamps();
-
-        });
+        if (!Schema::hasTable('blank_spot_photos')) {
+            Schema::create('blank_spot_photos', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('blank_spot_id')->constrained('blank_spots')->cascadeOnDelete();
+                $table->string('filename')->nullable();
+                $table->string('path')->nullable();
+                $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

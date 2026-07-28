@@ -24,7 +24,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.blank-spot.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -63,14 +63,14 @@
                 </div>
 
                <div>
-    <label class="block text-[#234B26] font-bold text-sm mb-2">Tahun <span class="text-red-500">*</span></label>
-    <select name="tahun" required
-        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#234B26]">
-        <option value="">-- Pilih Tahun --</option>
-        <option value="2025">2025</option>
-        <option value="2026">2026</option>
-    </select>
-</div>
+                    <label class="block text-[#234B26] font-bold text-sm mb-2">Tahun <span class="text-red-500">*</span></label>
+                    <select name="tahun" required
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#234B26]">
+                        <option value="">-- Pilih Tahun --</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                    </select>
+                </div>
 
                 <!-- Latitude -->
                 <div>
@@ -88,6 +88,36 @@
                         value="{{ old('longitude') }}"
                         placeholder="Contoh: 98.672273"
                         class="w-full bg-white border border-[#234B26]/30 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#234B26] transition-all">
+                </div>
+            </div>
+
+            <!-- FOTO BLANKSPOT SECTION -->
+            <div class="space-y-4 pt-2">
+                <h3 class="text-base font-bold text-[#234B26] border-b border-[#234B26]/20 pb-1">Upload Foto Dokumentasi</h3>
+                
+                <!-- Foto 1 -->
+                <div>
+                    <label class="block text-[#234B26] font-semibold text-sm mb-1">Foto Blankspot 1 <span class="text-red-500">*</span></label>
+                    <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" required
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+                </div>
+
+                <!-- Foto 2 -->
+                <div>
+                    <label class="block text-[#234B26] font-semibold text-sm mb-1">Foto Blankspot 2</label>
+                    <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp"
+                        class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+                </div>
+
+                <div id="dynamic-photos-form-container" class="space-y-4"></div>
+
+                <div>
+                    <button type="button" onclick="addPagePhotoField()" id="btn-add-page-photo" class="bg-[#234B26] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#1a381c] transition inline-flex items-center gap-1 shadow-sm">
+                        + Tambah Foto
+                    </button>
+                    <span class="text-xs text-gray-500 ml-2">Maksimal 10 foto.</span>
                 </div>
             </div>
 
@@ -150,6 +180,44 @@ document.addEventListener('DOMContentLoaded', function() {
         kabSelect.dispatchEvent(new Event('change'));
     }
 });
+
+let pagePhotoCount = 2;
+function addPagePhotoField() {
+    if (pagePhotoCount >= 10) {
+        alert('Maksimal 10 foto yang dapat diunggah.');
+        return;
+    }
+    pagePhotoCount++;
+    const container = document.getElementById('dynamic-photos-form-container');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.id = `page-photo-group-${pagePhotoCount}`;
+    div.innerHTML = `
+        <div class="flex justify-between items-center mb-1">
+            <label class="block text-[#234B26] font-semibold text-sm">Foto Blankspot ${pagePhotoCount}</label>
+            <button type="button" onclick="document.getElementById('page-photo-group-${pagePhotoCount}').remove(); pagePhotoCount--; updatePagePhotoBtnState();" class="text-red-500 hover:text-red-700 text-xs font-semibold">Hapus</button>
+        </div>
+        <input type="file" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp"
+            class="w-full bg-white border border-[#234B26]/30 rounded-xl p-2 text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#234B26] file:text-white hover:file:bg-[#1a381c]">
+        <p class="text-xs text-gray-500 mt-1">Format: JPG, JPEG, PNG, WEBP. Maksimal 5 MB.</p>
+    `;
+    container.appendChild(div);
+    updatePagePhotoBtnState();
+}
+
+function updatePagePhotoBtnState() {
+    const btn = document.getElementById('btn-add-page-photo');
+    if (btn) {
+        if (pagePhotoCount >= 10) {
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+}
 </script>
 
 <style>

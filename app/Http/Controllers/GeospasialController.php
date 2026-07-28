@@ -17,26 +17,25 @@ class GeospasialController extends Controller
     {
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $tahuns     = BlankSpot::where('status_validasi', 'approved')->distinct('tahun')->pluck('tahun');
-        $spots      = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])->where('status_validasi', 'approved')->get();
+        $spots      = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])->where('status_validasi', 'approved')->get();
 
         return view('admin.geospasial.index', compact('kabupatens', 'tahuns', 'spots'));
     }
 
     /**
      * API endpoint untuk detail geospasial satu Kabupaten saat diklik di peta
-     * Menghasilkan: Nama Kabupaten, Total Blank Spot, Total Desa, Statistik Jaringan, Statistik Prioritas, Daftar Titik/Desa.
      */
     public function getKabupatenData($id)
     {
         $kabupaten = Kabupaten::findOrFail($id);
 
-        $spots = BlankSpot::with(['kecamatan', 'desa'])
+        $spots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $id)
             ->where('status_validasi', 'approved')
             ->get();
 
         $totalBlankSpot = $spots->count();
-        $totalDesa = $spots->pluck('desa_id')->unique()->count();
+        $totalDesa      = $spots->pluck('desa_id')->unique()->count();
 
         // Statistik Status Jaringan
         $networkStats = $spots->groupBy('status_jaringan')->map->count();
@@ -46,23 +45,28 @@ class GeospasialController extends Controller
 
         // Daftar Titik Detail
         $daftarTitik = $spots->map(function ($spot) {
+            $firstPhoto = $spot->photos->first();
             return [
-                'id'              => $spot->id,
-                'latitude'        => (float) $spot->latitude,
-                'longitude'       => (float) $spot->longitude,
-                'lat'             => (float) $spot->latitude,
-                'lng'             => (float) $spot->longitude,
-                'radius'          => (float) ($spot->radius ?? 0),
-                'prioritas'       => $spot->prioritas ? 'P' . $spot->prioritas : '-',
-                'prioritas_num'   => $spot->prioritas ?? 0,
-                'status_jaringan' => $spot->status_jaringan ?? '-',
-                'nama_lokasi'     => $spot->nama_lokasi ?? ($spot->desa->nama_desa ?? '-'),
-                'kecamatan'       => $spot->kecamatan->nama_kecamatan ?? '-',
-                'desa'            => $spot->desa->nama_desa ?? '-',
-                'tahun'           => $spot->tahun,
-                'keterangan'      => $spot->keterangan ?? '-',
-                'marker_color'    => $this->getMarkerColor($spot->prioritas, $spot->status_jaringan, $spot->keterangan),
-                'foto_url'        => $spot->foto ? asset('storage/' . $spot->foto) : null,
+                'id'                => $spot->id,
+                'latitude'          => (float) $spot->latitude,
+                'longitude'         => (float) $spot->longitude,
+                'lat'               => (float) $spot->latitude,
+                'lng'               => (float) $spot->longitude,
+                'radius'            => (float) ($spot->radius ?? 0),
+                'prioritas'         => $spot->prioritas ? 'P' . $spot->prioritas : '-',
+                'prioritas_num'     => $spot->prioritas ?? 0,
+                'status_jaringan'   => $spot->status_jaringan ?? '-',
+                'kondisi_geografis' => $spot->kondisi_geografis ?? '-',
+                'jumlah_penduduk'   => $spot->jumlah_penduduk ?? '-',
+                'jarak_ibukota'     => $spot->jarak_ibukota ?? 0,
+                'nama_lokasi'       => $spot->nama_lokasi ?? ($spot->desa->nama_desa ?? '-'),
+                'kecamatan'         => $spot->kecamatan->nama_kecamatan ?? '-',
+                'desa'              => $spot->desa->nama_desa ?? '-',
+                'tahun'             => $spot->tahun,
+                'keterangan'        => $spot->status_jaringan ?? '-',
+                'marker_color'      => $this->getMarkerColor($spot->prioritas, $spot->status_jaringan),
+                'foto_url'          => $firstPhoto ? $firstPhoto->url : null,
+                'photos'            => $spot->photos->map(fn($p) => ['id' => $p->id, 'url' => $p->url, 'jenis' => $p->jenis_foto]),
             ];
         });
 
@@ -85,7 +89,7 @@ class GeospasialController extends Controller
      */
     public function getAllSpots(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'approved');
 
         if ($request->filled('kabupaten_id') && $request->kabupaten_id !== 'all') {
@@ -109,31 +113,36 @@ class GeospasialController extends Controller
         $formattedSpots = $spots->map(function ($spot) {
             $namaLokasi = $spot->nama_lokasi ?? ($spot->desa->nama_desa ?? ($spot->kecamatan->nama_kecamatan ?? ($spot->kabupaten->nama_kabupaten ?? '-')));
 
-            $markerColor = $this->getMarkerColor($spot->prioritas, $spot->status_jaringan, $spot->keterangan);
+            $markerColor = $this->getMarkerColor($spot->prioritas, $spot->status_jaringan);
+            $firstPhoto  = $spot->photos->first();
 
             return [
-                'id'              => $spot->id,
-                'latitude'        => (float) $spot->latitude,
-                'longitude'       => (float) $spot->longitude,
-                'lat'             => (float) $spot->latitude,
-                'lng'             => (float) $spot->longitude,
-                'radius'          => (float) ($spot->radius ?? 0),
-                'prioritas'       => $spot->prioritas ? 'P' . $spot->prioritas : '-',
-                'prioritas_num'   => $spot->prioritas ?? 0,
-                'status_jaringan' => $spot->status_jaringan ?? '-',
-                'kabupaten'       => $spot->kabupaten ? $spot->kabupaten->nama_kabupaten : '-',
-                'kecamatan'       => $spot->kecamatan ? $spot->kecamatan->nama_kecamatan : '-',
-                'desa'            => $spot->desa ? $spot->desa->nama_desa : '-',
-                'nama_lokasi'     => $namaLokasi,
-                'keterangan'      => $spot->keterangan ?? 'Tidak ada keterangan',
-                'status_sinyal'   => $spot->status_jaringan ?? ($spot->keterangan ?? 'Blank Spot'),
-                'status'          => $spot->status_validasi,
-                'tahun'           => $spot->tahun,
-                'marker_color'    => $markerColor,
-                'foto_url'        => $spot->foto ? asset('storage/' . $spot->foto) : null,
-                'status_validasi' => $spot->status_validasi,
-                'kabupaten_id'    => $spot->kabupaten_id,
-                'created_at'      => $spot->created_at ? $spot->created_at->format('Y-m-d') : null,
+                'id'                => $spot->id,
+                'latitude'          => (float) $spot->latitude,
+                'longitude'         => (float) $spot->longitude,
+                'lat'               => (float) $spot->latitude,
+                'lng'               => (float) $spot->longitude,
+                'radius'            => (float) ($spot->radius ?? 0),
+                'prioritas'         => $spot->prioritas ? 'P' . $spot->prioritas : '-',
+                'prioritas_num'     => $spot->prioritas ?? 0,
+                'status_jaringan'   => $spot->status_jaringan ?? '-',
+                'kondisi_geografis' => $spot->kondisi_geografis ?? '-',
+                'jumlah_penduduk'   => $spot->jumlah_penduduk ?? '-',
+                'jarak_ibukota'     => $spot->jarak_ibukota ?? 0,
+                'kabupaten'         => $spot->kabupaten ? $spot->kabupaten->nama_kabupaten : '-',
+                'kecamatan'         => $spot->kecamatan ? $spot->kecamatan->nama_kecamatan : '-',
+                'desa'              => $spot->desa ? $spot->desa->nama_desa : '-',
+                'nama_lokasi'       => $namaLokasi,
+                'keterangan'        => $spot->status_jaringan ?? 'Blank Spot',
+                'status_sinyal'     => $spot->status_jaringan ?? 'Blank Spot',
+                'status'            => $spot->status_validasi,
+                'tahun'             => $spot->tahun,
+                'marker_color'      => $markerColor,
+                'foto_url'          => $firstPhoto ? $firstPhoto->url : null,
+                'photos'            => $spot->photos->map(fn($p) => ['id' => $p->id, 'url' => $p->url, 'jenis' => $p->jenis_foto]),
+                'status_validasi'   => $spot->status_validasi,
+                'kabupaten_id'      => $spot->kabupaten_id,
+                'created_at'        => $spot->created_at ? $spot->created_at->format('Y-m-d') : null,
             ];
         });
 
@@ -145,26 +154,26 @@ class GeospasialController extends Controller
     }
 
     /**
-     * Menentukan warna marker berdasarkan prioritas (P1-P10) / status jaringan
+     * Menentukan warna marker berdasarkan prioritas / status jaringan
      */
-    private function getMarkerColor(?int $prioritas, ?string $statusJaringan, ?string $keterangan): string
+    private function getMarkerColor(?int $prioritas, ?string $statusJaringan): string
     {
         if ($prioritas >= 1 && $prioritas <= 3) {
-            return '#dc2626'; // Merah pekat untuk Prioritas 1-3
+            return '#dc2626'; // Merah pekat
         } elseif ($prioritas >= 4 && $prioritas <= 6) {
-            return '#f97316'; // Oranye untuk Prioritas 4-6
+            return '#f97316'; // Oranye
         } elseif ($prioritas >= 7 && $prioritas <= 10) {
-            return '#eab308'; // Kuning untuk Prioritas 7-10
+            return '#eab308'; // Kuning
         }
 
         if ($statusJaringan) {
             $jaringanLower = strtolower($statusJaringan);
             if (str_contains($jaringanLower, 'blank') || str_contains($jaringanLower, 'tidak ada')) {
-                return '#ef4444'; // Merah
+                return '#ef4444';
             } elseif (str_contains($jaringanLower, '2g') || str_contains($jaringanLower, '3g') || str_contains($jaringanLower, 'lemah')) {
-                return '#f59e0b'; // Oranye
+                return '#f59e0b';
             } elseif (str_contains($jaringanLower, '4g') || str_contains($jaringanLower, 'stabil')) {
-                return '#22c55e'; // Hijau
+                return '#22c55e';
             }
         }
 

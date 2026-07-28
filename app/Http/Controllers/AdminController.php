@@ -34,13 +34,13 @@ class AdminController extends Controller
         $rejectedCount = $stats['rejectedCount'];
 
         // Data tabel - AMBIL SEMUA DATA APPROVED DARI DATABASE
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'approved')
             ->orderBy('created_at', 'desc')
             ->get();
 
         // Data pending untuk validasi
-        $pendingSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $pendingSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -65,7 +65,7 @@ class AdminController extends Controller
         $tahunCounts = $tahunData->pluck('total')->toArray();
 
         // Data untuk peta
-        $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('status_validasi', 'approved')
             ->get();
 
@@ -83,7 +83,7 @@ class AdminController extends Controller
         $totalDitolak   = $rejectedCount;
 
         // Dynamic query untuk data validasi
-        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         if ($request->filled('kabupaten_id')) {
             $vmQuery->where('kabupaten_id', $request->kabupaten_id);
@@ -138,7 +138,7 @@ class AdminController extends Controller
         $tahunTerendah  = $nilaiTerendahData ? $nilaiTerendahData->year : '-';
 
         return view('admin.dashboard', compact(
-            'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
+            'stats', 'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
             'blankSpots', 'pendingSpots',
             'statusLabels', 'statusCounts',
             'tahunLabels', 'tahunCounts',
@@ -173,7 +173,7 @@ class AdminController extends Controller
     {
         $kabupaten = Kabupaten::findOrFail($kabupaten_id);
 
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa'])
+        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $kabupaten_id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);

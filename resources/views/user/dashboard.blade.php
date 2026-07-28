@@ -142,15 +142,17 @@
                     <thead class="border-b-2 border-[#234B26] bg-[#D7E3D4]">
                         <tr>
                             <th class="px-4 py-3 text-center font-bold">No</th>
+                            <th class="px-4 py-3 font-bold">Kabupaten/Kota</th>
                             <th class="px-4 py-3 font-bold">Nama Kecamatan</th>
                             <th class="px-4 py-3 font-bold">Nama Desa</th>
                             <th class="px-4 py-3 font-bold">Longitude</th>
                             <th class="px-4 py-3 font-bold">Latitude</th>
                             <th class="px-3 py-3 font-bold">Prioritas</th>
-                            <th class="px-3 py-3 font-bold">Kondisi</br>Geografis</th>
-                            <th class="px-3 py-3 font-bold">Jumlah</br>Penduduk</th>
-                            <th class="px-3 py-3 font-bold">Jarak ke</br>Ibu Kota</th>
-                            <th class="px-4 py-3 font-bold">Tahun</th>
+                            <th class="px-3 py-3 font-bold">Status Jaringan</th>
+                            <th class="px-3 py-3 font-bold">Kondisi<br>Geografis</th>
+                            <th class="px-3 py-3 font-bold">Jumlah<br>Penduduk</th>
+                            <th class="px-3 py-3 font-bold">Jarak ke<br>Ibu Kota</th>
+                            <th class="px-4 py-3 font-bold text-center">Tahun</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -163,18 +165,15 @@
                             <td class="px-4 py-3">{{ $spot->longitude }}</td>
                             <td class="px-4 py-3">{{ $spot->latitude }}</td>
                             <td class="px-4 py-3 font-bold text-amber-800">{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}</td>
-                            <td class="px-4 py-3">
-                                @if($spot->foto)
-                                    <a href="{{ asset('storage/' . $spot->foto) }}" target="_blank" class="text-blue-600 underline font-semibold text-xs">Lihat Foto</a>
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
+                            <td class="px-4 py-3">{{ $spot->status_jaringan ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->kondisi_geografis ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->jumlah_penduduk ?? '-' }}</td>
+                            <td class="px-4 py-3">{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}</td>
                             <td class="px-4 py-3 text-center">{{ $spot->tahun }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
+                            <td colspan="12" class="text-center py-8 text-gray-400">Belum ada data blank spot.</td>
                         </tr>
                         @endforelse
                     </tbody>

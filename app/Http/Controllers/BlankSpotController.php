@@ -80,7 +80,7 @@ class BlankSpotController extends Controller
      */
     public function adminIndex(Request $request)
     {
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator']);
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
         if ($request->filled('kabupaten_id')) {
             $query->where('kabupaten_id', $request->kabupaten_id);
@@ -127,9 +127,11 @@ class BlankSpotController extends Controller
      */
     public function store(StoreBlankSpotRequest $request)
     {
-        $user  = Auth::user();
-        $data  = $request->validated();
-        $photo = $request->file('foto');
+        $user             = Auth::user();
+        $data             = $request->validated();
+        $photo            = $request->file('foto');
+        $additionalPhotos = $request->file('photos');
+        $additionalPhotos = is_array($additionalPhotos) ? $additionalPhotos : ($additionalPhotos ? [$additionalPhotos] : []);
 
         if ($user->isOperator()) {
             $inputKab = $request->input('kabupaten_id');
@@ -139,7 +141,7 @@ class BlankSpotController extends Controller
             $data['kabupaten_id'] = $user->kabupaten_id;
         }
 
-        $bs = $this->blankSpotService->store($data, $user, $photo);
+        $bs = $this->blankSpotService->store($data, $user, $photo, $additionalPhotos);
 
         return redirect()->back()->with('success', "Data blank spot berhasil ditambahkan dan masuk ke antrean validasi Admin.");
     }
@@ -149,7 +151,7 @@ class BlankSpotController extends Controller
      */
     public function show($id)
     {
-        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator'])->findOrFail($id);
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])->findOrFail($id);
         return view('admin.blank-spot.show', compact('blankSpot'));
     }
 
@@ -158,7 +160,7 @@ class BlankSpotController extends Controller
      */
     public function edit($id)
     {
-        $blankSpot = BlankSpot::findOrFail($id);
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])->findOrFail($id);
 
         if ($blankSpot->status_validasi === 'approved') {
             return redirect()->back()
@@ -188,11 +190,13 @@ class BlankSpotController extends Controller
                 ->with('error', '⚠️ Data yang sudah DISETUJUI (Approved) tidak dapat diubah.');
         }
 
-        $data  = $request->validated();
-        $user  = Auth::user();
-        $photo = $request->file('foto');
+        $data             = $request->validated();
+        $user             = Auth::user();
+        $photo            = $request->file('foto');
+        $additionalPhotos = $request->file('photos');
+        $additionalPhotos = is_array($additionalPhotos) ? $additionalPhotos : ($additionalPhotos ? [$additionalPhotos] : []);
 
-        $this->blankSpotService->update($blankSpot, $data, $user, $photo);
+        $this->blankSpotService->update($blankSpot, $data, $user, $photo, $additionalPhotos);
 
         $returnUrl = session()->pull('blank_spot_return_url', route('admin.blank-spot.index'));
         return redirect()->to($returnUrl)->with('success', 'Data blank spot berhasil diperbarui!');
@@ -225,7 +229,7 @@ class BlankSpotController extends Controller
     {
         $user = Auth::user();
 
-        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator'])
+        $query = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id);
 
         if ($request->filled('tahun')) {
@@ -273,9 +277,11 @@ class BlankSpotController extends Controller
      */
     public function userStore(StoreBlankSpotRequest $request)
     {
-        $user  = Auth::user();
-        $data  = $request->validated();
-        $photo = $request->file('foto');
+        $user             = Auth::user();
+        $data             = $request->validated();
+        $photo            = $request->file('foto');
+        $additionalPhotos = $request->file('photos');
+        $additionalPhotos = is_array($additionalPhotos) ? $additionalPhotos : ($additionalPhotos ? [$additionalPhotos] : []);
 
         $inputKab = $request->input('kabupaten_id');
         if ($user->isOperator() && $inputKab !== null && (int) $inputKab !== (int) $user->kabupaten_id) {
@@ -284,7 +290,7 @@ class BlankSpotController extends Controller
 
         $data['kabupaten_id'] = $user->kabupaten_id;
 
-        $this->blankSpotService->store($data, $user, $photo);
+        $this->blankSpotService->store($data, $user, $photo, $additionalPhotos);
 
         return redirect()->back()
             ->with('success', 'Data berhasil dikirim dan masuk ke antrean validasi Admin Diskominfo.');
@@ -296,7 +302,7 @@ class BlankSpotController extends Controller
     public function userShow($id)
     {
         $user = Auth::user();
-        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator'])
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id)
             ->findOrFail($id);
 
@@ -309,7 +315,9 @@ class BlankSpotController extends Controller
     public function userEdit($id)
     {
         $user      = Auth::user();
-        $blankSpot = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
+        $blankSpot = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
+            ->where('kabupaten_id', $user->kabupaten_id)
+            ->findOrFail($id);
 
         if ($blankSpot->status_validasi === 'approved') {
             return redirect()->back()
@@ -337,20 +345,21 @@ class BlankSpotController extends Controller
      */
     public function userUpdate(UpdateBlankSpotRequest $request, $id)
     {
-        $user      = Auth::user();
-        $blankSpot = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
+        $user             = Auth::user();
+        $blankSpot        = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->findOrFail($id);
+        $photo            = $request->file('foto');
+        $additionalPhotos = $request->file('photos');
+        $additionalPhotos = is_array($additionalPhotos) ? $additionalPhotos : ($additionalPhotos ? [$additionalPhotos] : []);
 
         if ($blankSpot->status_validasi === 'approved') {
             return redirect()->back()
                 ->with('error', '⚠️ Data yang sudah disetujui (Approved) tidak dapat diubah.');
         }
 
-        $data  = $request->validated();
-        $photo = $request->file('foto');
-
+        $data                 = $request->validated();
         $data['kabupaten_id'] = $user->kabupaten_id;
 
-        $this->blankSpotService->update($blankSpot, $data, $user, $photo);
+        $this->blankSpotService->update($blankSpot, $data, $user, $photo, $additionalPhotos);
 
         $returnUrl = session()->pull('blank_spot_return_url', route('user.blank-spot.index'));
         return redirect()->to($returnUrl)->with('success', 'Data berhasil diperbarui dan dikirim ulang untuk menunggu validasi Admin.');

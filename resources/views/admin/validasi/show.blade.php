@@ -64,6 +64,28 @@
         <div class="relative w-full h-[300px] rounded-2xl overflow-hidden border border-gray-300 shadow-inner">
             <div id="valMap" class="w-full h-full z-10"></div>
         </div>
+
+        <!-- Galeri Foto Dokumentasi -->
+        <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+            <h3 class="text-lg font-bold text-[#234B26] mb-4 flex items-center gap-2">
+                📷 Galeri Foto Dokumentasi ({{ $blankSpot->photos->count() }})
+            </h3>
+            @if($blankSpot->photos && $blankSpot->photos->count() > 0)
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    @foreach($blankSpot->photos as $photo)
+                        <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-gray-200 shadow-sm aspect-square bg-gray-100"
+                             onclick="openLightbox('{{ $photo->url }}')">
+                            <img src="{{ $photo->url }}" alt="Foto Blank Spot" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold gap-1">
+                                🔍 Perbesar
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-500 text-sm italic">Belum ada foto dokumentasi.</p>
+            @endif
+        </div>
     </div>
 
     <div class="flex gap-4 mt-6 flex-wrap">

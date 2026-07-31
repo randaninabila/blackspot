@@ -17,13 +17,14 @@
         .table-info td.val { width: 70%; border: 1px solid #cbd5e1; }
         
         .signature-container { width: 100%; margin-top: 40px; page-break-inside: avoid; }
-        .signature-box { float: right; width: 250px; text-align: left; font-size: 10px; line-height: 1.3; }
-        .signature-box .sig-date { margin-bottom: 2px; }
-        .signature-box .sig-title { margin-bottom: 0; }
-        .signature-space { height: 55px; }
-        .signature-box .jabatan { text-align: left; font-weight: bold; }
-        .signature-box .wilayah { text-align: center; font-weight: bold; margin-top: 2px; }
-        .signature-box .nip { text-align: left; margin-top: 10px; }
+        .signature-box { float: right; width: 280px; text-align: center; font-size: 9.5px; line-height: 1.4; }
+        .signature-box .sig-date { text-align: center; margin-bottom: 8px; font-weight: normal; }
+        .signature-box .jabatan { font-weight: bold; text-align: center; }
+        .signature-box .wilayah { font-weight: bold; text-align: center; margin-top: 1px; }
+        .signature-space { height: 60px; }
+        .signature-box .kepala-dinas { text-align: center; font-weight: bold; }
+        .signature-box .pangkat { text-align: center; font-size: 9px; color: #222; margin-top: 2px; }
+        .signature-box .nip { text-align: center; margin-top: 2px; }
         
         .footer { margin-top: 40px; text-align: left; font-size: 8px; color: #888; clear: both; }
     </style>
@@ -115,11 +116,18 @@
     <div class="signature-container">
         <div class="signature-box">
             <p class="sig-date">{{ $namaKota }}, {{ $tanggalCetak }}</p>
-            <p class="sig-title">Pejabat Pengesah / Penanggung Jawab,</p>
-            <div class="signature-space"></div>
             <div class="jabatan">Kepala Dinas Komunikasi dan Informatika</div>
-            <div class="wilayah">{{ $namaKabupaten }}</div>
-            <div class="nip">NIP.{{ $nipFormatted }}</div>
+            <div class="wilayah">{{ $namaWilayah }}</div>
+            <div class="signature-space"></div>
+            @if(!empty($namaKepalaDinas))
+                <div class="kepala-dinas">{{ $namaKepalaDinas }}</div>
+            @endif
+            @if(!empty($pangkat))
+                <div class="pangkat">{{ $pangkat }}</div>
+            @endif
+            @if(!empty($nipFormatted))
+                <div class="nip">NIP. {{ $nipFormatted }}</div>
+            @endif
         </div>
     </div>
 

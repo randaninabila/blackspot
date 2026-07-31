@@ -108,7 +108,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/api/desa/{kecamatan_id}', [BlankSpotController::class, 'getDesa'])->name('api.desa');
 
     // Export Reports & Berita Acara
-    Route::get('/export/pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
+    Route::match(['get', 'post'], '/export/pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
     Route::get('/export/csv', [ExportController::class, 'exportCsv'])->name('export.csv');
     Route::get('/export/berita-acara/{id}', [ExportController::class, 'beritaAcaraPdf'])->name('export.berita-acara');
@@ -145,7 +145,7 @@ Route::middleware(['auth', 'operator'])->prefix('user')->name('user.')->group(fu
     Route::get('/api/desa/{kecamatan_id}', [BlankSpotController::class, 'getDesa'])->name('api.desa');
 
     // Export Reports Operator
-    Route::get('/export/pdf', [ExportController::class, 'exportPdfUser'])->name('export.pdf');
+    Route::match(['get', 'post'], '/export/pdf', [ExportController::class, 'exportPdfUser'])->name('export.pdf');
     Route::get('/export/excel', [ExportController::class, 'exportExcelUser'])->name('export.excel');
     Route::get('/export/csv', [ExportController::class, 'exportCsvUser'])->name('export.csv');
     Route::get('/export/berita-acara/{id}', [ExportController::class, 'beritaAcaraPdf'])->name('export.berita-acara');

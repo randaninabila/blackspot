@@ -597,6 +597,6 @@ function hapusData(id) {
     })
     .catch(error => { alert('Gagal menghapus data'); });
 }
-</script>
+@include('partials.download-modal', ['exportRoute' => route('admin.export.pdf')])
 
 @endsection

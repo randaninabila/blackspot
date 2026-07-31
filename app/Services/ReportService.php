@@ -158,35 +158,101 @@ class ReportService
             'Kabupaten Labuhanbatu Selatan'=> 'Kota Pinang',
         ];
 
-        if ($kabupaten) {
-            if (isset($ibuKotaMap[$kabupaten->nama_kabupaten])) {
-                $namaKota = $ibuKotaMap[$kabupaten->nama_kabupaten];
-            } else {
-                $namaKota = trim(str_replace(['Kabupaten ', 'Kota '], '', $kabupaten->nama_kabupaten));
-            }
+        // Form inputs from modal
+        $nomenklatur = $extra['nomenklatur'] ?? ($extra['nomenklatur_dinas'] ?? null);
+        $namaKepalaDinas = $extra['kepala_dinas'] ?? ($extra['nama_kepala_dinas'] ?? null);
+        $pangkat = $extra['pangkat'] ?? ($extra['pangkat_golongan'] ?? null);
+        $lokasi = $extra['lokasi'] ?? null;
+        $tanggalRaw = $extra['tanggal'] ?? null;
+        $nipRaw = $extra['nip'] ?? ($extra['nip_pejabat'] ?? null);
+
+        // If modal input provided, save to database
+        if (!empty($lokasi) || !empty($namaKepalaDinas) || !empty($nomenklatur)) {
+            \App\Models\KepalaDinas::create([
+                'tanggal'           => $tanggalRaw ?: date('Y-m-d'),
+                'lokasi'            => $lokasi,
+                'nomenklatur_dinas' => $nomenklatur,
+                'nama_kepala_dinas' => $namaKepalaDinas,
+                'pangkat_golongan'  => $pangkat,
+                'nip'               => $nipRaw,
+                'user_id'           => $user->id,
+                'kabupaten_id'      => $effectiveKabId,
+            ]);
         } else {
-            $namaKota = 'Medan';
+            // Fallback to latest saved record for user or kabupaten
+            $latest = \App\Models\KepalaDinas::where('user_id', $user->id)
+                ->orWhere('kabupaten_id', $effectiveKabId)
+                ->latest()
+                ->first();
+
+            if ($latest) {
+                $tanggalRaw = $tanggalRaw ?: $latest->tanggal;
+                $lokasi = $lokasi ?: $latest->lokasi;
+                $nomenklatur = $nomenklatur ?: $latest->nomenklatur_dinas;
+                $namaKepalaDinas = $namaKepalaDinas ?: $latest->nama_kepala_dinas;
+                $pangkat = $pangkat ?: $latest->pangkat_golongan;
+                $nipRaw = $nipRaw ?: $latest->nip;
+            }
         }
 
+        // Dynamic region name from logged-in user or target kabupaten
+        if ($user->isAdmin() && !$effectiveKabId) {
+            $namaWilayah = 'Provinsi Sumatera Utara';
+        } else if ($kabupaten) {
+            $namaWilayah = $kabupaten->nama_kabupaten;
+        } else if ($effectiveKabId && is_numeric($effectiveKabId)) {
+            $kabObj = \App\Models\Kabupaten::find($effectiveKabId);
+            $namaWilayah = $kabObj ? $kabObj->nama_kabupaten : 'Provinsi Sumatera Utara';
+        } else {
+            $namaWilayah = 'Provinsi Sumatera Utara';
+        }
+
+        // City name (used for date line e.g. MEDAN, 31 Juli 2026)
+        if (!empty($lokasi)) {
+            $namaKota = strtoupper(trim($lokasi));
+        } else if ($kabupaten) {
+            if (isset($ibuKotaMap[$kabupaten->nama_kabupaten])) {
+                $namaKota = strtoupper($ibuKotaMap[$kabupaten->nama_kabupaten]);
+            } else {
+                $namaKota = strtoupper(trim(str_replace(['Kabupaten ', 'Kota '], '', $kabupaten->nama_kabupaten)));
+            }
+        } else {
+            $namaKota = 'MEDAN';
+        }
+
+        // Format Tanggal (Indonesian Format)
         $bulanIndo = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
             5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
-        $tanggalCetak = date('j') . ' ' . $bulanIndo[(int)date('n')] . ' ' . date('Y');
 
-        $nipRaw = $extra['nip_pejabat'] ?? ($user->nip ?? null);
-        if ($nipRaw && $nipRaw !== '-' && trim($nipRaw) !== '') {
-            $nipFormatted = ' ' . trim($nipRaw);
+        if (!empty($tanggalRaw)) {
+            try {
+                $carbonDate = \Carbon\Carbon::parse($tanggalRaw);
+                $tanggalCetak = $carbonDate->format('j') . ' ' . $bulanIndo[(int)$carbonDate->format('n')] . ' ' . $carbonDate->format('Y');
+            } catch (\Exception $e) {
+                $tanggalCetak = date('j') . ' ' . $bulanIndo[(int)date('n')] . ' ' . date('Y');
+            }
+        } else {
+            $tanggalCetak = date('j') . ' ' . $bulanIndo[(int)date('n')] . ' ' . date('Y');
+        }
+
+        // Format NIP
+        if (!empty($nipRaw) && $nipRaw !== '-') {
+            $cleanNip = trim(str_replace(['NIP.', 'NIP', ':'], '', $nipRaw));
+            $nipFormatted = $cleanNip;
         } else {
             $nipFormatted = '';
         }
 
         return [
-            'namaKota'      => $namaKota,
-            'namaKabupaten' => $namaKabupaten,
-            'tanggalCetak'  => $tanggalCetak,
-            'nipFormatted'  => $nipFormatted,
+            'namaKota'        => $namaKota,
+            'namaWilayah'     => $namaWilayah,
+            'tanggalCetak'    => $tanggalCetak,
+            'namaKepalaDinas' => $namaKepalaDinas ?: '',
+            'pangkat'         => $pangkat ?: '',
+            'nipFormatted'    => $nipFormatted,
         ];
     }
 }

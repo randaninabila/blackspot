@@ -6,6 +6,7 @@ use App\Models\BlankSpot;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ExportController extends Controller
 {
@@ -21,6 +22,16 @@ class ExportController extends Controller
      */
     public function exportPdf(Request $request)
     {
+        Log::info('Export PDF Admin Request:', $request->all());
+
+        $request->validate([
+            'lokasi'       => 'required|string',
+            'nomenklatur'  => 'required|string',
+            'kepala_dinas' => 'required|string',
+            'pangkat'      => 'required|string',
+            'nip'          => 'required|string',
+        ]);
+
         $user = Auth::user();
         return $this->reportService->generatePdf($request->all(), $user);
     }
@@ -39,6 +50,16 @@ class ExportController extends Controller
      */
     public function exportPdfUser(Request $request)
     {
+        Log::info('Export PDF User Request:', $request->all());
+
+        $request->validate([
+            'lokasi'       => 'required|string',
+            'nomenklatur'  => 'required|string',
+            'kepala_dinas' => 'required|string',
+            'pangkat'      => 'required|string',
+            'nip'          => 'required|string',
+        ]);
+
         $user = Auth::user();
         return $this->reportService->generatePdf($request->all(), $user, $user->kabupaten_id);
     }

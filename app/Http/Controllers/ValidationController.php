@@ -56,12 +56,14 @@ class ValidationController extends Controller
             });
         }
 
-        $blankSpots = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
+        $totalData  = (clone $query)->count();
+        $blankSpots = (clone $query)->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        $totalMenunggu  = BlankSpot::where('status_validasi', 'pending')->count();
-        $totalDisetujui = BlankSpot::where('status_validasi', 'approved')->count();
-        $totalDitolak   = BlankSpot::where('status_validasi', 'rejected')->count();
-        $totalRevisi    = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
+        $stats          = $this->validationService->getAdminStats ?? app(\App\Services\DashboardService::class)->getAdminStats();
+        $totalMenunggu  = $stats['pendingCount'];
+        $totalDisetujui = $stats['approvedCount'];
+        $totalDitolak   = $stats['rejectedCount'];
+        $totalRevisi    = $stats['revisiCount'];
 
         $vmQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos']);
 
@@ -90,9 +92,7 @@ class ValidationController extends Controller
         }
 
         $validasiMenunggu = $vmQuery->orderBy('created_at', 'desc')->get();
-
-        $totalData  = BlankSpot::count();
-        $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
+        $kabupatens       = Kabupaten::orderBy('nama_kabupaten')->get();
 
         $tahunStats = BlankSpot::selectRaw('tahun as year, COUNT(*) as total')
             ->groupBy('year')

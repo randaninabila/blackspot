@@ -21,67 +21,54 @@
     </div>
 
     <!-- Statistik -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-28">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-28">
 
-    <!-- Card 1 -->
-    <div class="bg-[#0F2AF4] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
-        <p class="font-semibold">
-            Total Data
-        </p>
+        <!-- Card 1: Menunggu Validasi -->
+        <div class="bg-[#FFE200] text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[160px]">
+            <div>
+                <p class="font-semibold text-sm tracking-wide">
+                    Menunggu Validasi
+                </p>
+                <h3 class="text-5xl font-bold my-2">
+                    {{ $pendingCount ?? $totalMenunggu ?? 0 }}
+                </h3>
+            </div>
+            <p class="text-xs font-semibold opacity-90">
+                Desa
+            </p>
+        </div>
 
-        <h3 class="text-5xl font-bold my-2">{{ $totalData ?? 0 }}</h3>
+        <!-- Card 2: Disetujui -->
+        <div class="bg-[#008001] text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[160px]">
+            <div>
+                <p class="font-semibold text-sm tracking-wide">
+                    Disetujui
+                </p>
+                <h3 class="text-5xl font-bold my-2">
+                    {{ $totalKabupaten ?? 0 }}
+                </h3>
+            </div>
+            <p class="text-xs font-semibold opacity-90">
+                Desa
+            </p>
+        </div>
 
-        <p class="font-semibold">
-            Data Keseluruhan
-        </p>
+        <!-- Card 3: Ditolak -->
+        <div class="bg-[#E30304] text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[160px]">
+            <div>
+                <p class="font-semibold text-sm tracking-wide">
+                    Ditolak
+                </p>
+                <h3 class="text-5xl font-bold my-2">
+                    {{ $totalKecamatan ?? 0 }}
+                </h3>
+            </div>
+            <p class="text-xs font-semibold opacity-90">
+                Desa
+            </p>
+        </div>
+
     </div>
-
-    <!-- Card 2 -->
-    <div class="bg-[#FFE200] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
-        <p class="font-semibold">
-            Menunggu Validasi
-        </p>
-
-        <h3 class="text-5xl font-bold my-2">
-            12
-        </h3>
-
-        <p class="font-semibold">
-            Desa
-        </p>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="bg-[#008001] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
-        <p class="font-semibold">
-            Disetujui
-        </p>
-
-        <h3 class="text-5xl font-bold my-2">
-            {{ $totalKabupaten ?? 0 }}
-        </h3>
-
-        <p class="font-semibold">
-            Desa
-        </p>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="bg-[#E30304] text-white rounded-2xl p-6 min-h-[150px] flex flex-col justify-center">
-        <p class="font-semibold">
-            Ditolak
-        </p>
-
-        <h3 class="text-5xl font-bold my-2">
-            {{ $totalKecamatan ?? 0 }}
-        </h3>
-
-        <p class="font-semibold">
-            Desa
-        </p>
-    </div>
-
-</div>
 
 
     <!-- TOP ACTION -->

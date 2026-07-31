@@ -15,20 +15,22 @@ class DashboardService
      */
     public function getAdminStats(): array
     {
-        $totalData            = BlankSpot::where('status_validasi', 'approved')->count();
+        $baseQuery            = BlankSpot::where('status_validasi', 'approved');
+
+        $totalData            = (clone $baseQuery)->count();
         $pendingCount         = BlankSpot::where('status_validasi', 'pending')->count();
         $diverifikasiCount    = BlankSpot::where('status_validasi', 'sedang_diverifikasi')->count();
-        $approvedCount        = BlankSpot::where('status_validasi', 'approved')->count();
+        $approvedCount        = (clone $baseQuery)->count();
         $rejectedCount        = BlankSpot::where('status_validasi', 'rejected')->count();
         $revisiCount          = BlankSpot::whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
         // Total Kabupaten Reporting
-        $totalKabupatenReporting = BlankSpot::where('status_validasi', 'approved')
+        $totalKabupatenReporting = (clone $baseQuery)
             ->distinct('kabupaten_id')
             ->count('kabupaten_id');
 
         // Total Desa Terdampak
-        $totalDesaTerdampak = BlankSpot::where('status_validasi', 'approved')
+        $totalDesaTerdampak = (clone $baseQuery)
             ->distinct('desa_id')
             ->count('desa_id');
 
@@ -129,24 +131,25 @@ class DashboardService
      */
     public function getOperatorStats(User $user): array
     {
+        $userId      = $user->id;
         $kabupatenId = $user->kabupaten_id;
 
-        $totalData         = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
+        $baseQuery   = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved');
+
+        $totalData         = (clone $baseQuery)->count();
         $pendingCount      = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'pending')->count();
         $diverifikasiCount = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'sedang_diverifikasi')->count();
-        $approvedCount     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'approved')->count();
+        $approvedCount     = $totalData;
         $rejectedCount     = BlankSpot::where('kabupaten_id', $kabupatenId)->where('status_validasi', 'rejected')->count();
         $revisiCount       = BlankSpot::where('kabupaten_id', $kabupatenId)->whereIn('status_validasi', ['revisi', 'perlu_revisi'])->count();
 
-        $networkStats = BlankSpot::where('kabupaten_id', $kabupatenId)
-            ->where('status_validasi', 'approved')
+        $networkStats = (clone $baseQuery)
             ->select('status_jaringan', DB::raw('count(*) as total'))
             ->groupBy('status_jaringan')
             ->pluck('total', 'status_jaringan')
             ->toArray();
 
-        $geografisStats = BlankSpot::where('kabupaten_id', $kabupatenId)
-            ->where('status_validasi', 'approved')
+        $geografisStats = (clone $baseQuery)
             ->whereNotNull('kondisi_geografis')
             ->select('kondisi_geografis', DB::raw('count(*) as total'))
             ->groupBy('kondisi_geografis')

@@ -104,11 +104,12 @@ class BlankSpotController extends Controller
             });
         }
 
-        $blankSpots = $query->latest()->paginate(15)->withQueryString();
+        $totalData  = (clone $query)->count();
+        $blankSpots = (clone $query)->latest()->paginate(15)->withQueryString();
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
         $tahuns     = BlankSpot::selectRaw('DISTINCT tahun')->orderBy('tahun', 'desc')->pluck('tahun');
 
-        return view('admin.blank-spot.index', compact('blankSpots', 'kabupatens', 'tahuns'));
+        return view('admin.blank-spot.index', compact('blankSpots', 'totalData', 'kabupatens', 'tahuns'));
     }
 
     /**
@@ -250,14 +251,15 @@ class BlankSpotController extends Controller
             });
         }
 
-        $blankSpots = $query->latest()->paginate(10)->withQueryString();
+        $totalData  = (clone $query)->count();
+        $blankSpots = (clone $query)->latest()->paginate(10)->withQueryString();
 
         $tahuns = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
             ->selectRaw('DISTINCT tahun')
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
-        return view('user.blank-spot.index', compact('blankSpots', 'tahuns'));
+        return view('user.blank-spot.index', compact('blankSpots', 'totalData', 'tahuns'));
     }
 
     /**

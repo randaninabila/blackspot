@@ -25,19 +25,52 @@ class AdminController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil data statistik dari DashboardService
+        // Ambil data statistik ringkasan dari DashboardService
         $stats = $this->dashboardService->getAdminStats();
 
-        $totalData     = $stats['totalData'];
-        $pendingCount  = $stats['pendingCount'];
-        $approvedCount = $stats['approvedCount'];
-        $rejectedCount = $stats['rejectedCount'];
+        // Base Query utama untuk data approved yang ditampilkan pada dashboard tabel & card
+        $baseQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
+            ->where('status_validasi', 'approved');
 
-        // Data tabel - AMBIL SEMUA DATA APPROVED DARI DATABASE
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
-            ->where('status_validasi', 'approved')
+        if ($request->filled('kabupaten_id')) {
+            $baseQuery->where('kabupaten_id', $request->kabupaten_id);
+        }
+        if ($request->filled('tahun')) {
+            $baseQuery->where('tahun', $request->tahun);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $baseQuery->where(function ($q) use ($search) {
+                $q->whereHas('kabupaten', fn($sq) => $sq->where('nama_kabupaten', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'LIKE', "%{$search}%"))
+                  ->orWhere('nama_lokasi', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // Bug 1 Fix: Card Total Data persis sama dengan jumlah query dasar tabel
+        $totalData     = (clone $baseQuery)->count();
+        $pendingCount  = BlankSpot::where('status_validasi', 'pending')->count();
+        $approvedCount = $totalData;
+        $rejectedCount = BlankSpot::where('status_validasi', 'rejected')->count();
+
+        // Data tabel (Approved)
+        $blankSpots = (clone $baseQuery)
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Bug 2 Fix: Top Kabupaten dihitung dari base query yang sama
+        $topKabupaten = (clone $baseQuery)
+            ->select('kabupaten_id', \Illuminate\Support\Facades\DB::raw('COUNT(*) as total'))
+            ->groupBy('kabupaten_id')
+            ->orderByDesc('total')
+            ->with('kabupaten')
+            ->first();
+
+        $topKabupatenName   = ($topKabupaten && $topKabupaten->kabupaten) ? $topKabupaten->kabupaten->nama_kabupaten : '-';
+        $topKabupatenTotal  = $topKabupaten ? $topKabupaten->total : 0;
+        $topKabupatenYear   = $request->filled('tahun') ? $request->tahun : ((clone $baseQuery)->where('kabupaten_id', $topKabupaten?->kabupaten_id)->max('tahun') ?? date('Y'));
+        $kabupatenTerbanyak = $topKabupatenName;
 
         // Data pending untuk validasi
         $pendingSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
@@ -55,7 +88,7 @@ class AdminController extends Controller
         ];
 
         // Data per tahun untuk grafik
-        $tahunData = BlankSpot::where('status_validasi', 'approved')
+        $tahunData = (clone $baseQuery)
             ->selectRaw('tahun, count(*) as total')
             ->groupBy('tahun')
             ->orderBy('tahun', 'asc')
@@ -65,9 +98,7 @@ class AdminController extends Controller
         $tahunCounts = $tahunData->pluck('total')->toArray();
 
         // Data untuk peta
-        $spotsPeta = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
-            ->where('status_validasi', 'approved')
-            ->get();
+        $spotsPeta = (clone $baseQuery)->get();
 
         // Data untuk filter
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
@@ -146,7 +177,8 @@ class AdminController extends Controller
             'totalMenunggu', 'totalDisetujui', 'totalDitolak',
             'validasiMenunggu',
             'nilaiRataRata', 'nilaiTertinggi', 'tahunTertinggi',
-            'nilaiTerendah', 'tahunTerendah'
+            'nilaiTerendah', 'tahunTerendah',
+            'topKabupatenName', 'topKabupatenTotal', 'topKabupatenYear', 'kabupatenTerbanyak'
         ));
     }
 

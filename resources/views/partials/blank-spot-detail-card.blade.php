@@ -14,7 +14,14 @@
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kabupaten</td><td id="detail-kabupaten" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kecamatan</td><td id="detail-kecamatan" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Desa</td><td id="detail-desa" class="px-4 py-3">-</td></tr>
-                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Koordinat</td><td id="detail-koordinat" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Longitude</td><td id="detail-longitude" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Latitude</td><td id="detail-latitude" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Prioritas</td><td id="detail-prioritas" class="px-4 py-3 font-bold text-amber-800">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status Jaringan</td><td id="detail-status-jaringan" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Kondisi Geografis</td><td id="detail-kondisi-geografis" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jumlah Penduduk</td><td id="detail-jumlah-penduduk" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Jarak ke Ibu Kota (Km)</td><td id="detail-jarak-ibukota" class="px-4 py-3">-</td></tr>
+                    <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tahun</td><td id="detail-tahun" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Operator</td><td id="detail-operator" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Tanggal</td><td id="detail-tanggal" class="px-4 py-3">-</td></tr>
                     <tr><td class="bg-gray-50 px-4 py-3 font-bold">Status Validasi</td><td id="detail-status" class="px-4 py-3 font-bold">-</td></tr>

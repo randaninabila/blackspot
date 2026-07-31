@@ -21,22 +21,48 @@ class UserController extends Controller
     /**
      * User dashboard (Operator Kabupaten)
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $user = Auth::user();
 
-        // Data tabel - HANYA data milik kabupaten user
-        $blankSpots = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
+        // Base Query untuk operator: kabupaten milik user & status validasi approved
+        $baseQuery = BlankSpot::with(['kabupaten', 'kecamatan', 'desa', 'creator', 'validator', 'photos'])
             ->where('kabupaten_id', $user->kabupaten_id)
-            ->where('status_validasi', 'approved')
+            ->where('status_validasi', 'approved');
+
+        if ($request->filled('tahun')) {
+            $baseQuery->where('tahun', $request->tahun);
+        }
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $baseQuery->where(function ($q) use ($s) {
+                $q->whereHas('kecamatan', fn($sq) => $sq->where('nama_kecamatan', 'like', "%{$s}%"))
+                  ->orWhereHas('desa', fn($sq) => $sq->where('nama_desa', 'like', "%{$s}%"))
+                  ->orWhere('nama_lokasi', 'like', "%{$s}%");
+            });
+        }
+
+        // Bug 1 Fix: Card Total Data persis sama dengan total query dasar tabel
+        $totalData  = (clone $baseQuery)->count();
+
+        // Data tabel
+        $blankSpots = (clone $baseQuery)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Statistik - HANYA data milik kabupaten user
-        $totalData     = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'approved')->count();
-        $pendingCount  = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'pending')->count();
-        $approvedCount = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'approved')->count();
-        $rejectedCount = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'rejected')->count();
+        $stats = $this->dashboardService->getOperatorStats($user);
+
+        $pendingCount   = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'pending')->count();
+        $approvedCount  = $totalData;
+        $rejectedCount  = BlankSpot::where('kabupaten_id', $user->kabupaten_id)->where('status_validasi', 'rejected')->count();
+
+        $totalMenunggu  = $pendingCount;
+        $totalDisetujui = $approvedCount;
+        $totalDitolak   = $rejectedCount;
+
+        // Alias untuk kompatibilitas template blade
+        $totalKabupaten = $approvedCount;
+        $totalKecamatan = $rejectedCount;
 
         // Grafik - HANYA data milik kabupaten user
         $tahunData = BlankSpot::where('kabupaten_id', $user->kabupaten_id)
@@ -95,10 +121,9 @@ class UserController extends Controller
         // Kabupaten untuk filter
         $kabupatens = Kabupaten::orderBy('nama_kabupaten')->get();
 
-        $stats = $this->dashboardService->getOperatorStats($user);
-
         return view('user.dashboard', compact(
             'stats', 'blankSpots', 'totalData', 'pendingCount', 'approvedCount', 'rejectedCount',
+            'totalMenunggu', 'totalDisetujui', 'totalDitolak', 'totalKabupaten', 'totalKecamatan',
             'grafikLabels', 'grafikData', 'spotsPeta', 'kabupaten',
             'tahuns', 'nilaiRataRata', 'nilaiTertinggi', 'tahunTertinggi',
             'nilaiTerendah', 'tahunTerendah', 'kabupatens'

@@ -29,7 +29,7 @@
         </p>
 
         <h3 class="text-5xl font-bold my-2">
-            120
+            {{ $totalData ?? 0 }}
         </h3>
 
         <p class="font-semibold">
@@ -45,11 +45,11 @@
         </p>
 
         <h3 class="text-5xl font-bold my-2">
-            Kab Johor
+            {{ $topKabupatenName ?? $kabupatenTerbanyak ?? 'Kab Johor' }}
         </h3>
 
         <p class="font-semibold">
-            Tahun 2026
+            {{ $topKabupatenTotal ?? 0 }} Data (Tahun {{ $topKabupatenYear ?? '2026' }})
         </p>
     </div>
 
@@ -322,77 +322,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 let barChart = null;
 let pieChart = null;
-const chartLabels = [
-    "Medan",
-    "Binjai",
-    "Tebing Tinggi",
-    "Pematangsiantar",
-    "Tanjungbalai",
-    "Sibolga",
-    "Padangsidimpuan",
-    "Gunungsitoli",
-    "Deli Serdang",
-    "Langkat",
-    "Karo",
-    "Simalungun",
-    "Asahan",
-    "Labuhanbatu",
-    "Labuhanbatu Utara",
-    "Labuhanbatu Selatan",
-    "Batubara",
-    "Serdang Bedagai",
-    "Samosir",
-    "Toba",
-    "Tapanuli Utara",
-    "Tapanuli Tengah",
-    "Tapanuli Selatan",
-    "Mandailing Natal",
-    "Padang Lawas",
-    "Padang Lawas Utara",
-    "Nias",
-    "Nias Selatan",
-    "Nias Utara",
-    "Nias Barat",
-    "Pakpak Bharat",
-    "Humbang Hasundutan",
-    "Dairi"
-];
-
-const chartValues = [
-    45, // Medan
-    18, // Binjai
-    12, // Tebing Tinggi
-    21, // Pematangsiantar
-    16, // Tanjungbalai
-    10, // Sibolga
-    24, // Padangsidimpuan
-    13, // Gunungsitoli
-    39, // Deli Serdang
-    31, // Langkat
-    22, // Karo
-    28, // Simalungun
-    25, // Asahan
-    20, // Labuhanbatu
-    15, // Labuhanbatu Utara
-    14, // Labuhanbatu Selatan
-    17, // Batubara
-    26, // Serdang Bedagai
-    11, // Samosir
-    19, // Toba
-    23, // Tapanuli Utara
-    27, // Tapanuli Tengah
-    18, // Tapanuli Selatan
-    30, // Mandailing Natal
-    12, // Padang Lawas
-    14, // Padang Lawas Utara
-    9,  // Nias
-    16, // Nias Selatan
-    8,  // Nias Utara
-    7,  // Nias Barat
-    6,  // Pakpak Bharat
-    13, // Humbang Hasundutan
-    15  // Dairi
-];
+const chartLabels = @json($chartLabels ?? []);
+const chartValues = @json($chartValues ?? []);
 function initDashboardCharts() {
 
     // =========================
@@ -498,24 +429,10 @@ if (pieCanvas) {
         type: 'pie',
 
 data: {
-    labels: [
-        "Zero Blankspot",
-        "Sinyal Sangat Lemah",
-        "Sinyal Lemah",
-        "2G",
-        "3G",
-        "4G Tidak Stabil"
-    ],
+    labels: @json($pieLabels ?? []),
 
     datasets: [{
-        data: [
-            25,
-            18,
-            20,
-            15,
-            12,
-            10
-        ],
+        data: @json($pieValues ?? []),
 
         backgroundColor: [
     '#E6EB9C',
@@ -582,56 +499,7 @@ switchTab = function(tab) {
 
 let map = null;
 let markersLayer = L.layerGroup();
-const spotsData = [
-    {
-        latitude: 3.5952,
-        longitude: 98.6722,
-        tahun: 2024,
-        kabupaten_id: 1,
-        kecamatan: {
-            nama_kecamatan: "Medan Kota"
-        },
-        desa: {
-            nama_desa: "Teladan"
-        }
-    },
-    {
-        latitude: 3.5600,
-        longitude: 98.8800,
-        tahun: 2024,
-        kabupaten_id: 2,
-        kecamatan: {
-            nama_kecamatan: "Lubuk Pakam"
-        },
-        desa: {
-            nama_desa: "Pagar Jati"
-        }
-    },
-    {
-        latitude: 3.7300,
-        longitude: 98.4300,
-        tahun: 2023,
-        kabupaten_id: 3,
-        kecamatan: {
-            nama_kecamatan: "Stabat"
-        },
-        desa: {
-            nama_desa: "Kwala Begumit"
-        }
-    },
-    {
-        latitude: 2.954,
-        longitude: 98.981,
-        tahun: 2022,
-        kabupaten_id: 4,
-        kecamatan: {
-            nama_kecamatan: "Raya"
-        },
-        desa: {
-            nama_desa: "Sondi Raya"
-        }
-    }
-];
+const spotsData = @json($spotsMapData ?? []);
 const blankspotLocations = spotsData.map(function(s) {
     return {
         name: (s.kecamatan ? s.kecamatan.nama_kecamatan : '-') + ', ' + (s.desa ? s.desa.nama_desa : '-'),

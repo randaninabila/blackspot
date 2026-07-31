@@ -116,16 +116,23 @@
                         @forelse($blankSpots as $i => $spot)
                         <tr class="border-b border-gray-200 hover:bg-[#F3F3E8]/50 transition cursor-pointer"
                             onclick="showDetail(this)"
-                            data-id="{{ $spot->id }}"
+                            data-id="BS-{{ $spot->tahun }}-{{ str_pad($spot->id, 4, '0', STR_PAD_LEFT) }}"
                             data-kabupaten="{{ $kabupaten->nama_kabupaten }}"
                             data-kecamatan="{{ $spot->kecamatan->nama_kecamatan ?? '-' }}"
                             data-desa="{{ $spot->desa->nama_desa ?? '-' }}"
-                            data-latitude="{{ $spot->latitude }}"
                             data-longitude="{{ $spot->longitude }}"
-                            data-status="{{ $spot->status_validasi }}"
-                            data-operator="{{ $spot->creator->nama ?? '-' }}"
-                            data-tanggal="{{ $spot->created_at->format('d-m-Y') }}"
-                            data-keterangan="{{ $spot->status_jaringan ?? '-' }}"
+                            data-latitude="{{ $spot->latitude }}"
+                            data-prioritas="{{ $spot->prioritas ? 'P' . $spot->prioritas : '-' }}"
+                            data-status-jaringan="{{ $spot->status_jaringan ?? '-' }}"
+                            data-kondisi-geografis="{{ $spot->kondisi_geografis ?? '-' }}"
+                            data-jumlah-penduduk="{{ $spot->jumlah_penduduk ? (is_numeric($spot->jumlah_penduduk) ? number_format((float)$spot->jumlah_penduduk) . ' Jiwa' : $spot->jumlah_penduduk) : '-' }}"
+                            data-jarak-ibukota="{{ $spot->jarak_ibukota ? $spot->jarak_ibukota . ' Km' : '-' }}"
+                            data-tahun="{{ $spot->tahun }}"
+                            data-operator="{{ $spot->creator->nama ?? $spot->creator->name ?? '-' }}"
+                            data-tanggal="{{ $spot->created_at->format('d M Y, H:i') }} WIB"
+                            data-status="{{ $spot->status_label }}"
+                            data-catatan-revisi="{{ $spot->catatan_revisi }}"
+                            data-keterangan="{{ $spot->status_jaringan ?? $spot->keterangan ?? '-' }}"
                             data-photos='@json($spot->photos->map(fn($p) => ["id" => $p->id, "url" => $p->url, "jenis" => $p->jenis_foto]))'>
                             <td class="px-3 py-3 text-center">{{ $blankSpots->firstItem() + $i }}</td>
                             <td class="px-3 py-3">{{ $spot->kecamatan->nama_kecamatan ?? '-' }}</td>
@@ -194,7 +201,7 @@
 <div id="blankspotModal"
      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
 
-    <div class="bg-[#234B26] w-full max-w-[560px] max-h-[90vh] flex flex-col p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
+    <div class="bg-[#234B26] w-full max-w-md max-h-[90vh] flex flex-col p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
 
         <div class="text-center mb-3 shrink-0">
             <h3 class="text-xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
@@ -313,42 +320,42 @@
                 </div>
 
                 <!-- FOTO BLANKSPOT SECTION -->
-                <div class="space-y-3 p-3 bg-white/5 rounded-2xl border border-white/10">
-                    <div class="flex justify-between items-center pb-1 border-b border-white/10">
-                        <label class="text-white font-bold text-sm">Foto Dokumentasi Blankspot</label>
-                        <span class="text-[11px] text-[#E6EB9C] font-medium">Min 1, Maks 10 foto (Max 5MB/foto)</span>
-                    </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-white font-semibold mb-1 text-sm">
+                            Foto Dokumentasi Blankspot <span class="text-red-400">*</span>
+                        </label>
 
-                    <!-- FOTO BLANKSPOT 1 (Wajib) -->
-                    <div class="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/10">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-white font-semibold text-xs">Foto Blankspot 1 <span class="text-red-400">*</span></label>
-                            <span class="text-[10px] text-white/60">Format: JPG, JPEG, PNG, WEBP</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <img id="preview-1" class="w-10 h-10 object-cover rounded-lg hidden border border-white/20 shrink-0" alt="Preview">
-                            <div id="file-name-1" class="flex-1 bg-white text-gray-600 px-3 py-2 rounded-lg text-xs truncate">
-                                Belum ada file dipilih
+                        <!-- FOTO BLANKSPOT 1 (Wajib) -->
+                        <div id="admin-photo-group-1" class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <img id="preview-1" class="w-10 h-10 object-cover rounded-xl hidden border border-white/20 shrink-0" alt="Preview">
+                                <div id="file-name-1" class="flex-1 bg-white text-[#234B26]/60 px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent truncate flex items-center">
+                                    Belum ada file dipilih
+                                </div>
+                                <label for="foto-input-1" class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white font-semibold text-sm shrink-0 transition flex items-center justify-center">
+                                    Choose File
+                                </label>
                             </div>
-                            <label for="foto-input-1" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-2 rounded-lg cursor-pointer hover:bg-white font-bold text-xs shrink-0 transition">
-                                Choose File
-                            </label>
+                            <input type="file" id="foto-input-1" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden" required onchange="handlePhotoPreview(this, 'file-name-1', 'preview-1');">
                         </div>
-                        <input type="file" id="foto-input-1" name="photos[]" accept="image/jpeg,image/jpg,image/png,image/webp" class="hidden" required onchange="handlePhotoPreview(this, 'file-name-1', 'preview-1');">
                     </div>
 
                     <!-- CONTAINER UNTUK DYNAMIC FOTO 2 S.D 10 -->
-                    <div id="admin-dynamic-photos-container" class="space-y-2.5"></div>
+                    <div id="admin-dynamic-photos-container" class="space-y-3"></div>
 
-                    <!-- TOMBOL TAMBAH FOTO -->
-                    <div class="flex items-center justify-between pt-1">
-                        <button type="button" onclick="addAdminPhotoField()" id="admin-btn-add-photo" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-1.5 rounded-xl font-bold text-xs hover:bg-white transition flex items-center gap-1 shadow-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                            </svg>
-                            + Tambah Foto
-                        </button>
-                        <span id="admin-photo-count-badge" class="text-[11px] text-white/80 font-medium">(1/10 foto)</span>
+                    <!-- HELPER TEXT & ACTION BUTTON -->
+                    <div>
+                        <p class="text-xs text-white/70">Format: JPG, JPEG, PNG, WEBP. Min 1, Maks 10 Foto (Max 5MB/foto).</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <button type="button" onclick="addAdminPhotoField()" id="admin-btn-add-photo" class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-white transition flex items-center gap-1.5 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                Tambah Foto
+                            </button>
+                            <span id="admin-photo-count-badge" class="text-xs text-white/80 font-medium">(1/10 foto)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -513,15 +520,32 @@ function showDetail(row) {
 
     document.getElementById('detailSection').classList.remove('hidden');
 
-    document.getElementById('detail-id').innerText = data.id;
-    document.getElementById('detail-kabupaten').innerText = data.kabupaten;
-    document.getElementById('detail-kecamatan').innerText = data.kecamatan;
-    document.getElementById('detail-desa').innerText = data.desa;
-    document.getElementById('detail-koordinat').innerText = lat + ', ' + lng;
-    document.getElementById('detail-status').innerText = data.status;
-    document.getElementById('detail-operator').innerText = data.operator;
-    document.getElementById('detail-tanggal').innerText = data.tanggal;
-    document.getElementById('detail-keterangan').innerText = data.keterangan;
+    if(document.getElementById('detail-id')) document.getElementById('detail-id').innerText = data.id || '-';
+    if(document.getElementById('detail-kabupaten')) document.getElementById('detail-kabupaten').innerText = data.kabupaten || '-';
+    if(document.getElementById('detail-kecamatan')) document.getElementById('detail-kecamatan').innerText = data.kecamatan || '-';
+    if(document.getElementById('detail-desa')) document.getElementById('detail-desa').innerText = data.desa || '-';
+    if(document.getElementById('detail-longitude')) document.getElementById('detail-longitude').innerText = data.longitude || '-';
+    if(document.getElementById('detail-latitude')) document.getElementById('detail-latitude').innerText = data.latitude || '-';
+    if(document.getElementById('detail-prioritas')) document.getElementById('detail-prioritas').innerText = data.prioritas || '-';
+    if(document.getElementById('detail-status-jaringan')) document.getElementById('detail-status-jaringan').innerText = data.statusJaringan || data.status_jaringan || '-';
+    if(document.getElementById('detail-kondisi-geografis')) document.getElementById('detail-kondisi-geografis').innerText = data.kondisiGeografis || data.kondisi_geografis || '-';
+    if(document.getElementById('detail-jumlah-penduduk')) document.getElementById('detail-jumlah-penduduk').innerText = data.jumlahPenduduk || data.jumlah_penduduk || '-';
+    if(document.getElementById('detail-jarak-ibukota')) document.getElementById('detail-jarak-ibukota').innerText = data.jarakIbukota || data.jarak_ibukota || '-';
+    if(document.getElementById('detail-tahun')) document.getElementById('detail-tahun').innerText = data.tahun || '-';
+    if(document.getElementById('detail-operator')) document.getElementById('detail-operator').innerText = data.operator || '-';
+    if(document.getElementById('detail-tanggal')) document.getElementById('detail-tanggal').innerText = data.tanggal || '-';
+    if(document.getElementById('detail-status')) document.getElementById('detail-status').innerText = data.status || '-';
+    if(document.getElementById('detail-keterangan')) document.getElementById('detail-keterangan').innerText = data.keterangan || '-';
+
+    const catRow = document.getElementById('row-catatan-revisi');
+    if (catRow) {
+        if (data.catatanRevisi || data.catatan_revisi) {
+            if (document.getElementById('detail-catatan-revisi')) document.getElementById('detail-catatan-revisi').innerText = data.catatanRevisi || data.catatan_revisi;
+            catRow.classList.remove('hidden');
+        } else {
+            catRow.classList.add('hidden');
+        }
+    }
 
     // Render Galeri Foto
     const photosContainer = document.getElementById('admin-detail-photos-container');
@@ -615,19 +639,19 @@ function addAdminPhotoField() {
     if (!container) return;
 
     const div = document.createElement('div');
-    div.className = 'space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/10';
+    div.className = 'space-y-1';
     div.id = `admin-photo-group-${adminPhotoCount}`;
     div.innerHTML = `
-        <div class="flex justify-between items-center">
+        <div class="flex justify-between items-center mb-1">
             <label class="block text-white font-semibold text-xs">Foto Blankspot ${adminPhotoCount}</label>
-            <button type="button" onclick="document.getElementById('admin-photo-group-${adminPhotoCount}').remove(); adminPhotoCount--; updateAdminPhotoBtnState();" class="text-red-300 hover:text-red-100 text-xs font-medium">Hapus</button>
+            <button type="button" onclick="document.getElementById('admin-photo-group-${adminPhotoCount}').remove(); adminPhotoCount--; updateAdminPhotoBtnState();" class="text-red-300 hover:text-white text-xs font-semibold">Hapus</button>
         </div>
         <div class="flex items-center gap-2">
-            <img id="preview-${adminPhotoCount}" class="w-10 h-10 object-cover rounded-lg hidden border border-white/20 shrink-0" alt="Preview">
-            <div id="file-name-${adminPhotoCount}" class="flex-1 bg-white text-gray-600 px-3 py-2 rounded-lg text-xs truncate">
+            <img id="preview-${adminPhotoCount}" class="w-10 h-10 object-cover rounded-xl hidden border border-white/20 shrink-0" alt="Preview">
+            <div id="file-name-${adminPhotoCount}" class="flex-1 bg-white text-[#234B26]/60 px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent truncate flex items-center">
                 Belum ada file dipilih
             </div>
-            <label for="foto-input-${adminPhotoCount}" class="bg-[#E6EB9C] text-[#234B26] px-3.5 py-2 rounded-lg cursor-pointer hover:bg-white font-bold text-xs shrink-0 transition">
+            <label for="foto-input-${adminPhotoCount}" class="bg-[#E6EB9C] text-[#234B26] px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white font-semibold text-sm shrink-0 transition flex items-center justify-center">
                 Choose File
             </label>
         </div>

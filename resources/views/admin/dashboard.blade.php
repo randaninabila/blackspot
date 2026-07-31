@@ -60,11 +60,11 @@
         </p>
 
         <h3 class="text-5xl font-bold my-2">
-            Kab Johor
+            {{ $topKabupatenName ?? $kabupatenTerbanyak ?? 'Kab Johor' }}
         </h3>
 
         <p class="font-semibold">
-            Tahun 2026
+            {{ $topKabupatenTotal ?? 0 }} Data (Tahun {{ $topKabupatenYear ?? '2026' }})
         </p>
     </div>
 

@@ -18,7 +18,7 @@
                         <td class="px-4 py-3 font-mono font-bold">BS-{{ $blankSpot->tahun }}-{{ str_pad($blankSpot->id, 4, '0', STR_PAD_LEFT) }}</td>
                     </tr>
                     <tr>
-                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kabupaten/Kota</td>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kabupaten</td>
                         <td class="px-4 py-3">{{ $blankSpot->kabupaten->nama_kabupaten ?? '-' }}</td>
                     </tr>
                     <tr>
@@ -30,12 +30,44 @@
                         <td class="px-4 py-3">{{ $blankSpot->desa->nama_desa ?? '-' }}</td>
                     </tr>
                     <tr>
-                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Koordinat</td>
-                        <td class="px-4 py-3">{{ $blankSpot->latitude }}, {{ $blankSpot->longitude }}</td>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Longitude</td>
+                        <td class="px-4 py-3">{{ $blankSpot->longitude ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Latitude</td>
+                        <td class="px-4 py-3">{{ $blankSpot->latitude ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Prioritas</td>
+                        <td class="px-4 py-3 font-bold text-amber-800">{{ $blankSpot->prioritas ? 'P' . $blankSpot->prioritas : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Status Jaringan</td>
+                        <td class="px-4 py-3">{{ $blankSpot->status_jaringan ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Kondisi Geografis</td>
+                        <td class="px-4 py-3">{{ $blankSpot->kondisi_geografis ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jumlah Penduduk</td>
+                        <td class="px-4 py-3">{{ $blankSpot->jumlah_penduduk ? (is_numeric($blankSpot->jumlah_penduduk) ? number_format((float)$blankSpot->jumlah_penduduk) . ' Jiwa' : $blankSpot->jumlah_penduduk) : '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Jarak ke Ibu Kota (Km)</td>
+                        <td class="px-4 py-3">{{ $blankSpot->jarak_ibukota ? $blankSpot->jarak_ibukota . ' Km' : '-' }}</td>
                     </tr>
                     <tr>
                         <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tahun</td>
-                        <td class="px-4 py-3">{{ $blankSpot->tahun }}</td>
+                        <td class="px-4 py-3">{{ $blankSpot->tahun ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Operator</td>
+                        <td class="px-4 py-3">{{ $blankSpot->creator->nama ?? $blankSpot->creator->name ?? '-' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal</td>
+                        <td class="px-4 py-3">{{ $blankSpot->created_at ? $blankSpot->created_at->format('d M Y, H:i') . ' WIB' : '-' }}</td>
                     </tr>
                     <tr>
                         <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Status Validasi</td>
@@ -45,16 +77,14 @@
                             </span>
                         </td>
                     </tr>
+                    @if($blankSpot->catatan_revisi)
                     <tr>
-                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Dilaporkan Oleh</td>
-                        <td class="px-4 py-3">{{ $blankSpot->creator->nama ?? '-' }}</td>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Catatan Revisi</td>
+                        <td class="px-4 py-3 text-red-600 font-semibold">{{ $blankSpot->catatan_revisi }}</td>
                     </tr>
+                    @endif
                     <tr>
-                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Tanggal Input</td>
-                        <td class="px-4 py-3">{{ $blankSpot->created_at->format('d M Y, H:i') }} WIB</td>
-                    </tr>
-                    <tr>
-                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Keterangan</td>
+                        <td class="bg-gray-50 px-4 py-3 font-bold text-[#234B26]">Keterangan / Sinyal</td>
                         <td class="px-4 py-3">{{ $blankSpot->keterangan ?? '-' }}</td>
                     </tr>
                 </tbody>

@@ -18,9 +18,13 @@
         .total { margin-top: 8px; font-size: 8.5px; color: #234B26; font-weight: bold; }
         
         .signature-container { width: 100%; margin-top: 25px; page-break-inside: avoid; }
-        .signature-box { float: right; width: 220px; text-align: center; font-size: 8.5px; }
-        .signature-space { height: 50px; }
-        .signature-name { font-weight: bold; text-decoration: underline; }
+        .signature-box { float: right; width: 230px; text-align: left; font-size: 8.5px; line-height: 1.3; }
+        .signature-box .sig-date { margin-bottom: 2px; }
+        .signature-box .sig-title { margin-bottom: 0; }
+        .signature-space { height: 45px; }
+        .signature-box .jabatan { text-align: left; font-weight: bold; }
+        .signature-box .wilayah { text-align: center; font-weight: bold; margin-top: 2px; }
+        .signature-box .nip { text-align: left; margin-top: 12px; }
         
         .footer { margin-top: 25px; text-align: left; font-size: 7px; color: #888; clear: both; }
     </style>
@@ -70,7 +74,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="13" style="text-align:center;padding:20px;color:#999;">Tidak ada data untuk ditampilkan.</td>
+                <td colspan="13" style="text-align:center;padding:20px;color:#999;">Tidak ada data untuk ditampilkan</td>
             </tr>
             @endforelse
         </tbody>
@@ -80,16 +84,17 @@
 
     <div class="signature-container">
         <div class="signature-box">
-            <p>Medan, {{ $tanggalCetak ?? date('d F Y') }}</p>
-            <p>Pejabat Berwenang / Penanggung Jawab,</p>
+            <p class="sig-date">{{ $namaKota }}, {{ $tanggalCetak }}</p>
+            <p class="sig-title">Pejabat Berwenang / Penanggung Jawab,</p>
             <div class="signature-space"></div>
-            <p class="signature-name">{{ $namaPejabat ?? ($user->nama ?? 'Kepala Dinas Kominfo Sumut') }}</p>
-            <p>NIP. {{ $nipPejabat ?? '19750812 200003 1 002' }}</p>
+            <div class="jabatan">Kepala Dinas Komunikasi dan Informatika</div>
+            <div class="wilayah">{{ $namaKabupaten }}</div>
+            <div class="nip">NIP.{{ $nipFormatted }}</div>
         </div>
     </div>
 
     <div class="footer">
-        * Laporan ini digenerate secara otomatis oleh Sistem Pendataan Blank Spot Sumatera Utara.
+        * Laporan ini digenerate secara otomatis oleh Sistem Pendataan Blank Spot Sumatera Utara
     </div>
 </body>
 </html>

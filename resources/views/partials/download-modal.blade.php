@@ -70,13 +70,20 @@
 
                 <!-- NIP -->
                 <div>
-                    <label class="block text-white font-semibold mb-1 text-sm">
-                        NIP <span class="text-red-400">*</span>
-                    </label>
-                    <input type="text" name="nip"
-                        placeholder="Masukkan NIP" required
-                        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
-                </div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        NIP <span class="text-red-400">*</span>
+    </label>
+
+    <input
+        type="text"
+        name="nip"
+        placeholder="Masukkan NIP"
+        required
+        inputmode="numeric"
+        pattern="[0-9]+"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
 
                 <!-- BUTTON ACTIONS -->
                 <div class="flex justify-end gap-3 pt-3 shrink-0 border-t border-white/10 mt-2">

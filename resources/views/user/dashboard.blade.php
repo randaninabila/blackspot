@@ -88,7 +88,11 @@
                     <span>Download</span>
                 </button>
                 <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden min-w-[160px]">
-                    <a href="{{ route('user.export.pdf') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">Export PDF</a>
+                    <a href="javascript:void(0)"
+   onclick="openDownloadModal()"
+   class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium">
+    Export PDF
+</a>
                     <a href="{{ route('user.export.excel') }}" class="flex items-center gap-2 px-4 py-3 text-[#234B26] hover:bg-[#E5EFF9] text-sm font-medium"> Export Excel</a>
                 </div>
             </div>
@@ -238,6 +242,98 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL TAMBAH DATA 2 -->
+<div id="downloadModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+
+    <div class="bg-[#234B26] w-full max-w-md max-h-[90vh] flex flex-col p-6 rounded-3xl shadow-2xl border border-white/10 mx-4 transform scale-95 transition-transform duration-300" id="downloadModalContent">
+
+        <div class="text-center mb-3 shrink-0">
+            <h3 class="text-xl font-bold text-[#E6EB9C]">Masukkan Data</h3>
+            <p class="text-xl italic font-bold text-[#E6EB9C]">Kepala Dinas</p>
+        </div>
+
+        <form action="{{ route('admin.blank-spot.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 ">
+            @csrf
+            <input type="hidden" name="kabupaten_id" value="{{ $kabupaten->id }}">
+
+            <!-- SCROLLABLE FORM BODY -->
+            <!-- Tanggal -->
+             <div class="space-y-4">
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        Tanggal <span class="text-red-400">*</span>
+    </label>
+    <input type="date" name="tanggal" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+
+<!-- Lokasi -->
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        Lokasi <span class="text-red-400">*</span>
+    </label>
+    <input type="text" name="lokasi"
+        placeholder="Masukkan lokasi" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+<!-- Nomenklatur Dinas KOMINFO -->
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        Nomenklatur Dinas KOMINFO <span class="text-red-400">*</span>
+    </label>
+    <input type="text" name="nomenklatur"
+        placeholder="Masukkan nomenklatur" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+<!-- Nama Kepala Dinas -->
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        Nama Kepala Dinas <span class="text-red-400">*</span>
+    </label>
+    <input type="text" name="kepala_dinas"
+        placeholder="Masukkan nama kepala dinas" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+<!-- Pangkat / Gol -->
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        Pangkat / Gol <span class="text-red-400">*</span>
+    </label>
+    <input type="text" name="pangkat"
+        placeholder="Contoh: IV/a" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+<!-- NIP -->
+<div>
+    <label class="block text-white font-semibold mb-1 text-sm">
+        NIP <span class="text-red-400">*</span>
+    </label>
+    <input type="text" name="nip"
+        placeholder="Masukkan NIP" required
+        class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
+</div>
+
+            <!-- BUTTON ACTIONS (FIXED AT BOTTOM OF MODAL) -->
+            <div class="flex justify-end gap-3 pt-3 shrink-0 border-t border-white/10 mt-2">
+                <button type="button" onclick="closeDownloadModal()" class="bg-white text-red-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm transition">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-white text-[#234B26] font-bold px-4 py-2 rounded-lg hover:bg-gray-200 text-sm transition">
+                    Tambahkan
+                </button>
+            </div>
+</div>
+        </form>
+
+    </div>
+</div>
 
 </section>
 
@@ -468,6 +564,38 @@ function filterGeospatial() {
             btn.disabled = false;
         });
 }
+
+function openDownloadModal() {
+    const modal = document.getElementById("downloadModal");
+    const content = document.getElementById("downloadModalContent");
+
+    modal.classList.remove("hidden");
+
+    setTimeout(() => {
+        modal.classList.remove("opacity-0");
+        content.classList.remove("scale-95");
+        content.classList.add("scale-100");
+    }, 10);
+}
+
+function closeDownloadModal() {
+    const modal = document.getElementById("downloadModal");
+    const content = document.getElementById("downloadModalContent");
+
+    modal.classList.add("opacity-0");
+    content.classList.remove("scale-100");
+    content.classList.add("scale-95");
+
+    setTimeout(() => {
+        modal.classList.add("hidden");
+    }, 300);
+}
+
+document.getElementById("downloadModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        closeDownloadModal();
+    }
+});
 </script>
 
 @endsection

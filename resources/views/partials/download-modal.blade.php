@@ -24,7 +24,7 @@
                     <label class="block text-white font-semibold mb-1 text-sm">
                         Tanggal <span class="text-red-400">*</span>
                     </label>
-                    <input type="date" name="tanggal" required value="{{ date('Y-m-d') }}"
+                    <input type="text" name="tanggal" value="{{ date('d/m/Y') }}" readonly
                         class="w-full bg-white text-[#234B26] px-3 py-2.5 rounded-xl text-sm outline-none border border-transparent focus:border-white/30">
                 </div>
 

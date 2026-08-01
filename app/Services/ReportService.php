@@ -166,10 +166,24 @@ class ReportService
         $tanggalRaw = $extra['tanggal'] ?? null;
         $nipRaw = $extra['nip'] ?? ($extra['nip_pejabat'] ?? null);
 
+        // Parse date for DB insertion safely
+        $tanggalDb = date('Y-m-d');
+        if (!empty($tanggalRaw)) {
+            try {
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tanggalRaw)) {
+                    $tanggalDb = \Carbon\Carbon::createFromFormat('d/m/Y', $tanggalRaw)->format('Y-m-d');
+                } else {
+                    $tanggalDb = \Carbon\Carbon::parse($tanggalRaw)->format('Y-m-d');
+                }
+            } catch (\Exception $e) {
+                $tanggalDb = date('Y-m-d');
+            }
+        }
+
         // If modal input provided, save to database
         if (!empty($lokasi) || !empty($namaKepalaDinas) || !empty($nomenklatur)) {
             \App\Models\KepalaDinas::create([
-                'tanggal'           => $tanggalRaw ?: date('Y-m-d'),
+                'tanggal'           => $tanggalDb,
                 'lokasi'            => $lokasi,
                 'nomenklatur_dinas' => $nomenklatur,
                 'nama_kepala_dinas' => $namaKepalaDinas,
@@ -229,7 +243,11 @@ class ReportService
 
         if (!empty($tanggalRaw)) {
             try {
-                $carbonDate = \Carbon\Carbon::parse($tanggalRaw);
+                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tanggalRaw)) {
+                    $carbonDate = \Carbon\Carbon::createFromFormat('d/m/Y', $tanggalRaw);
+                } else {
+                    $carbonDate = \Carbon\Carbon::parse($tanggalRaw);
+                }
                 $tanggalCetak = $carbonDate->format('j') . ' ' . $bulanIndo[(int)$carbonDate->format('n')] . ' ' . $carbonDate->format('Y');
             } catch (\Exception $e) {
                 $tanggalCetak = date('j') . ' ' . $bulanIndo[(int)date('n')] . ' ' . date('Y');
